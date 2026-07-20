@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSS — Anda Sedang Offline</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; padding: 20px; }
+    .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 24px; max-width: 400px; backdrop-filter: blur(10px); }
+    h1 { color: #fdb813; font-size: 24px; margin-bottom: 12px; }
+    p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
+    .btn { display: inline-block; margin-top: 20px; background: #fdb813; color: #09090b; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Koneksi Internet Terputus</h1>
+    <p>Aplikasi JSS membutuhkan koneksi internet untuk memperbarui data & lokasi navigasi. Silakan periksa koneksi internet Anda.</p>
+    <a href="/" class="btn" onclick="window.location.reload(); return false;">Coba Lagi</a>
+  </div>
+</body>
+</html>

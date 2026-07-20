@@ -1,0 +1,228 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   JSS DESIGN SYSTEM — Global Styles
+   ============================================ */
+
+@layer base {
+  :root {
+    --radius: 14px;
+    --radius-card: 18px;
+  }
+
+  * {
+    border-color: #E8E8E8;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-secondary-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-secondary-400;
+  }
+}
+
+@layer components {
+  /* Glassmorphism card */
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/80 border border-white/40 shadow-soft;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+  }
+
+  .glass-card-dark {
+    @apply backdrop-blur-2xl bg-secondary-900/85 border border-white/10 shadow-soft-xl;
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.4);
+  }
+
+  .glass-orange {
+    @apply backdrop-blur-xl bg-primary/10 border border-primary/20 shadow-golden;
+  }
+
+  /* Premium gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #FDB813 0%, #FF6B35 50%, #FDB813 100%);
+  }
+
+  .gradient-text-dark {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #111111 0%, #3D3D3D 100%);
+  }
+
+  /* Premium button styles */
+  .btn-primary {
+    @apply relative overflow-hidden bg-primary text-secondary-900 font-semibold
+           rounded-button px-6 py-3 transition-all duration-300
+           hover:shadow-golden hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-primary::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent
+           -translate-x-full transition-transform duration-500;
+  }
+
+  .btn-primary:hover::after {
+    @apply translate-x-full;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-900 text-white font-semibold
+           rounded-button px-6 py-3 transition-all duration-300
+           hover:bg-secondary-800 hover:shadow-soft-lg hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-outline {
+    @apply border-2 border-secondary-900 text-secondary-900 font-semibold
+           rounded-button px-6 py-3 transition-all duration-300
+           hover:bg-secondary-900 hover:text-white hover:-translate-y-0.5;
+  }
+
+  /* Card variants */
+  .card-premium {
+    @apply bg-white rounded-card shadow-soft transition-all duration-300
+           hover:shadow-soft-lg hover:-translate-y-1;
+  }
+
+  .card-golden {
+    @apply bg-gradient-to-br from-primary-50 to-primary-100 rounded-card
+           shadow-soft border border-primary-200/50 transition-all duration-300
+           hover:shadow-golden hover:-translate-y-1;
+  }
+
+  /* Section spacing */
+  .section-padding {
+    @apply py-16 md:py-24 lg:py-32;
+  }
+
+  .container-padding {
+    @apply px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply relative overflow-hidden bg-secondary-100 rounded-lg;
+  }
+
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 animate-shimmer;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    background-size: 200% 100%;
+  }
+
+  /* Floating label input */
+  .input-premium {
+    @apply w-full px-4 py-3.5 bg-white border border-secondary-200 rounded-button
+           text-secondary-900 placeholder:text-secondary-400
+           focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary
+           transition-all duration-300;
+  }
+
+  /* Badge styles */
+  .badge-status {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full;
+  }
+
+  .badge-pending {
+    @apply badge-status bg-amber-100 text-amber-700;
+  }
+
+  .badge-active {
+    @apply badge-status bg-blue-100 text-blue-700;
+  }
+
+  .badge-completed {
+    @apply badge-status bg-emerald-100 text-emerald-700;
+  }
+
+  .badge-cancelled {
+    @apply badge-status bg-red-100 text-red-700;
+  }
+}
+
+@layer utilities {
+  /* Text balance for headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Gradient border */
+  .gradient-border {
+    position: relative;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, #FDB813, #FF6B35);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Hide scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Leaflet custom marker animations */
+  @keyframes marker-drop {
+    0% {
+      transform: translateY(-40px);
+      opacity: 0;
+    }
+    60% {
+      transform: translateY(10px);
+    }
+    80% {
+      transform: translateY(-5px);
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .custom-leaflet-icon svg {
+    animation: marker-drop 0.4s ease-out forwards;
+  }
+}

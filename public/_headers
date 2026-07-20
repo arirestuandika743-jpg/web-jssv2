@@ -1,0 +1,27 @@
+# Cloudflare Edge Headers & Security Configuration
+# Jasa Suruh Kalirejo (JSS)
+
+/*
+  X-DNS-Prefetch-Control: off
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(self)
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://unpkg.com https://router.project-osrm.org; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-ancestors 'none';
+
+# Static Assets Caching at Cloudflare Edge
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Cloudflare-Cache: HIT
+
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Cloudflare-Cache: HIT
+
+/images/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/favicon.ico
+  Cache-Control: public, max-age=86400

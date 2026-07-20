@@ -1,0 +1,1444 @@
+'use client';
+
+import { useState, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  User,
+  Phone,
+  MapPin,
+  Navigation,
+  ShoppingBag,
+  UtensilsCrossed,
+  Pill,
+  FileText,
+  Package,
+  MoreHorizontal,
+  Camera,
+  StickyNote,
+  Banknote,
+  QrCode,
+  Building2,
+  MessageCircle,
+  Calculator,
+  ArrowRight,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Truck,
+  Trash2,
+  Plus,
+  CloudRain,
+  Clock,
+  Bike,
+  Car,
+  Compass,
+  Maximize2,
+  Ruler,
+  Shield,
+  HelpCircle,
+  Percent,
+  Check,
+  Calendar,
+  AlertTriangle
+} from 'lucide-react';
+import { ORDER_CATEGORIES, PAYMENT_METHODS, BRAND, MAP_CENTER } from '@/lib/constants';
+import dynamic from 'next/dynamic';
+import { formatCurrency, formatDistance, formatDuration, cn } from '@/lib/utils';
+import { usePriceCalculation } from '@/hooks/usePriceCalculation';
+import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, type DetailedAddress } from '@/services/maps';
+import { AddressAutocomplete } from './AddressAutocomplete';
+import type { OrderCategory, PaymentMethod, LatLng, ShoppingItem } from '@/types';
+
+const OrderMapPreview = dynamic(
+  () => import('./OrderMapPreview').then((mod) => mod.OrderMapPreview),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-64 rounded-2xl bg-secondary-100 animate-pulse flex items-center justify-center text-xs text-secondary-400 font-bold">
+        Memuat Peta Navigasi...
+      </div>
+    ),
+  }
+);
+import { PageTransition, FadeIn } from '@/components/layout/PageTransition';
+import { useAuth } from '@/context/AuthContext';
+import { dbService } from '@/services/db';
+import { toast } from 'sonner';
+
+const LOCATION_TYPES = [
+  { value: 'Rumah', label: 'Rumah', icon: '🏠' },
+  { value: 'Kantor', label: 'Kantor', icon: '🏢' },
+  { value: 'Sekolah', label: 'Sekolah', icon: '🏫' },
+  { value: 'Rumah Sakit', label: 'Rumah Sakit', icon: '🏥' },
+  { value: 'Apotek', label: 'Apotek', icon: '💊' },
+  { value: 'Masjid', label: 'Masjid', icon: '🕌' },
+  { value: 'Gereja', label: 'Gereja', icon: '⛪' },
+  { value: 'Toko', label: 'Toko', icon: '🏪' },
+  { value: 'Minimarket', label: 'Minimarket', icon: '🛒' },
+  { value: 'Mall', label: 'Mall', icon: '🏬' },
+  { value: 'Restoran', label: 'Restoran', icon: '🍽' },
+  { value: 'Cafe', label: 'Cafe', icon: '☕' },
+  { value: 'Bank', label: 'Bank', icon: '🏦' },
+  { value: 'Hotel', label: 'Hotel', icon: '🏨' },
+  { value: 'Pabrik', label: 'Pabrik', icon: '🏭' },
+  { value: 'Gudang', label: 'Gudang', icon: '📦' },
+  { value: 'Terminal', label: 'Terminal', icon: '🚏' },
+  { value: 'Stasiun', label: 'Stasiun', icon: '🚉' },
+  { value: 'Bandara', label: 'Bandara', icon: '🛫' },
+  { value: 'Lainnya', label: 'Lainnya', icon: '📍' },
+];
+
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+  ShoppingBag,
+  UtensilsCrossed,
+  Pill,
+  FileText,
+  Package,
+  MoreHorizontal,
+  Bike,
+  Car,
+  Truck,
+};
+
+const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Banknote,
+  QrCode,
+  Building2,
+};
+
+const renderDetailedAddress = (details: DetailedAddress | null) => {
+  if (!details) return null;
+  return (
+    <div className="bg-secondary-50/50 p-3 border border-secondary-100 rounded-2xl text-xs space-y-1 mt-1.5 text-left">
+      {details.name && (
+        <div className="flex items-start gap-1.5 font-bold text-secondary-800">
+          <span>📍</span>
+          <span>{details.name}</span>
+        </div>
+      )}
+      {details.road && (
+        <div className="flex items-start gap-1.5 text-secondary-600">
+          <span>🏠</span>
+          <span>{details.road}</span>
+        </div>
+      )}
+      {details.village && (
+        <div className="flex items-start gap-1.5 text-secondary-600">
+          <span>🏘</span>
+          <span>{details.village}</span>
+        </div>
+      )}
+      {details.subdistrict && (
+        <div className="flex items-start gap-1.5 text-secondary-600">
+          <span>📌</span>
+          <span>{details.subdistrict.startsWith('Kecamatan') ? details.subdistrict : `Kecamatan ${details.subdistrict}`}</span>
+        </div>
+      )}
+      {details.county && (
+        <div className="flex items-start gap-1.5 text-secondary-600 font-semibold">
+          <span>🏙</span>
+          <span>{details.county}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export function OrderForm() {
+  const { user } = useAuth();
+
+  // 1. Basic Form State
+  const [customerName, setCustomerName] = useState(user?.name || '');
+  const [whatsappNumber, setWhatsappNumber] = useState(user?.phone || '');
+  
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [pickupCoords, setPickupCoords] = useState<LatLng | null>(null);
+
+  const [destinationAddress, setDestinationAddress] = useState('');
+  const [destinationCoords, setDestinationCoords] = useState<LatLng | null>(null);
+
+  const [category, setCategory] = useState<OrderCategory | ''>('ride'); // Default Ojek
+  const [description, setDescription] = useState('');
+  const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  // 2. Logistics & Price Additions
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([
+    { id: '1', name: '', quantity: 1, estimatedPrice: 0, notes: '' }
+  ]);
+  const [weightRange, setWeightRange] = useState<string>('0-2'); // logistics weight or Ojek weight
+  const [waitingMinutes, setWaitingMinutes] = useState<number>(0);
+  const [hasRain, setHasRain] = useState<boolean>(false);
+  const [hasHoliday, setHasHoliday] = useState<boolean>(false);
+  const [hasPeakHour, setHasPeakHour] = useState<boolean>(false);
+  const [hasInsurance, setHasInsurance] = useState<boolean>(true);
+  const [promoCodeInput, setPromoCodeInput] = useState<string>('');
+  const [appliedPromo, setAppliedPromo] = useState<string>('');
+  const [routeOption, setRouteOption] = useState<'fastest' | 'shortest' | 'motorcycle'>('fastest');
+
+  // Ojek specifics
+  const [passengerCount, setPassengerCount] = useState<number>(1);
+  const [ojekHelmet, setOjekHelmet] = useState<'need' | 'own'>('need');
+  const [ojekRoundTrip, setOjekRoundTrip] = useState<boolean>(false);
+
+  // Layout & Navigation State
+  const [isMobile, setIsMobile] = useState(false);
+  const [sheetExpanded, setSheetExpanded] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Active marker type for map clicks
+  const [activeMarkerType, setActiveMarkerType] = useState<'pickup' | 'destination'>('pickup');
+
+  // Location geofencing & detailed states
+  const [pickupDetails, setPickupDetails] = useState<DetailedAddress | null>(null);
+  const [destinationDetails, setDestinationDetails] = useState<DetailedAddress | null>(null);
+  const [pickupLocationType, setPickupLocationType] = useState<string>('Rumah');
+  const [pickupLandmark, setPickupLandmark] = useState<string>('');
+  const [pickupPhotoUrl, setPickupPhotoUrl] = useState<string | null>(null);
+  const [isUploadingPickupPhoto, setIsUploadingPickupPhoto] = useState(false);
+
+  const [isLocating, setIsLocating] = useState(false);
+  const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [createdOrderNumber, setCreatedOrderNumber] = useState<string>('');
+
+  // Auto-detect Peak Hour (17.00 - 19.00)
+  useEffect(() => {
+    const hours = new Date().getHours();
+    if (hours >= 17 && hours <= 19) {
+      setHasPeakHour(true);
+    }
+  }, []);
+
+  // Detect responsive screen
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (!mobile) setSheetExpanded(true);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Price Calculation Hook
+  const { pricing, isCalculating, calculate, routeCoordinates } = usePriceCalculation();
+
+  const isPickupOutside = pickupCoords ? !isWithinLampung(pickupCoords.lat, pickupCoords.lng) : false;
+  const isDestOutside = destinationCoords ? !isWithinLampung(destinationCoords.lat, destinationCoords.lng) : false;
+  const isOutsideLampung = isPickupOutside || isDestOutside;
+
+  // Shopping Calculations
+  const validShoppingItems = shoppingItems.filter(item => item.name.trim() !== '');
+  const totalItemPrice = validShoppingItems.reduce(
+    (sum, item) => sum + (item.estimatedPrice * item.quantity),
+    0
+  );
+  const totalItemCount = validShoppingItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Recalculate price dynamically when inputs alter
+  useEffect(() => {
+    if (pickupCoords && destinationCoords && !isOutsideLampung) {
+      calculate(pickupCoords, destinationCoords, totalItemPrice, {
+        category: category || undefined,
+        weightRange,
+        itemCount: totalItemCount,
+        hasRain,
+        waitingMinutes,
+        hasHoliday,
+        hasPeakHour,
+        hasInsurance,
+        promoCode: appliedPromo || undefined,
+        isRoundTrip: category === 'ride' ? ojekRoundTrip : false,
+      });
+    }
+  }, [
+    pickupCoords,
+    destinationCoords,
+    totalItemPrice,
+    category,
+    weightRange,
+    totalItemCount,
+    hasRain,
+    waitingMinutes,
+    isOutsideLampung,
+    hasHoliday,
+    hasPeakHour,
+    hasInsurance,
+    appliedPromo,
+    ojekRoundTrip,
+    calculate
+  ]);
+
+  // Geocoding Coordinates handlers
+  const handlePickupCoordsChange = async (coords: LatLng) => {
+    setPickupCoords(coords);
+    setIsReverseGeocoding(true);
+    toast.info('Mencari alamat lokasi jemput...');
+    try {
+      const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
+      if (data) {
+        const details = parseNominatimAddress(data);
+        setPickupDetails(details);
+        setPickupAddress(details.displayName);
+        setErrors((prev) => {
+          const copy = { ...prev };
+          delete copy.pickupAddress;
+          return copy;
+        });
+        toast.success('Lokasi jemput diperbarui dari pin peta');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal memproses alamat koordinat jemput');
+    } finally {
+      setIsReverseGeocoding(false);
+    }
+  };
+
+  const handleDestinationCoordsChange = async (coords: LatLng) => {
+    setDestinationCoords(coords);
+    setIsReverseGeocoding(true);
+    toast.info('Mencari alamat lokasi tujuan...');
+    try {
+      const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
+      if (data) {
+        const details = parseNominatimAddress(data);
+        setDestinationDetails(details);
+        setDestinationAddress(details.displayName);
+        setErrors((prev) => {
+          const copy = { ...prev };
+          delete copy.destinationAddress;
+          return copy;
+        });
+        toast.success('Lokasi tujuan diperbarui dari pin peta');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal memproses alamat koordinat tujuan');
+    } finally {
+      setIsReverseGeocoding(false);
+    }
+  };
+
+  // Get User Current Location
+  const handleGetLocation = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      toast.error('Browser Anda tidak mendukung layanan lokasi GPS.');
+      return;
+    }
+    setIsLocating(true);
+    toast.info('Mencari koordinat GPS Anda...');
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+        setPickupCoords(coords);
+        try {
+          const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
+          if (data) {
+            const details = parseNominatimAddress(data);
+            setPickupDetails(details);
+            setPickupAddress(details.displayName);
+            toast.success('Lokasi jemput berhasil disesuaikan dengan GPS!');
+          }
+        } catch (err) {
+          console.error(err);
+          setPickupAddress(`Lokasi GPS (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`);
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        console.error('GPS error:', error);
+        toast.error('Izin lokasi ditolak atau sinyal GPS lemah.');
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
+
+  // Photo uploads
+  const handleLocationPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingPickupPhoto(true);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setPickupPhotoUrl(ev.target?.result as string);
+      setIsUploadingPickupPhoto(false);
+      toast.success('Foto lokasi terunggah!');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleResetLocations = () => {
+    setPickupAddress('');
+    setPickupCoords(null);
+    setPickupDetails(null);
+    setDestinationAddress('');
+    setDestinationCoords(null);
+    setDestinationDetails(null);
+    setErrors({});
+    toast.info('Titik rute direset');
+  };
+
+  // Shopping List item controls
+  const addShoppingItem = () => {
+    setShoppingItems([...shoppingItems, { id: Date.now().toString(), name: '', quantity: 1, estimatedPrice: 0 }]);
+  };
+
+  const removeShoppingItem = (id: string) => {
+    if (shoppingItems.length > 1) {
+      setShoppingItems(shoppingItems.filter(item => item.id !== id));
+    }
+  };
+
+  const updateShoppingItem = (id: string, field: keyof ShoppingItem, value: any) => {
+    setShoppingItems(
+      shoppingItems.map(item => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  // Apply code promo action
+  const handleApplyPromo = () => {
+    const code = promoCodeInput.trim().toUpperCase();
+    if (!code) {
+      setAppliedPromo('');
+      toast.info('Kode promo dikosongkan.');
+      return;
+    }
+
+    if (['JSSPERDANA', 'DISKON30', 'DISKON50'].includes(code)) {
+      setAppliedPromo(code);
+      toast.success(`Kode promo "${code}" berhasil diterapkan!`);
+    } else {
+      toast.error('Kode promo tidak valid atau sudah kedaluwarsa.');
+    }
+  };
+
+  // Form inputs validation
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!customerName.trim()) newErrors.customerName = 'Nama lengkap wajib diisi';
+    if (!whatsappNumber.trim()) newErrors.whatsappNumber = 'Nomor WhatsApp wajib diisi';
+    else if (!/^(\+?62|0)8\d{8,11}$/.test(whatsappNumber.replace(/\s/g, '')))
+      newErrors.whatsappNumber = 'Format nomor HP tidak valid';
+
+    if (!pickupAddress.trim()) newErrors.pickupAddress = 'Alamat jemput wajib diisi';
+    if (!destinationAddress.trim()) newErrors.destinationAddress = 'Alamat tujuan wajib diisi';
+    if (!category) newErrors.category = 'Pilih kategori pesanan';
+
+    if (isOutsideLampung) {
+      newErrors.geofence = 'Layanan JSS saat ini hanya beroperasi di Provinsi Lampung.';
+    }
+
+    if (category === 'ride') {
+      // Ojek validations
+    } else if (['shopping', 'food', 'medicine'].includes(category)) {
+      if (validShoppingItems.length === 0) {
+        newErrors.shoppingItems = 'Harap isi minimal 1 barang belanjaan';
+      }
+    } else {
+      if (!description.trim()) newErrors.description = 'Deskripsi barang/kegiatan wajib diisi';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Booking submit WhatsApp dispatch
+  const handleConfirmSubmit = async () => {
+    setIsSubmitting(true);
+    setShowConfirmModal(false);
+
+    // Build description
+    let finalDescription = description;
+    if (category === 'ride') {
+      finalDescription = `🛵 OJEK (ANTAR ORANG)\nPenumpang: ${passengerCount} Orang\nBerat Penumpang: ${weightRange === '<80' ? '<80 kg' : weightRange === '80-120' ? '80-120 kg' : '120 kg+'}\nHelm: ${ojekHelmet === 'need' ? 'Butuh Helm' : 'Bawa Helm Sendiri'}\nPulang Pergi: ${ojekRoundTrip ? 'Ya (Pulang Pergi)' : 'Tidak'}`;
+    } else if (['shopping', 'food', 'medicine'].includes(category)) {
+      finalDescription = 'Daftar Belanjaan:\n' + validShoppingItems
+        .map((item, idx) => `${idx + 1}. ${item.name} (${item.quantity}x) Catatan: ${item.notes || '-'}`)
+        .join('\n');
+    }
+
+    let createdOrder;
+    try {
+      const notesToUse = category === 'ride' ? deliveryNotes : deliveryNotes;
+      const finalDeliveryNotes = `${notesToUse || ''}\n\n[Rincian Tambahan]\nJenis Lokasi: ${pickupLocationType}\nPatokan: ${pickupLandmark || '-'}\nHelm: ${ojekHelmet === 'need' ? 'Butuh' : 'Bawa Sendiri'}\nRoundTrip: ${ojekRoundTrip ? 'Ya' : 'Tidak'}`;
+
+      createdOrder = await dbService.createOrder(
+        {
+          customerName,
+          whatsappNumber,
+          pickupAddress,
+          pickupCoordinates: pickupCoords || undefined,
+          destinationAddress,
+          destinationCoordinates: destinationCoords || undefined,
+          category: category as any,
+          description: finalDescription,
+          photoUrl: photoPreview || undefined,
+          estimatedItemPrice: category === 'ride' ? 0 : totalItemPrice,
+          deliveryNotes: finalDeliveryNotes,
+          paymentMethod,
+        },
+        {
+          distance: pricing?.distance || 0,
+          duration: pricing?.duration || 0,
+          totalDeliveryFee: pricing?.totalDeliveryFee || 0,
+          grandTotal: pricing?.grandTotal || 0,
+        },
+        user?.id
+      );
+      if (createdOrder) {
+        setCreatedOrderNumber(createdOrder.orderNumber);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal menyimpan pemesanan ke database');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Build Whatsapp message
+    const distText = pricing ? formatDistance(pricing.distance) : 'Belum dihitung';
+    const durationText = pricing ? formatDuration(pricing.duration) : 'Belum dihitung';
+    const driverPickupEta = Math.round(5 + (pricing?.distance || 1000) / 1500); // Simulated driver arrival ETA based on pickup coords
+    const routeOptionLabel = routeOption === 'fastest' ? 'Rute Tercepat' : routeOption === 'shortest' ? 'Rute Terpendek' : 'Rute Motor';
+    const categoryLabel = ORDER_CATEGORIES.find(c => c.id === category)?.label || category;
+    const paymentMethodLabel = PAYMENT_METHODS.find(p => p.id === paymentMethod)?.label || paymentMethod;
+
+    let additionalText = '';
+    if (category === 'ride') {
+      additionalText = `  - Jumlah Penumpang: ${passengerCount} Orang
+  - Helm: ${ojekHelmet === 'need' ? 'Butuh Helm Admin' : 'Bawa Helm Sendiri'}
+  - Pulang Pergi: ${ojekRoundTrip ? 'Ya (+Biaya Tambahan)' : 'Tidak'}`;
+    } else {
+      additionalText = `  - Estimasi Berat Barang: ${weightRange} kg
+  - Jumlah Jenis Barang: ${totalItemCount} pcs`;
+    }
+
+    const itemizedFees = pricing ? `
+  - Biaya Dasar (Base): ${formatCurrency(pricing.baseFee)}
+  - Biaya Jarak Tempuh: ${formatCurrency(pricing.distanceFee)}
+  ${pricing.serviceFee && pricing.serviceFee > 0 ? `  - Biaya Layanan Sistem: ${formatCurrency(pricing.serviceFee)}\n` : ''}  - Asuransi Layanan: ${formatCurrency(pricing.insuranceFee || 0)}
+  ${pricing.isRoundTrip && pricing.roundTripFee && pricing.roundTripFee > 0 ? `  - Layanan Pulang Pergi (PP 2x Tarif): +${formatCurrency(pricing.roundTripFee)}\n` : ''}${pricing.waitingFee > 0 ? `  - Biaya Tunggu: ${formatCurrency(pricing.waitingFee)}\n` : ''}${pricing.rainFee > 0 ? `  - Surcharge Hujan: ${formatCurrency(pricing.rainFee)}\n` : ''}${pricing.holidayFee && pricing.holidayFee > 0 ? `  - Surcharge Hari Libur: ${formatCurrency(pricing.holidayFee)}\n` : ''}${pricing.peakHourFee && pricing.peakHourFee > 0 ? `  - Surcharge Jam Sibuk: ${formatCurrency(pricing.peakHourFee)}\n` : ''}${pricing.weightFee > 0 ? `  - Surcharge Berat Paket: ${formatCurrency(pricing.weightFee)}\n` : ''}${pricing.shoppingFee > 0 ? `  - Biaya Jasa Titip Belanja: ${formatCurrency(pricing.shoppingFee)}\n` : ''}${pricing.promoDiscount && pricing.promoDiscount > 0 ? `  - Diskon Promo (${appliedPromo}): -${formatCurrency(pricing.promoDiscount)}\n` : ''}` : '';
+
+    const osmLink = pickupCoords && destinationCoords 
+      ? `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${pickupCoords.lat}%2C${pickupCoords.lng}%3B${destinationCoords.lat}%2C${destinationCoords.lng}`
+      : '';
+
+    const rawMessage = `*JASA SURUH KALIREJO (JSS)*
+=========================
+*Rincian Booking Baru (${createdOrder?.orderNumber || 'JSS-NEW'})*
+
+👤 *Pelanggan:* ${customerName}
+📞 *No. WhatsApp:* ${whatsappNumber}
+🛵 *Layanan:* ${categoryLabel}
+
+📍 *Titik Jemput (${pickupLocationType}):*
+${pickupAddress}
+${pickupLandmark ? `_Patokan: ${pickupLandmark}_` : ''}
+
+🏁 *Titik Tujuan:*
+${destinationAddress}
+
+⚙️ *Detail Perjalanan:*
+🚗 Jarak Rute: ${distText}
+⏱️ Waktu Tempuh: ${durationText}
+⏱️ ETA Driver Jemput: ~${driverPickupEta} menit
+🛵 Profil Rute: ${routeOptionLabel}
+
+➕ *Detail Tambahan:*
+${additionalText}
+
+💳 *Rincian Tarif:*${itemizedFees}-------------------------
+💰 *GRAND TOTAL:* ${pricing ? formatCurrency(pricing.grandTotal) : 'Belum dihitung'}
+💵 *Metode Pembayaran:* ${paymentMethodLabel}
+
+🗺️ *Tautan Peta Rute:*
+${osmLink}`;
+
+    const encodedMessage = encodeURIComponent(rawMessage);
+    const whatsappUrl = `https://wa.me/${BRAND.phone}?text=${encodedMessage}`;
+
+    setIsSubmitted(true);
+    setIsSubmitting(false);
+
+    // Open WhatsApp after small timeout
+    setTimeout(() => {
+      window.open(whatsappUrl, '_blank');
+    }, 1000);
+  };
+
+  const handleOpenConfirm = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) {
+      toast.error('Harap lengkapi isian form yang wajib');
+      return;
+    }
+    setShowConfirmModal(true);
+  };
+
+  const isRideFormValid = 
+    customerName.trim() !== '' &&
+    whatsappNumber.trim() !== '' &&
+    pickupCoords !== null &&
+    pickupAddress.trim() !== '' &&
+    destinationCoords !== null &&
+    destinationAddress.trim() !== '';
+
+  const isSubmitDisabled = !!(category === 'ride'
+    ? !isRideFormValid || isCalculating || isOutsideLampung
+    : isCalculating || isOutsideLampung || !pickupCoords || !destinationCoords || !category);
+
+  // Success dispatch layout
+  if (isSubmitted) {
+    return (
+      <div className="pt-32 pb-24 max-w-md mx-auto text-center px-6">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white rounded-card p-8 border border-secondary-100 shadow-soft-xl"
+        >
+          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check className="w-8 h-8 text-emerald-600 stroke-[3]" />
+          </div>
+          <h2 className="text-2xl font-extrabold text-secondary-900 mb-2 font-outfit">Pemesanan Terkirim! 🚀</h2>
+          <p className="text-xs text-secondary-500 mb-6 leading-relaxed">
+            Pesanan Anda (No: <strong className="text-secondary-900">{createdOrderNumber}</strong>) sedang dialihkan ke WhatsApp untuk alokasi driver logistik terdekat.
+          </p>
+          <div className="space-y-2">
+            <a
+              href={`https://wa.me/${BRAND.phone}`}
+              target="_blank"
+              className="btn-primary w-full flex items-center justify-center gap-2 py-3.5"
+            >
+              <MessageCircle className="w-5 h-5" />
+              Kirim Manual ke WhatsApp
+            </a>
+            <button
+              onClick={() => setIsSubmitted(false)}
+              className="w-full text-xs font-bold text-secondary-500 hover:text-secondary-800 py-2.5 transition-colors"
+            >
+              Pesan Layanan Lain
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Weather dynamic calculations
+  const localWeatherText = hasRain 
+    ? '⛈️ Badai Hujan (Waspada jalan licin & tarif cuaca buruk)' 
+    : '⛅ Cerah Berawan (Kondisi lalu lintas terpantau lancar)';
+
+  const weatherAlertVisible = hasRain;
+
+  return (
+    <PageTransition>
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-80px)] pt-16 bg-background">
+        
+        {/* LEFT PANEL: Booking Controls & Inputs */}
+        <div className={cn(
+          "w-full lg:w-[480px] lg:flex-shrink-0 bg-white border-r border-secondary-150 flex flex-col z-10 shadow-soft-lg transition-all",
+          isMobile ? "relative overflow-y-auto" : "h-[calc(100vh-80px)] overflow-y-auto"
+        )}>
+          <div className="p-6 md:p-8 space-y-6">
+            
+            {/* Header info */}
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary-700 text-[10px] font-extrabold uppercase rounded-full mb-3 tracking-wider">
+                <Truck className="w-3.5 h-3.5" /> Platform Premium JSS
+              </span>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-secondary-900 tracking-tight font-outfit">
+                Pesan <span className="gradient-text font-black">Layanan JSS</span>
+              </h1>
+              <p className="text-xs text-secondary-400 mt-1">
+                Layanan antar-jemput dan logistik kurir terpercaya Provinsi Lampung.
+              </p>
+            </div>
+
+            {/* Weather status notification */}
+            <div className={cn(
+              "p-3.5 rounded-2xl border text-xs space-y-1 transition-all flex items-start gap-3 shadow-sm",
+              hasRain 
+                ? "bg-blue-50/50 border-blue-200 text-blue-900 animate-pulse" 
+                : "bg-amber-50/20 border-amber-200/50 text-secondary-800"
+            )}>
+              <CloudRain className={cn("w-5 h-5 mt-0.5", hasRain ? "text-blue-500 animate-bounce" : "text-amber-500")} />
+              <div>
+                <p className="font-extrabold tracking-tight font-outfit">Kondisi Cuaca Kalirejo</p>
+                <p className="text-[11px] text-secondary-500 leading-relaxed mt-0.5">{localWeatherText}</p>
+                {weatherAlertVisible && (
+                  <div className="mt-1.5 p-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-[10px] text-blue-700 flex items-center gap-1.5 font-semibold">
+                    <AlertTriangle className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
+                    Warning: Tambahan Surcharge Hujan Aktif (+Rp3.000)
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleOpenConfirm} className="space-y-5">
+              
+              {/* Profile/Customer name */}
+              <div className="space-y-4 bg-secondary-50/40 p-4 border border-secondary-100 rounded-2xl">
+                <h3 className="text-sm font-bold text-secondary-900 flex items-center gap-2 font-outfit">
+                  <User className="w-4 h-4 text-primary" />
+                  Pemesanan Akun
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-[10px] font-bold text-secondary-500 uppercase tracking-wider mb-1">Nama Lengkap *</label>
+                    <input
+                      type="text"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="Nama Pelanggan"
+                      className="input-premium py-2.5 text-xs rounded-xl bg-white"
+                    />
+                    {errors.customerName && <p className="text-[10px] text-red-500 mt-0.5 font-medium">{errors.customerName}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-secondary-500 uppercase tracking-wider mb-1">No. WhatsApp *</label>
+                    <input
+                      type="tel"
+                      value={whatsappNumber}
+                      onChange={(e) => setWhatsappNumber(e.target.value)}
+                      placeholder="08xxxxxxxxxx"
+                      className="input-premium py-2.5 text-xs rounded-xl bg-white"
+                    />
+                    {errors.whatsappNumber && <p className="text-[10px] text-red-500 mt-0.5 font-medium">{errors.whatsappNumber}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Rute / Addresses */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-secondary-900 flex items-center gap-2 font-outfit">
+                    <MapPin className="w-4 h-4 text-primary" />
+                    Rute Perjalanan
+                  </h3>
+                  {(pickupCoords || destinationCoords) && (
+                    <button
+                      type="button"
+                      onClick={handleResetLocations}
+                      className="text-[10px] font-bold text-red-500 hover:underline"
+                    >
+                      Reset Rute
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-3.5">
+                  <AddressAutocomplete
+                    label="Lokasi Jemput *"
+                    placeholder="Masukkan alamat jemput..."
+                    value={pickupAddress}
+                    onChange={(address, coords, details) => {
+                      setPickupAddress(address);
+                      setPickupCoords(coords);
+                      if (details) setPickupDetails(parseNominatimAddress(details));
+                      setErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.pickupAddress;
+                        return copy;
+                      });
+                    }}
+                    error={errors.pickupAddress || (isPickupOutside ? 'Titik jemput di luar Lampung!' : undefined)}
+                    icon={<MapPin className="w-4.5 h-4.5 text-emerald-500" />}
+                    showGpsButton={true}
+                    onGpsClick={handleGetLocation}
+                    gpsLoading={isLocating}
+                    onFocus={() => setActiveMarkerType('pickup')}
+                  />
+
+                  {pickupCoords && (
+                    <div className="bg-secondary-50/30 p-3 border border-secondary-100 rounded-2xl space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[8px] font-extrabold text-secondary-400 uppercase tracking-wider">Jenis Lokasi</label>
+                          <select
+                            value={pickupLocationType}
+                            onChange={(e) => setPickupLocationType(e.target.value)}
+                            className="input-premium py-1 px-2 text-[11px] rounded-lg bg-white border border-secondary-200 mt-1"
+                          >
+                            {LOCATION_TYPES.map(loc => (
+                              <option key={loc.value} value={loc.value}>{loc.icon} {loc.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[8px] font-extrabold text-secondary-400 uppercase tracking-wider">Foto Tempat</label>
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <label className="cursor-pointer bg-white hover:bg-secondary-50 border border-secondary-200 rounded-lg text-[9px] font-bold px-2 py-1 flex items-center gap-1">
+                              <span>📸 Upload</span>
+                              <input type="file" accept="image/*" className="hidden" onChange={handleLocationPhotoUpload} />
+                            </label>
+                            {pickupPhotoUrl && <div className="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center text-[10px]">✅</div>}
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[8px] font-extrabold text-secondary-400 uppercase tracking-wider">Patokan / Catatan Jemput</label>
+                        <input
+                          type="text"
+                          value={pickupLandmark}
+                          onChange={(e) => setPickupLandmark(e.target.value)}
+                          placeholder="cth: Pagar hitam, dekat warung kelontong"
+                          className="input-premium py-1.5 px-2.5 text-[11px] rounded-lg mt-1 bg-white"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <AddressAutocomplete
+                    label="Lokasi Tujuan *"
+                    placeholder="Masukkan alamat tujuan..."
+                    value={destinationAddress}
+                    onChange={(address, coords, details) => {
+                      setDestinationAddress(address);
+                      setDestinationCoords(coords);
+                      if (details) setDestinationDetails(parseNominatimAddress(details));
+                      setErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.destinationAddress;
+                        return copy;
+                      });
+                    }}
+                    error={errors.destinationAddress || (isDestOutside ? 'Titik tujuan di luar Lampung!' : undefined)}
+                    icon={<Navigation className="w-4.5 h-4.5 text-red-500" />}
+                    onFocus={() => setActiveMarkerType('destination')}
+                  />
+                </div>
+              </div>
+
+              {/* Service Categories */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider">Kategori Layanan *</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {ORDER_CATEGORIES.map((cat) => {
+                    const Icon = CATEGORY_ICONS[cat.icon];
+                    const isSelected = category === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setCategory(cat.id as any);
+                          // Default weights for Ojek vs Logistics
+                          if (cat.id === 'ride') {
+                            setWeightRange('<80');
+                          } else {
+                            setWeightRange('0-2');
+                          }
+                        }}
+                        className={cn(
+                          'p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 shadow-sm',
+                          isSelected
+                            ? 'border-amber-500 bg-amber-500/10 text-amber-900 font-bold scale-[1.02]'
+                            : 'border-secondary-100 hover:border-amber-300 hover:bg-secondary-50 text-secondary-600'
+                        )}
+                      >
+                        {Icon && <Icon className={cn('w-5 h-5', isSelected ? 'text-amber-600' : 'text-secondary-400')} />}
+                        <span className="text-[10px] leading-tight font-bold">{cat.label.split(' ')[0]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Route Options and Rules */}
+              <div className="bg-secondary-50/50 p-4 border border-secondary-150 rounded-2xl space-y-3">
+                <label className="block text-[10px] font-bold text-secondary-500 uppercase tracking-wider">Profil Pencarian Rute</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['fastest', 'shortest', 'motorcycle'] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setRouteOption(opt)}
+                      className={cn(
+                        'py-1.5 px-2 rounded-xl text-[10px] font-bold border transition-all text-center',
+                        routeOption === opt
+                          ? 'bg-secondary-900 border-secondary-900 text-white shadow'
+                          : 'bg-white border-secondary-200 text-secondary-600'
+                      )}
+                    >
+                      {opt === 'fastest' ? '⚡ Tercepat' : opt === 'shortest' ? '📏 Terpendek' : '🛵 Rute Motor'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Conditional Inputs: Ride/Ojek vs. Cargo/Logistics */}
+              <AnimatePresence mode="wait">
+                {category === 'ride' ? (
+                  <motion.div
+                    key="ride-fields"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="space-y-4 bg-amber-50/10 border border-amber-200/50 rounded-2xl p-4"
+                  >
+                    <h4 className="text-xs font-extrabold text-secondary-800 uppercase tracking-wider font-outfit border-b border-secondary-100 pb-2">Spesifikasi Ojek</h4>
+                    
+                    {/* Passenger count */}
+                    <div className="grid grid-cols-2 gap-3.5">
+                      <div>
+                        <label className="block text-[10px] font-bold text-secondary-500 mb-1">Jumlah Penumpang</label>
+                        <select
+                          value={passengerCount}
+                          onChange={(e) => setPassengerCount(parseInt(e.target.value))}
+                          className="input-premium py-2 px-2 text-xs rounded-xl bg-white"
+                        >
+                          <option value="1">1 Orang</option>
+                          <option value="2">2 Orang</option>
+                        </select>
+                      </div>
+
+                      {/* Weight Category */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-secondary-500 mb-1">Rentang Berat Penumpang</label>
+                        <select
+                          value={weightRange}
+                          onChange={(e) => setWeightRange(e.target.value)}
+                          className="input-premium py-2 px-2 text-xs rounded-xl bg-white"
+                        >
+                          <option value="<80">&lt; 80 kg</option>
+                          <option value="80-120">80 - 120 kg (+Rp3.000)</option>
+                          <option value="120+">120 kg+ (+Rp10.000)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Helm selection */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-secondary-500 mb-1.5">Ketersediaan Helm</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setOjekHelmet('need')}
+                          className={cn(
+                            "py-2 px-2 border rounded-xl text-xs font-bold transition-all",
+                            ojekHelmet === 'need' 
+                              ? "bg-amber-500 border-amber-500 text-white shadow-sm" 
+                              : "bg-white border-secondary-200 text-secondary-600"
+                          )}
+                        >
+                          Butuh Helm Driver
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setOjekHelmet('own')}
+                          className={cn(
+                            "py-2 px-2 border rounded-xl text-xs font-bold transition-all",
+                            ojekHelmet === 'own' 
+                              ? "bg-amber-500 border-amber-500 text-white shadow-sm" 
+                              : "bg-white border-secondary-200 text-secondary-600"
+                          )}
+                        >
+                          Bawa Helm Sendiri
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Roundtrip & extra waiting */}
+                    <div className="flex items-center justify-between py-1 border-t border-secondary-100 pt-3 mt-1">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="roundtrip"
+                          checked={ojekRoundTrip}
+                          onChange={(e) => setOjekRoundTrip(e.target.checked)}
+                          className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500"
+                        />
+                        <label htmlFor="roundtrip" className="text-xs font-bold text-secondary-700 cursor-pointer">Perjalanan Pulang Pergi (PP)</label>
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  // Logistics Details
+                  <motion.div
+                    key="logistics-fields"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="space-y-4 bg-secondary-50/30 border border-secondary-150 rounded-2xl p-4"
+                  >
+                    <h4 className="text-xs font-extrabold text-secondary-800 uppercase tracking-wider font-outfit border-b border-secondary-100 pb-2">Spesifikasi Paket & Titipan</h4>
+                    
+                    {/* Weight options */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-secondary-500 mb-1.5">Estimasi Berat Paket</label>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {[
+                          { val: '0-2', lbl: '0-2kg' },
+                          { val: '3-5', lbl: '3-5kg (+3k)' },
+                          { val: '6-10', lbl: '6-10kg (+8k)' },
+                          { val: '11-20', lbl: '11-20kg (+15k)' },
+                          { val: '20+', lbl: '20kg+ (+30k)' },
+                        ].map((w) => (
+                          <button
+                            key={w.val}
+                            type="button"
+                            onClick={() => setWeightRange(w.val)}
+                            className={cn(
+                              "py-2 border rounded-xl text-[9px] font-bold text-center transition-all",
+                              weightRange === w.val 
+                                ? "bg-amber-500 border-amber-500 text-white shadow-sm" 
+                                : "bg-white border-secondary-200 text-secondary-500"
+                            )}
+                          >
+                            {w.lbl}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Item list for shopping food and medicine */}
+                    {['shopping', 'food', 'medicine'].includes(category) && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-[10px] font-bold text-secondary-500 uppercase tracking-wider">Daftar Belanjaan *</label>
+                          <button
+                            type="button"
+                            onClick={addShoppingItem}
+                            className="text-[10px] text-amber-500 font-extrabold flex items-center gap-0.5 hover:underline"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Tambah Barang
+                          </button>
+                        </div>
+
+                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                          {shoppingItems.map((item, idx) => (
+                            <div key={item.id} className="flex gap-2 items-center bg-white p-2 rounded-xl border border-secondary-200">
+                              <input
+                                type="text"
+                                value={item.name}
+                                onChange={(e) => updateShoppingItem(item.id, 'name', e.target.value)}
+                                placeholder="Nama barang (cth: Apel)"
+                                className="flex-1 text-[11px] font-semibold border-0 p-0 focus:ring-0"
+                              />
+                              <input
+                                type="number"
+                                value={item.quantity}
+                                min={1}
+                                onChange={(e) => updateShoppingItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
+                                className="w-10 text-center text-[11px] font-bold border-0 p-0 focus:ring-0 bg-secondary-50 rounded"
+                              />
+                              <input
+                                type="number"
+                                value={item.estimatedPrice || ''}
+                                onChange={(e) => updateShoppingItem(item.id, 'estimatedPrice', parseInt(e.target.value) || 0)}
+                                placeholder="Harga est."
+                                className="w-20 text-right text-[11px] font-semibold border-0 p-0 focus:ring-0"
+                              />
+                              {shoppingItems.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeShoppingItem(item.id)}
+                                  className="text-red-400 hover:text-red-600 p-0.5"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Standard text description for package */}
+                    {!['shopping', 'food', 'medicine'].includes(category) && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-secondary-500 mb-1">Rincian Paket / Dokumen *</label>
+                        <textarea
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          placeholder="Tulis jenis paket, alamat tujuan spesifik, cth: Titipan Surat Kematian dari Kantor Desa"
+                          rows={2}
+                          className="input-premium py-2 px-3 text-xs resize-none bg-white rounded-xl"
+                        />
+                        {errors.description && <p className="text-[10px] text-red-500 mt-0.5">{errors.description}</p>}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Waiting Surcharge option */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider">Antrean Waktu Tunggu Driver</label>
+                <select
+                  value={waitingMinutes}
+                  onChange={(e) => setWaitingMinutes(parseInt(e.target.value) || 0)}
+                  className="input-premium py-2.5 text-xs rounded-xl bg-white"
+                >
+                  <option value="0">Tidak Perlu Menunggu (Rp0)</option>
+                  <option value="10">Mengantre ~10 Menit (+Rp5.000)</option>
+                  <option value="20">Mengantre ~20 Menit (+Rp10.000)</option>
+                  <option value="30">Mengantre ~30 Menit (+Rp15.000)</option>
+                  <option value="60">Mengantre ~60 Menit (+Rp30.000)</option>
+                </select>
+                <p className="text-[9px] text-secondary-400">Pilih jika driver harus mengantre lama di warung padat, loket apotek, dll.</p>
+              </div>
+
+              {/* Pricing Custom Toggles: Holiday, Peak, Rain, Insurance */}
+              <div className="bg-secondary-50/40 p-4 border border-secondary-100 rounded-2xl space-y-3 text-xs">
+                <h4 className="text-xs font-bold text-secondary-800 uppercase tracking-wider font-outfit border-b border-secondary-100 pb-2">Opsi & Surcharge Tambahan</h4>
+                
+                {/* Rain/Weather Toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CloudRain className="w-4 h-4 text-blue-500" />
+                    <span>Surcharge Cuaca Hujan (+Rp3.000)</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={hasRain}
+                    onChange={(e) => setHasRain(e.target.checked)}
+                    className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500 cursor-pointer"
+                  />
+                </div>
+
+                {/* Holiday Toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-red-500" />
+                    <span>Surcharge Hari Libur (+Rp2.000)</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={hasHoliday}
+                    onChange={(e) => setHasHoliday(e.target.checked)}
+                    className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500 cursor-pointer"
+                  />
+                </div>
+
+                {/* Peak Hour Surcharge Toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-500 animate-pulse" />
+                    <span>Surcharge Jam Sibuk (+Rp3.000)</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={hasPeakHour}
+                    onChange={(e) => setHasPeakHour(e.target.checked)}
+                    className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500 cursor-pointer"
+                  />
+                </div>
+
+                {/* Insurance Surcharge Toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-emerald-600" />
+                    <span>Asuransi Layanan JSS (+Rp1.000)</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={hasInsurance}
+                    onChange={(e) => setHasInsurance(e.target.checked)}
+                    className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Promo Code Discount */}
+              <div className="bg-amber-500/5 p-4 border border-amber-500/10 rounded-2xl space-y-2">
+                <label className="block text-[10px] font-bold text-amber-800 uppercase tracking-wider">Gunakan Kode Promo</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={promoCodeInput}
+                    onChange={(e) => setPromoCodeInput(e.target.value)}
+                    placeholder="cth: JSSPERDANA"
+                    className="flex-1 input-premium py-2 px-2.5 text-xs rounded-xl bg-white uppercase"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyPromo}
+                    className="bg-amber-500 text-secondary-900 font-bold px-4 py-2 rounded-xl text-xs hover:bg-amber-600 transition-colors shadow-sm"
+                  >
+                    Terapkan
+                  </button>
+                </div>
+                {appliedPromo && (
+                  <p className="text-[10px] text-emerald-600 font-extrabold flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" /> Kode promo &quot;{appliedPromo}&quot; aktif.
+                  </p>
+                )}
+              </div>
+
+              {/* Payment selection */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider">Metode Pembayaran</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {PAYMENT_METHODS.map((method) => {
+                    const Icon = PAYMENT_ICONS[method.icon];
+                    const isSelected = paymentMethod === method.id;
+                    return (
+                      <button
+                        key={method.id}
+                        type="button"
+                        onClick={() => setPaymentMethod(method.id)}
+                        className={cn(
+                          'p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 shadow-sm',
+                          isSelected
+                            ? 'border-secondary-900 bg-secondary-50 text-secondary-900 font-bold'
+                            : 'border-secondary-100 hover:border-secondary-300 text-secondary-500 bg-white'
+                        )}
+                      >
+                        {Icon && <Icon className="w-4 h-4 text-secondary-700" />}
+                        <span className="text-[9px] leading-tight font-bold">{method.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Submit triggers confirmation modal */}
+              <button
+                type="submit"
+                disabled={isSubmitDisabled}
+                className="w-full btn-primary text-sm py-3.5 flex items-center justify-center gap-2 disabled:opacity-40 rounded-2xl shadow-golden mt-4"
+              >
+                {isCalculating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Menghitung Rute...
+                  </>
+                ) : (
+                  <>
+                    Pesan Sekarang <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* RIGHT PANEL (Desktop Map) or Background Map */}
+        <div className="flex-1 relative z-0 h-[50vh] lg:h-[calc(100vh-80px)]">
+          <OrderMapPreview
+            pickupCoords={pickupCoords}
+            destinationCoords={destinationCoords}
+            distanceText={pricing ? formatDistance(pricing.distance) : undefined}
+            durationText={pricing ? formatDuration(pricing.duration) : undefined}
+            routeCoordinates={routeCoordinates}
+            onPickupChange={handlePickupCoordsChange}
+            onDestinationChange={handleDestinationCoordsChange}
+            onClickMap={(coords) => {
+              if (activeMarkerType === 'destination') {
+                handleDestinationCoordsChange(coords);
+              } else {
+                handlePickupCoordsChange(coords);
+              }
+            }}
+            activeMarkerType={activeMarkerType}
+            onActiveMarkerTypeChange={setActiveMarkerType}
+          />
+        </div>
+
+      </div>
+
+      {/* Confirmation Slide-up Modal */}
+      <AnimatePresence>
+        {showConfirmModal && pricing && (
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              className="bg-white rounded-card overflow-hidden border border-secondary-150 shadow-soft-xl max-w-lg w-full flex flex-col max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="bg-secondary-900 p-5 text-white flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold font-outfit text-white">Konfirmasi Pemesanan JSS</h3>
+                  <p className="text-[10px] text-secondary-300">Harap tinjau rincian biaya dan rute sebelum mengirim ke WhatsApp</p>
+                </div>
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="text-secondary-400 hover:text-white text-lg p-1.5 hover:bg-secondary-800 rounded-xl transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Content scrollable */}
+              <div className="p-6 overflow-y-auto space-y-4.5 text-left text-xs leading-relaxed">
+                
+                {/* Rute preview */}
+                <div className="space-y-3 bg-secondary-50/50 p-4 border border-secondary-100 rounded-2xl">
+                  <div className="space-y-1.5 border-b border-secondary-100 pb-2">
+                    <span className="text-[9px] uppercase font-extrabold text-secondary-400">Titik Jemput</span>
+                    <p className="font-bold text-secondary-800 leading-snug">{pickupAddress}</p>
+                    {pickupLandmark && <p className="text-[10px] text-amber-600 font-semibold">📍 Patokan: {pickupLandmark}</p>}
+                  </div>
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[9px] uppercase font-extrabold text-secondary-400">Titik Tujuan</span>
+                    <p className="font-bold text-secondary-800 leading-snug">{destinationAddress}</p>
+                  </div>
+                </div>
+
+                {/* Travel stats */}
+                <div className="grid grid-cols-3 gap-2 bg-secondary-900/5 border border-secondary-150 p-3 rounded-2xl text-center">
+                  <div>
+                    <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">Jarak Rute</span>
+                    <span className="text-xs font-extrabold text-secondary-800">{formatDistance(pricing.distance)}</span>
+                  </div>
+                  <div className="border-x border-secondary-200">
+                    <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">Estimasi Perjalanan</span>
+                    <span className="text-xs font-extrabold text-secondary-800">{formatDuration(pricing.duration)}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">ETA Jemput Driver</span>
+                    <span className="text-xs font-extrabold text-secondary-800">~{Math.round(5 + pricing.distance / 1500)} menit</span>
+                  </div>
+                </div>
+
+                {/* Fees Itemization Breakdown */}
+                <div className="space-y-2 bg-white border border-secondary-150 p-4 rounded-2xl shadow-sm">
+                  <h4 className="text-[10px] font-extrabold text-secondary-450 uppercase tracking-wider border-b border-secondary-100 pb-1.5 mb-2">Rincian Ongkos Kirim</h4>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-secondary-500">Tarif Dasar ({category === 'ride' ? 'Ojek' : 'Logistik'})</span>
+                    <span className="font-bold text-secondary-800">{formatCurrency(pricing.baseFee)}</span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span className="text-secondary-500">Tarif Jarak Tempuh</span>
+                    <span className="font-bold text-secondary-800">{formatCurrency(pricing.distanceFee)}</span>
+                  </div>
+
+                  {pricing.weightFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-500">Surcharge Berat ({weightRange} kg)</span>
+                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.weightFee)}</span>
+                    </div>
+                  )}
+
+                  {pricing.shoppingFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-500">Jasa Titip Belanja</span>
+                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.shoppingFee)}</span>
+                    </div>
+                  )}
+
+                  {pricing.waitingFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-500">Biaya Tunggu Driver Antrean</span>
+                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.waitingFee)}</span>
+                    </div>
+                  )}
+
+                  {pricing.rainFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-500">Surcharge Cuaca Hujan</span>
+                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.rainFee)}</span>
+                    </div>
+                  )}
+
+                  {pricing.holidayFee && pricing.holidayFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-500">Surcharge Hari Libur</span>
+                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.holidayFee)}</span>
+                    </div>
+                  )}
+
+                  {pricing.peakHourFee && pricing.peakHourFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-500">Surcharge Jam Sibuk</span>
+                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.peakHourFee)}</span>
+                    </div>
+                  )}
+
+                  {pricing.serviceFee && pricing.serviceFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-500">Biaya Layanan Platform</span>
+                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.serviceFee)}</span>
+                    </div>
+                  )}
+
+                  {pricing.insuranceFee && pricing.insuranceFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-500">Asuransi Perjalanan JSS</span>
+                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.insuranceFee)}</span>
+                    </div>
+                  )}
+
+                  {pricing.isRoundTrip && pricing.roundTripFee && pricing.roundTripFee > 0 && (
+                    <div className="flex justify-between text-amber-700 font-semibold bg-amber-50 p-1.5 rounded-lg border border-amber-200 mt-1">
+                      <span>Perjalanan Pulang Pergi (PP 2x)</span>
+                      <span>+{formatCurrency(pricing.roundTripFee)}</span>
+                    </div>
+                  )}
+
+                  {pricing.promoDiscount && pricing.promoDiscount > 0 && (
+                    <div className="flex justify-between text-emerald-600 font-semibold bg-emerald-50 p-1.5 rounded-lg border border-emerald-100 mt-1">
+                      <span>Promo Discount ({appliedPromo})</span>
+                      <span>-{formatCurrency(pricing.promoDiscount)}</span>
+                    </div>
+                  )}
+
+                  {category !== 'ride' && totalItemPrice > 0 && (
+                    <div className="flex justify-between text-secondary-500 border-t border-dashed pt-2 mt-2">
+                      <span>Estimasi Budget Belanja</span>
+                      <span>{formatCurrency(totalItemPrice)}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center pt-3 border-t border-secondary-100 font-extrabold text-sm text-secondary-900">
+                    <span>Grand Total Tagihan</span>
+                    <span className="text-lg text-primary-700 font-outfit">{formatCurrency(pricing.grandTotal)}</span>
+                  </div>
+                </div>
+
+                {/* Payment & disclaimer */}
+                <div className="flex justify-between items-center p-3 border border-secondary-150 rounded-2xl bg-secondary-50/50">
+                  <span className="font-bold text-secondary-700">Metode Pembayaran:</span>
+                  <span className="font-extrabold text-secondary-900 bg-white border border-secondary-200 px-3 py-1 rounded-xl shadow-sm uppercase tracking-wide">
+                    {paymentMethod === 'cash' ? '💵 Tunai (COD)' : paymentMethod === 'qris' ? '📱 QRIS' : '🏦 Transfer'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="p-5 bg-secondary-50 border-t border-secondary-150 flex gap-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="btn-outline flex-1 py-3"
+                >
+                  Kembali
+                </button>
+                <button
+                  onClick={handleConfirmSubmit}
+                  className="btn-primary flex-1 py-3 flex items-center justify-center gap-2 shadow-golden"
+                >
+                  <MessageCircle className="w-5 h-5 text-secondary-900" />
+                  Kirim ke WhatsApp
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </PageTransition>
+  );
+}
