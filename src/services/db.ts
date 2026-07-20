@@ -693,5 +693,144 @@ export const dbService = {
         .subscribe();
     }
     return null;
-  }
+  },
+
+  /**
+   * Menambahkan driver baru (Admin CRUD)
+   */
+  async createDriver(driver: Omit<Driver, 'id' | 'rating' | 'totalDeliveries'>): Promise<Driver> {
+    if (isSupabaseEnabled && supabase) {
+      const { data, error } = await supabase
+        .from('drivers')
+        .insert({
+          name: sanitizeString(driver.name),
+          phone: sanitizePhoneNumber(driver.phone),
+          vehicle_type: sanitizeString(driver.vehicleType),
+          vehicle_plate: sanitizeString(driver.vehiclePlate),
+          is_active: driver.isActive,
+          rating: 5.0,
+          total_deliveries: 0,
+        })
+        .select('*')
+        .single();
+      if (error) throw error;
+      return {
+        id: data.id,
+        name: data.name,
+        phone: data.phone,
+        vehicleType: data.vehicle_type,
+        vehiclePlate: data.vehicle_plate,
+        isActive: data.is_active,
+        rating: Number(data.rating),
+        totalDeliveries: data.total_deliveries,
+      };
+    } else {
+      const drivers = getMockDrivers();
+      const newDriver: Driver = {
+        id: `drv-${Date.now()}`,
+        name: sanitizeString(driver.name),
+        phone: sanitizePhoneNumber(driver.phone),
+        vehicleType: sanitizeString(driver.vehicleType),
+        vehiclePlate: sanitizeString(driver.vehiclePlate),
+        isActive: driver.isActive,
+        rating: 5.0,
+        totalDeliveries: 0,
+      };
+      drivers.push(newDriver);
+      saveMockDrivers(drivers);
+      return newDriver;
+    }
+  },
+
+  /**
+   * Mengupdate data driver (Admin CRUD)
+   */
+  async updateDriver(driverId: string, updates: Partial<Pick<Driver, 'name' | 'phone' | 'vehicleType' | 'vehiclePlate' | 'isActive'>>): Promise<boolean> {
+    if (isSupabaseEnabled && supabase) {
+      const supabaseUpdates: Record<string, any> = {};
+      if (updates.name !== undefined) supabaseUpdates.name = sanitizeString(updates.name);
+      if (updates.phone !== undefined) supabaseUpdates.phone = sanitizePhoneNumber(updates.phone);
+      if (updates.vehicleType !== undefined) supabaseUpdates.vehicle_type = sanitizeString(updates.vehicleType);
+      if (updates.vehiclePlate !== undefined) supabaseUpdates.vehicle_plate = sanitizeString(updates.vehiclePlate);
+      if (updates.isActive !== undefined) supabaseUpdates.is_active = updates.isActive;
+
+      const { error } = await supabase
+        .from('drivers')
+        .update(supabaseUpdates)
+        .eq('id', driverId);
+      if (error) throw error;
+      return true;
+    } else {
+      const drivers = getMockDrivers();
+      const idx = drivers.findIndex(d => d.id === driverId);
+      if (idx === -1) return false;
+      if (updates.name !== undefined) drivers[idx].name = sanitizeString(updates.name);
+      if (updates.phone !== undefined) drivers[idx].phone = sanitizePhoneNumber(updates.phone);
+      if (updates.vehicleType !== undefined) drivers[idx].vehicleType = sanitizeString(updates.vehicleType);
+      if (updates.vehiclePlate !== undefined) drivers[idx].vehiclePlate = sanitizeString(updates.vehiclePlate);
+      if (updates.isActive !== undefined) drivers[idx].isActive = updates.isActive;
+      saveMockDrivers(drivers);
+      return true;
+    }
+  },
+
+  /**
+   * Menghapus driver (Admin CRUD)
+   */
+  async deleteDriver(driverId: string): Promise<boolean> {
+    if (isSupabaseEnabled && supabase) {
+      const { error } = await supabase
+        .from('drivers')
+        .delete()
+        .eq('id', driverId);
+      if (error) throw error;
+      return true;
+    } else {
+      const drivers = getMockDrivers();
+      const filtered = drivers.filter(d => d.id !== driverId);
+      if (filtered.length === drivers.length) return false;
+      saveMockDrivers(filtered);
+      return true;
+    }
+  },
+
+  /**
+   * Memberi rating ke driver dari pelanggan
+   */
+  async rateDriver(driverId: string, newRating: number): Promise<boolean> {
+    if (newRating < 1 || newRating > 5) return false;
+
+    if (isSupabaseEnabled && supabase) {
+      // Get current rating & count to compute new average
+      const { data: driver, error: fetchError } = await supabase
+        .from('drivers')
+        .select('rating, total_deliveries')
+        .eq('id', driverId)
+        .single();
+      if (fetchError || !driver) return false;
+
+      const currentRating = Number(driver.rating);
+      const count = driver.total_deliveries || 1;
+      const avgRating = Math.round(((currentRating * count + newRating) / (count + 1)) * 10) / 10;
+
+      const { error } = await supabase
+        .from('drivers')
+        .update({ rating: avgRating, total_deliveries: count + 1 })
+        .eq('id', driverId);
+      if (error) throw error;
+      return true;
+    } else {
+      const drivers = getMockDrivers();
+      const idx = drivers.findIndex(d => d.id === driverId);
+      if (idx === -1) return false;
+
+      const d = drivers[idx];
+      const count = d.totalDeliveries || 1;
+      d.rating = Math.round(((d.rating * count + newRating) / (count + 1)) * 10) / 10;
+      d.totalDeliveries = count + 1;
+      saveMockDrivers(drivers);
+      return true;
+    }
+  },
 };
+

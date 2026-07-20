@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Phone, ChevronRight, Sparkles, Navigation } from 'lucide-react';
@@ -54,8 +55,8 @@ export function Navbar() {
           <div className="flex items-center justify-between">
             {/* Brand Logo */}
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-primary-500 to-accent flex items-center justify-center shadow-golden transition-all duration-300 group-hover:scale-105">
-                <span className="text-secondary-900 font-extrabold text-xl tracking-tighter">JSS</span>
+              <div className="relative w-11 h-11 rounded-2xl overflow-hidden shadow-golden transition-all duration-300 group-hover:scale-105">
+                <Image src="/logo-jss.png" alt="JSS Logo" width={44} height={44} className="w-full h-full object-cover" priority />
                 <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white animate-pulse" />
               </div>
               <div className="flex flex-col">
