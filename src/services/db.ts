@@ -9,7 +9,7 @@ import type { Order, OrderFormData, Driver, User, OrderStatus, LatLng, Dashboard
 const supabase = isSupabaseEnabled ? createClient() : null;
 
 // Mock key constants
-const MOCK_ORDERS_KEY = 'jss_mock_orders';
+const MOCK_ORDERS_KEY = 'jss_mock_orders_v2';
 const MOCK_DRIVERS_KEY = 'jss_mock_drivers';
 const MOCK_ADDRESSES_KEY = 'jss_mock_addresses';
 const MOCK_USERS_KEY = 'jss_mock_users';
@@ -23,7 +23,7 @@ const INITIAL_DRIVERS: Driver[] = [
   { id: 'drv-5', name: 'Bambang Wijaya', phone: '081298765436', vehicleType: 'Motorcycle', vehiclePlate: 'BE 7890 KL', isActive: true, rating: 4.5, totalDeliveries: 89 },
 ];
 
-// Demo initial orders to seed
+// Demo initial orders to seed (Created in the past, so Today's stats start at 0)
 const INITIAL_ORDERS: Order[] = [
   {
     id: 'order-1',
@@ -47,8 +47,8 @@ const INITIAL_ORDERS: Order[] = [
     duration: 720,
     driverId: 'drv-1',
     driverName: 'Agus Setiawan',
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    updatedAt: new Date(Date.now() - 1800000).toISOString(),
+    createdAt: '2026-07-15T08:30:00.000Z',
+    updatedAt: '2026-07-15T09:00:00.000Z',
   },
   {
     id: 'order-2',
@@ -72,8 +72,8 @@ const INITIAL_ORDERS: Order[] = [
     duration: 900,
     driverId: 'drv-2',
     driverName: 'Deni Kurniawan',
-    createdAt: new Date(Date.now() - 7200000).toISOString(),
-    updatedAt: new Date(Date.now() - 5400000).toISOString(),
+    createdAt: '2026-07-15T12:15:00.000Z',
+    updatedAt: '2026-07-15T12:45:00.000Z',
   },
   {
     id: 'order-3',
@@ -97,8 +97,8 @@ const INITIAL_ORDERS: Order[] = [
     duration: 1100,
     driverId: 'drv-3',
     driverName: 'Rudi Hermawan',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 82800000).toISOString(),
+    createdAt: '2026-07-14T15:20:00.000Z',
+    updatedAt: '2026-07-14T15:50:00.000Z',
   }
 ];
 
