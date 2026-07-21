@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase';
 import { isSupabaseEnabled } from './auth';
+import { notificationService } from './notificationService';
 import type {
   Driver, Order, CourierStatus, CourierShift, CourierOrderStatus,
   OrderProof, OrderOTP, PanicAlert, CourierLocation, ActivityLog,
