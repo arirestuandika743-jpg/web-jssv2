@@ -745,7 +745,7 @@ export const dbService = {
   /**
    * Mengupdate data driver (Admin CRUD)
    */
-  async updateDriver(driverId: string, updates: Partial<Pick<Driver, 'name' | 'phone' | 'vehicleType' | 'vehiclePlate' | 'isActive'>>): Promise<boolean> {
+  async updateDriver(driverId: string, updates: Partial<Pick<Driver, 'name' | 'phone' | 'vehicleType' | 'vehiclePlate' | 'isActive' | 'rating'>>): Promise<boolean> {
     if (isSupabaseEnabled && supabase) {
       const supabaseUpdates: Record<string, any> = {};
       if (updates.name !== undefined) supabaseUpdates.name = sanitizeString(updates.name);
@@ -753,6 +753,7 @@ export const dbService = {
       if (updates.vehicleType !== undefined) supabaseUpdates.vehicle_type = sanitizeString(updates.vehicleType);
       if (updates.vehiclePlate !== undefined) supabaseUpdates.vehicle_plate = sanitizeString(updates.vehiclePlate);
       if (updates.isActive !== undefined) supabaseUpdates.is_active = updates.isActive;
+      if (updates.rating !== undefined) supabaseUpdates.rating = Math.round(Math.max(1, Math.min(5, updates.rating)) * 10) / 10;
 
       const { error } = await supabase
         .from('drivers')
@@ -769,6 +770,7 @@ export const dbService = {
       if (updates.vehicleType !== undefined) drivers[idx].vehicleType = sanitizeString(updates.vehicleType);
       if (updates.vehiclePlate !== undefined) drivers[idx].vehiclePlate = sanitizeString(updates.vehiclePlate);
       if (updates.isActive !== undefined) drivers[idx].isActive = updates.isActive;
+      if (updates.rating !== undefined) drivers[idx].rating = Math.round(Math.max(1, Math.min(5, updates.rating)) * 10) / 10;
       saveMockDrivers(drivers);
       return true;
     }

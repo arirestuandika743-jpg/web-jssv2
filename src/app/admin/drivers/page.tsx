@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Truck, Phone, Star, Plus, Pencil, Trash2, Loader2, Power, X, Save, UserPlus } from 'lucide-react';
+import { Truck, Phone, Star, Plus, Minus, Pencil, Trash2, Loader2, Power, X, Save, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/layout/PageTransition';
 import { dbService } from '@/services/db';
@@ -27,6 +27,7 @@ export default function DriversPage() {
   const [form, setForm] = useState<DriverFormData>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [ratingLoading, setRatingLoading] = useState<string | null>(null);
 
   const fetchDrivers = () => {
     setLoading(true);
@@ -104,6 +105,22 @@ export default function DriversPage() {
     }
   };
 
+  const handleRatingChange = async (driver: Driver, delta: number) => {
+    const newRating = Math.round((driver.rating + delta) * 10) / 10;
+    if (newRating < 1.0 || newRating > 5.0) return;
+
+    setRatingLoading(driver.id);
+    try {
+      await dbService.updateDriver(driver.id, { rating: newRating });
+      setDrivers(prev => prev.map(d => d.id === driver.id ? { ...d, rating: newRating } : d));
+      toast.success(`Rating ${driver.name} diubah menjadi ${newRating.toFixed(1)}`);
+    } catch (err) {
+      toast.error('Gagal mengubah rating driver');
+    } finally {
+      setRatingLoading(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -118,7 +135,7 @@ export default function DriversPage() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-secondary-900">Driver</h1>
-            <p className="text-secondary-500 mt-1">Kelola mitra driver — Tambah, Edit, Hapus</p>
+            <p className="text-secondary-500 mt-1">Kelola mitra driver — Tambah, Edit, Hapus, Atur Rating</p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={fetchDrivers} className="btn-outline text-sm py-2 flex items-center gap-2">
@@ -262,9 +279,44 @@ export default function DriversPage() {
                   <p className="font-bold text-secondary-900">{driver.name}</p>
                   <p className="text-sm text-secondary-400">{driver.vehicleType} · {driver.vehiclePlate}</p>
                   <div className="flex items-center gap-3 mt-1">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 text-primary fill-primary" />
-                      <span className="text-xs font-semibold text-secondary-700">{driver.rating}</span>
+                    {/* Rating with +/- Controls */}
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleRatingChange(driver, -0.1)}
+                        disabled={ratingLoading === driver.id || driver.rating <= 1.0}
+                        className={cn(
+                          'w-6 h-6 rounded-md flex items-center justify-center transition-all',
+                          driver.rating <= 1.0
+                            ? 'bg-secondary-100 text-secondary-300 cursor-not-allowed'
+                            : 'bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600'
+                        )}
+                        title="Kurangi rating 0.1"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <div className="flex items-center gap-1 min-w-[52px] justify-center">
+                        <Star className="w-3.5 h-3.5 text-primary fill-primary" />
+                        <span className="text-xs font-bold text-secondary-700 tabular-nums">
+                          {ratingLoading === driver.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin inline" />
+                          ) : (
+                            driver.rating.toFixed(1)
+                          )}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleRatingChange(driver, 0.1)}
+                        disabled={ratingLoading === driver.id || driver.rating >= 5.0}
+                        className={cn(
+                          'w-6 h-6 rounded-md flex items-center justify-center transition-all',
+                          driver.rating >= 5.0
+                            ? 'bg-secondary-100 text-secondary-300 cursor-not-allowed'
+                            : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-500 hover:text-emerald-600'
+                        )}
+                        title="Tambah rating 0.1"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
                     </div>
                     <span className="text-xs text-secondary-400">{driver.totalDeliveries} pengiriman</span>
                   </div>
