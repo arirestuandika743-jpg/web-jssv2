@@ -74,40 +74,150 @@ export const courierService = {
     return { allowed: true, currentBalance: stats.balance };
   },
 
-  /** Top up deposit for courier */
-  async topUpDeposit(courierId: string, amount: number): Promise<{ success: boolean; newBalance: number }> {
+  /** Create a new deposit request (Pending Verification - DOES NOT ALTER BALANCE) */
+  async createDepositRequest(
+    courierId: string,
+    courierName: string,
+    courierPhone: string,
+    amount: number,
+    proofUrl: string
+  ): Promise<DepositRequest> {
+    const dateCode = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
+    const referenceNumber = `DEP-${dateCode}-${randomCode}`;
+
+    const request: DepositRequest = {
+      id: genId(),
+      referenceNumber,
+      courierId,
+      courierName,
+      courierPhone,
+      amount,
+      proofUrl,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+
+    const requests = getMock<DepositRequest>('jss_deposit_requests');
+    requests.unshift(request);
+    setMock('jss_deposit_requests', requests);
+
+    // Log activity
+    await this.logActivity(
+      courierId,
+      'login',
+      `Mengajukan Top Up Deposit Rp ${amount.toLocaleString('id-ID')} (Ref: ${referenceNumber}). Status: Menunggu Verifikasi Admin.`
+    );
+
+    // Send notification to admin
+    await notificationService.notifyAdmins(
+      'order_new',
+      'Pengajuan Deposit Baru',
+      `${courierName} mengajukan deposit sebesar Rp ${amount.toLocaleString('id-ID')} (Ref: ${referenceNumber})`,
+      { requestId: request.id, amount, courierId }
+    );
+
+    return request;
+  },
+
+  /** Get all deposit requests (for Admin view) */
+  async getDepositRequests(filterStatus?: DepositStatus): Promise<DepositRequest[]> {
+    const requests = getMock<DepositRequest>('jss_deposit_requests');
+    if (filterStatus) {
+      return requests.filter(r => r.status === filterStatus);
+    }
+    return requests;
+  },
+
+  /** Get deposit requests for a specific courier */
+  async getCourierDepositRequests(courierId: string): Promise<DepositRequest[]> {
+    const requests = getMock<DepositRequest>('jss_deposit_requests');
+    return requests.filter(r => r.courierId === courierId);
+  },
+
+  /** Admin approves deposit request - ONLY HERE DOES BALANCE INCREASE */
+  async approveDepositRequest(requestId: string, adminId: string, adminName: string): Promise<boolean> {
+    const requests = getMock<DepositRequest>('jss_deposit_requests');
+    const req = requests.find(r => r.id === requestId);
+    if (!req || req.status !== 'pending') return false;
+
+    req.status = 'approved';
+    req.verifiedAt = new Date().toISOString();
+    req.verifiedBy = adminName;
+    setMock('jss_deposit_requests', requests);
+
+    // ONLY NOW: Add to courier balance
     const drivers = getMock<Driver>(MOCK_DRIVERS_KEY);
-    const driverIdx = drivers.findIndex(d => d.id === courierId);
-    let newBalance = amount;
-    
+    const driverIdx = drivers.findIndex(d => d.id === req.courierId);
+    let newBalance = req.amount;
+
     if (driverIdx !== -1) {
       const current = drivers[driverIdx].balance || 0;
-      newBalance = current + amount;
+      newBalance = current + req.amount;
       drivers[driverIdx].balance = newBalance;
       setMock(MOCK_DRIVERS_KEY, drivers);
     } else {
       drivers.push({
-        id: courierId,
-        name: 'Kurir JSS',
-        phone: '081234567890',
+        id: req.courierId,
+        name: req.courierName,
+        phone: req.courierPhone || '081234567890',
         vehicleType: 'motorcycle',
         vehiclePlate: 'BE 1234 XX',
         isActive: true,
         rating: 5.0,
         totalDeliveries: 0,
-        balance: amount,
+        balance: req.amount,
         status: 'online',
       });
       setMock(MOCK_DRIVERS_KEY, drivers);
     }
 
+    // Log activity
     await this.logActivity(
-      courierId,
+      req.courierId,
       'login',
-      `Top up deposit sebesar Rp ${amount.toLocaleString('id-ID')} via DANA Admin (${ADMIN_DANA_NUMBER}). Saldo baru: Rp ${newBalance.toLocaleString('id-ID')}`
+      `Top Up Deposit Rp ${req.amount.toLocaleString('id-ID')} (Ref: ${req.referenceNumber}) DISETUJUI oleh Admin ${adminName}. Saldo baru: Rp ${newBalance.toLocaleString('id-ID')}`
     );
 
-    return { success: true, newBalance };
+    // Notify courier
+    await notificationService.sendNotification(
+      req.courierId,
+      'bonus_earned',
+      'Deposit Disetujui! 🎉',
+      `Pengajuan deposit Rp ${req.amount.toLocaleString('id-ID')} (Ref: ${req.referenceNumber}) telah disetujui. Saldo Anda sekarang: Rp ${newBalance.toLocaleString('id-ID')}`
+    );
+
+    return true;
+  },
+
+  /** Admin rejects deposit request - Balance remains unchanged */
+  async rejectDepositRequest(requestId: string, adminId: string, adminName: string, reason: string): Promise<boolean> {
+    const requests = getMock<DepositRequest>('jss_deposit_requests');
+    const req = requests.find(r => r.id === requestId);
+    if (!req || req.status !== 'pending') return false;
+
+    req.status = 'rejected';
+    req.rejectionReason = reason;
+    req.verifiedAt = new Date().toISOString();
+    req.verifiedBy = adminName;
+    setMock('jss_deposit_requests', requests);
+
+    // Log activity
+    await this.logActivity(
+      req.courierId,
+      'login',
+      `Top Up Deposit Rp ${req.amount.toLocaleString('id-ID')} (Ref: ${req.referenceNumber}) DITOLAK oleh Admin ${adminName}. Alasan: ${reason}`
+    );
+
+    // Notify courier
+    await notificationService.sendNotification(
+      req.courierId,
+      'penalty_warning',
+      'Deposit Ditolak ❌',
+      `Pengajuan deposit Rp ${req.amount.toLocaleString('id-ID')} (Ref: ${req.referenceNumber}) ditolak. Alasan: ${reason}`
+    );
+
+    return true;
   },
 
   /** Deduct Rp 2.000 commission when order is completed */

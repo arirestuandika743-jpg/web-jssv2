@@ -22,12 +22,14 @@ import {
   BarChart3,
   Activity,
   FileDown,
+  Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const sidebarLinks = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
   { icon: ShoppingCart, label: 'Pesanan', href: '/admin/orders' },
+  { icon: Wallet, label: 'Verifikasi Deposit', href: '/admin/deposits' },
   { icon: Map, label: 'Peta Kurir', href: '/admin/map' },
   { icon: MessageCircle, label: 'Chat', href: '/admin/chat' },
   { icon: Trophy, label: 'Leaderboard', href: '/admin/leaderboard' },

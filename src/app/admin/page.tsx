@@ -173,8 +173,9 @@ export default function AdminDashboardEnhanced() {
 
       {/* Quick Links */}
       <FadeIn>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
+            { href: '/admin/deposits', icon: '💳', label: 'Verifikasi Deposit', desc: 'Approve top up kurir' },
             { href: '/admin/analytics', icon: '📊', label: 'Analytics', desc: 'Grafik & statistik' },
             { href: '/admin/leaderboard', icon: '🏆', label: 'Leaderboard', desc: 'Ranking kurir' },
             { href: '/admin/chat', icon: '💬', label: 'Chat', desc: 'Pesan kurir' },
@@ -183,7 +184,7 @@ export default function AdminDashboardEnhanced() {
             <Link key={i} href={item.href}>
               <motion.div
                 whileHover={{ y: -2 }}
-                className="bg-white rounded-card p-4 shadow-soft hover:shadow-soft-lg transition-all cursor-pointer"
+                className="bg-white rounded-card p-4 shadow-soft hover:shadow-soft-lg transition-all cursor-pointer border border-secondary-100"
               >
                 <span className="text-2xl">{item.icon}</span>
                 <p className="text-secondary-900 font-semibold text-sm mt-2">{item.label}</p>

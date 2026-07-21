@@ -93,6 +93,24 @@ CREATE TABLE IF NOT EXISTS public.orders (
 );
 
 -- ============================================
+-- Deposit Requests table (Secure Top Up Verification)
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.deposit_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  reference_number TEXT NOT NULL UNIQUE,
+  courier_id UUID NOT NULL REFERENCES public.drivers(id) ON DELETE CASCADE,
+  courier_name TEXT NOT NULL,
+  courier_phone TEXT,
+  amount NUMERIC(12,2) NOT NULL,
+  proof_url TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  rejection_reason TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  verified_at TIMESTAMPTZ,
+  verified_by TEXT
+);
+
+-- ============================================
 -- Courier Shifts table
 -- ============================================
 CREATE TABLE IF NOT EXISTS public.courier_shifts (
@@ -360,6 +378,9 @@ CREATE INDEX IF NOT EXISTS idx_tracking_order ON public.tracking_updates(order_i
 CREATE INDEX IF NOT EXISTS idx_saved_addresses_user ON public.saved_addresses(user_id);
 CREATE INDEX IF NOT EXISTS idx_drivers_active ON public.drivers(is_active);
 CREATE INDEX IF NOT EXISTS idx_drivers_status ON public.drivers(status);
+CREATE INDEX IF NOT EXISTS idx_deposit_requests_courier ON public.deposit_requests(courier_id);
+CREATE INDEX IF NOT EXISTS idx_deposit_requests_status ON public.deposit_requests(status);
+CREATE INDEX IF NOT EXISTS idx_deposit_requests_ref ON public.deposit_requests(reference_number);
 CREATE INDEX IF NOT EXISTS idx_courier_shifts_courier ON public.courier_shifts(courier_id);
 CREATE INDEX IF NOT EXISTS idx_courier_shifts_active ON public.courier_shifts(is_active);
 CREATE INDEX IF NOT EXISTS idx_order_broadcasts_order ON public.order_broadcasts(order_id);
@@ -395,7 +416,9 @@ ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.courier_ratings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.courier_penalties ENABLE ROW LEVEL SECURITY;
 
--- Profiles: users can read/update their own profile
+ALTER TABLE public.deposit_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Deposit requests access" ON public.deposit_requests FOR ALL USING (true);
+ALTER PUBLICATION supabase_realtime ADD TABLE public.deposit_requests;
 CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 

@@ -236,6 +236,25 @@ export interface TrackingUpdate {
 // NEW TYPES FOR COURIER DASHBOARD
 // ============================================
 
+/** Deposit Request Status */
+export type DepositStatus = 'pending' | 'approved' | 'rejected';
+
+/** Deposit Request (Top Up Verification) */
+export interface DepositRequest {
+  id: string;
+  referenceNumber: string;
+  courierId: string;
+  courierName: string;
+  courierPhone?: string;
+  amount: number;
+  proofUrl: string;
+  status: DepositStatus;
+  rejectionReason?: string;
+  createdAt: string;
+  verifiedAt?: string;
+  verifiedBy?: string;
+}
+
 /** Courier Shift */
 export interface CourierShift {
   id: string;
