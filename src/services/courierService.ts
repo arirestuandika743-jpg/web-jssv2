@@ -258,6 +258,62 @@ export const courierService = {
 
   /** Admin approves deposit request - ONLY HERE DOES BALANCE INCREASE */
   async approveDepositRequest(requestId: string, adminId: string, adminName: string): Promise<boolean> {
+    let reqCourierId = '';
+    let reqCourierName = '';
+    let reqCourierPhone = '';
+    let reqAmount = 0;
+    let reqRef = '';
+    let isPending = false;
+
+    if (isSupabaseEnabled && supabase) {
+      try {
+        const { data: dbReq, error: getErr } = await supabase
+          .from('deposit_requests')
+          .select('*')
+          .eq('id', requestId)
+          .single();
+
+        if (!getErr && dbReq) {
+          reqCourierId = dbReq.courier_id;
+          reqCourierName = dbReq.courier_name;
+          reqCourierPhone = dbReq.courier_phone || '';
+          reqAmount = Number(dbReq.amount);
+          reqRef = dbReq.reference_number;
+          isPending = dbReq.status === 'pending';
+
+          if (isPending) {
+            const { error: updErr } = await supabase
+              .from('deposit_requests')
+              .update({
+                status: 'approved',
+                verified_by: adminName,
+                verified_at: new Date().toISOString()
+              })
+              .eq('id', requestId);
+
+            if (updErr) throw updErr;
+
+            // Get current driver balance
+            const { data: dbDriver } = await supabase
+              .from('drivers')
+              .select('balance')
+              .eq('id', reqCourierId)
+              .maybeSingle();
+
+            const current = dbDriver ? Number(dbDriver.balance) : 0;
+            const newBal = current + reqAmount;
+
+            await supabase
+              .from('drivers')
+              .update({ balance: newBal })
+              .eq('id', reqCourierId);
+          }
+        }
+      } catch (err) {
+        console.error('Supabase approve error:', err);
+      }
+    }
+
     const requests = getMock<DepositRequest>('jss_deposit_requests');
     const req = requests.find(r => r.id === requestId);
 
@@ -269,49 +325,57 @@ export const courierService = {
       });
     } catch (e) {}
 
-    if (req && req.status === 'pending') {
-      req.status = 'approved';
-      req.verifiedAt = new Date().toISOString();
-      req.verifiedBy = adminName;
-      setMock('jss_deposit_requests', requests);
+    if ((isSupabaseEnabled && isPending) || (!isSupabaseEnabled && req && req.status === 'pending')) {
+      const finalId = isSupabaseEnabled ? reqCourierId : req!.courierId;
+      const finalName = isSupabaseEnabled ? reqCourierName : req!.courierName;
+      const finalPhone = isSupabaseEnabled ? reqCourierPhone : req!.courierPhone;
+      const finalAmount = isSupabaseEnabled ? reqAmount : req!.amount;
+      const finalRef = isSupabaseEnabled ? reqRef : req!.referenceNumber;
+
+      if (req) {
+        req.status = 'approved';
+        req.verifiedAt = new Date().toISOString();
+        req.verifiedBy = adminName;
+        setMock('jss_deposit_requests', requests);
+      }
 
       // Add to courier balance
       const drivers = getMock<Driver>(MOCK_DRIVERS_KEY);
-      const driverIdx = drivers.findIndex(d => d.id === req.courierId);
-      let newBalance = req.amount;
+      const driverIdx = drivers.findIndex(d => d.id === finalId);
+      let newBalance = finalAmount;
 
       if (driverIdx !== -1) {
         const current = drivers[driverIdx].balance || 0;
-        newBalance = current + req.amount;
+        newBalance = current + finalAmount;
         drivers[driverIdx].balance = newBalance;
         setMock(MOCK_DRIVERS_KEY, drivers);
       } else {
         drivers.push({
-          id: req.courierId,
-          name: req.courierName,
-          phone: req.courierPhone || '081234567890',
+          id: finalId,
+          name: finalName,
+          phone: finalPhone || '081234567890',
           vehicleType: 'motorcycle',
           vehiclePlate: 'BE 1234 XX',
           isActive: true,
           rating: 5.0,
           totalDeliveries: 0,
-          balance: req.amount,
+          balance: finalAmount,
           status: 'online',
         });
         setMock(MOCK_DRIVERS_KEY, drivers);
       }
 
       await this.logActivity(
-        req.courierId,
+        finalId,
         'login',
-        `Top Up Deposit Rp ${req.amount.toLocaleString('id-ID')} (Ref: ${req.referenceNumber}) DISETUJUI oleh Admin ${adminName}. Saldo baru: Rp ${newBalance.toLocaleString('id-ID')}`
+        `Top Up Deposit Rp ${finalAmount.toLocaleString('id-ID')} (Ref: ${finalRef}) DISETUJUI oleh Admin ${adminName}. Saldo baru: Rp ${newBalance.toLocaleString('id-ID')}`
       );
 
       await notificationService.sendNotification(
-        req.courierId,
+        finalId,
         'bonus_earned',
         'Deposit Disetujui! 🎉',
-        `Pengajuan deposit Rp ${req.amount.toLocaleString('id-ID')} (Ref: ${req.referenceNumber}) telah disetujui. Saldo Anda sekarang: Rp ${newBalance.toLocaleString('id-ID')}`
+        `Pengajuan deposit Rp ${finalAmount.toLocaleString('id-ID')} (Ref: ${finalRef}) telah disetujui. Saldo Anda sekarang: Rp ${newBalance.toLocaleString('id-ID')}`
       );
 
       return true;
@@ -322,6 +386,42 @@ export const courierService = {
 
   /** Admin rejects deposit request - Balance remains unchanged */
   async rejectDepositRequest(requestId: string, adminId: string, adminName: string, reason: string): Promise<boolean> {
+    let reqCourierId = '';
+    let reqAmount = 0;
+    let reqRef = '';
+    let isPending = false;
+
+    if (isSupabaseEnabled && supabase) {
+      try {
+        const { data: dbReq, error: getErr } = await supabase
+          .from('deposit_requests')
+          .select('*')
+          .eq('id', requestId)
+          .single();
+
+        if (!getErr && dbReq) {
+          reqCourierId = dbReq.courier_id;
+          reqAmount = Number(dbReq.amount);
+          reqRef = dbReq.reference_number;
+          isPending = dbReq.status === 'pending';
+
+          if (isPending) {
+            await supabase
+              .from('deposit_requests')
+              .update({
+                status: 'rejected',
+                rejection_reason: reason,
+                verified_by: adminName,
+                verified_at: new Date().toISOString()
+              })
+              .eq('id', requestId);
+          }
+        }
+      } catch (err) {
+        console.error('Supabase reject error:', err);
+      }
+    }
+
     const requests = getMock<DepositRequest>('jss_deposit_requests');
     const req = requests.find(r => r.id === requestId);
 
@@ -333,24 +433,30 @@ export const courierService = {
       });
     } catch (e) {}
 
-    if (req && req.status === 'pending') {
-      req.status = 'rejected';
-      req.rejectionReason = reason;
-      req.verifiedAt = new Date().toISOString();
-      req.verifiedBy = adminName;
-      setMock('jss_deposit_requests', requests);
+    if ((isSupabaseEnabled && isPending) || (!isSupabaseEnabled && req && req.status === 'pending')) {
+      const finalId = isSupabaseEnabled ? reqCourierId : req!.courierId;
+      const finalAmount = isSupabaseEnabled ? reqAmount : req!.amount;
+      const finalRef = isSupabaseEnabled ? reqRef : req!.referenceNumber;
+
+      if (req) {
+        req.status = 'rejected';
+        req.rejectionReason = reason;
+        req.verifiedAt = new Date().toISOString();
+        req.verifiedBy = adminName;
+        setMock('jss_deposit_requests', requests);
+      }
 
       await this.logActivity(
-        req.courierId,
+        finalId,
         'login',
-        `Top Up Deposit Rp ${req.amount.toLocaleString('id-ID')} (Ref: ${req.referenceNumber}) DITOLAK oleh Admin ${adminName}. Alasan: ${reason}`
+        `Top Up Deposit Rp ${finalAmount.toLocaleString('id-ID')} (Ref: ${finalRef}) DITOLAK oleh Admin ${adminName}. Alasan: ${reason}`
       );
 
       await notificationService.sendNotification(
-        req.courierId,
+        finalId,
         'penalty_warning',
         'Deposit Ditolak ❌',
-        `Pengajuan deposit Rp ${req.amount.toLocaleString('id-ID')} (Ref: ${req.referenceNumber}) ditolak. Alasan: ${reason}`
+        `Pengajuan deposit Rp ${finalAmount.toLocaleString('id-ID')} (Ref: ${finalRef}) ditolak. Alasan: ${reason}`
       );
 
       return true;
@@ -361,6 +467,26 @@ export const courierService = {
 
   /** Deduct Rp 2.000 commission when order is completed */
   async deductCommission(courierId: string, orderId: string, orderNumber: string): Promise<boolean> {
+    if (isSupabaseEnabled && supabase) {
+      try {
+        const { data: dbDriver } = await supabase
+          .from('drivers')
+          .select('balance')
+          .eq('id', courierId)
+          .maybeSingle();
+
+        const current = dbDriver ? Number(dbDriver.balance) : 0;
+        const newBal = Math.max(0, current - COMMISSION_FEE);
+
+        await supabase
+          .from('drivers')
+          .update({ balance: newBal })
+          .eq('id', courierId);
+      } catch (err) {
+        console.error('Supabase deduct commission error:', err);
+      }
+    }
+
     const drivers = getMock<Driver>(MOCK_DRIVERS_KEY);
     const driverIdx = drivers.findIndex(d => d.id === courierId);
     if (driverIdx !== -1) {
@@ -933,6 +1059,50 @@ export const courierService = {
   }> {
     const drivers = getMock<Driver>(MOCK_DRIVERS_KEY);
     const driver = drivers.find(d => d.id === courierId);
+
+    let driverBalance = driver?.balance || 0;
+    let driverRating = driver?.rating || 5.0;
+    let driverDeliveries = driver?.totalDeliveries || 0;
+
+    if (isSupabaseEnabled && supabase) {
+      try {
+        const { data: dbDriver, error } = await supabase
+          .from('drivers')
+          .select('*')
+          .eq('id', courierId)
+          .maybeSingle();
+
+        if (dbDriver) {
+          driverBalance = Number(dbDriver.balance);
+          driverRating = Number(dbDriver.rating);
+          driverDeliveries = Number(dbDriver.total_deliveries || 0);
+        } else {
+          // Auto-insert driver profile to Supabase if not exists yet
+          const initialRating = driver?.rating || 5.0;
+          const initialPlate = driver?.vehiclePlate || 'BE 1234 XX';
+          const { error: insertErr } = await supabase
+            .from('drivers')
+            .insert({
+              id: courierId,
+              name: driver?.name || 'Kurir JSS',
+              phone: driver?.phone || '081234567890',
+              vehicle_type: driver?.vehicleType?.toLowerCase() || 'motorcycle',
+              vehicle_plate: initialPlate,
+              balance: 0,
+              rating: initialRating,
+              total_deliveries: 0,
+              status: 'offline',
+            });
+          if (!insertErr) {
+            driverBalance = 0;
+            driverRating = initialRating;
+            driverDeliveries = 0;
+          }
+        }
+      } catch (e) {
+        console.error('Failed to get driver from Supabase:', e);
+      }
+    }
     
     const ordersKey = 'jss_mock_orders_v4';
     const orders = getMock<Order>(ordersKey);
@@ -951,10 +1121,10 @@ export const courierService = {
     return {
       todayOrders: todayOrders.length,
       todayEarnings,
-      rating: driver?.rating || 5.0,
-      balance: driver?.balance || 0,
-      totalDeliveries: driver?.totalDeliveries || 0,
-      badge: this.calculateBadge(driver?.totalDeliveries || 0, driver?.rating || 5.0),
+      rating: driverRating,
+      balance: driverBalance,
+      totalDeliveries: driverDeliveries,
+      badge: this.calculateBadge(driverDeliveries, driverRating),
     };
   },
 

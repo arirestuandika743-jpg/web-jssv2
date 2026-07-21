@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import type { DepositRequest, Driver } from '@/types';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const isSupabaseEnabled = !!(supabaseUrl && supabaseAnonKey);
+const supabase = isSupabaseEnabled ? createClient(supabaseUrl!, supabaseAnonKey!) : null;
 
 // Global server-side in-memory storage for deposit requests across all domain origins
 declare global {
@@ -75,6 +81,57 @@ export async function PATCH(request: Request) {
   try {
     const body = await request.json();
     const { action, requestId, adminName, reason } = body;
+
+    // Handle Supabase update if enabled on server
+    if (isSupabaseEnabled && supabase) {
+      try {
+        const { data: dbReq } = await supabase
+          .from('deposit_requests')
+          .select('*')
+          .eq('id', requestId)
+          .single();
+
+        if (dbReq && dbReq.status === 'pending') {
+          if (action === 'approve') {
+            await supabase
+              .from('deposit_requests')
+              .update({
+                status: 'approved',
+                verified_by: adminName || 'Admin JSS',
+                verified_at: new Date().toISOString()
+              })
+              .eq('id', requestId);
+
+            // Get driver balance
+            const { data: dbDriver } = await supabase
+              .from('drivers')
+              .select('balance')
+              .eq('id', dbReq.courier_id)
+              .maybeSingle();
+
+            const current = dbDriver ? Number(dbDriver.balance) : 0;
+            const newBal = current + Number(dbReq.amount);
+
+            await supabase
+              .from('drivers')
+              .update({ balance: newBal })
+              .eq('id', dbReq.courier_id);
+          } else if (action === 'reject') {
+            await supabase
+              .from('deposit_requests')
+              .update({
+                status: 'rejected',
+                rejection_reason: reason || 'Bukti transfer tidak valid',
+                verified_by: adminName || 'Admin JSS',
+                verified_at: new Date().toISOString()
+              })
+              .eq('id', requestId);
+          }
+        }
+      } catch (err) {
+        console.error('API route Supabase PATCH error:', err);
+      }
+    }
 
     if (!globalThis.serverDeposits) {
       globalThis.serverDeposits = [];

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, Copy, Check, Upload, X, ArrowUpRight, Phone, ShieldCheck, Clock, FileText, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Wallet, Copy, Check, Upload, X, ArrowUpRight, Phone, ShieldCheck, Clock, FileText, Image as ImageIcon, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { courierService } from '@/services/courierService';
 import { formatCurrency } from '@/lib/utils';
 import type { DepositRequest } from '@/types';
@@ -31,6 +31,27 @@ export default function DepositModal({ courierId, currentBalance, onSuccess, onC
   useEffect(() => {
     courierService.getCourierDepositRequests(courierId).then(setHistory);
   }, [courierId, createdRequest]);
+
+  // Real-time status polling for active deposit request
+  useEffect(() => {
+    if (!createdRequest) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const reqs = await courierService.getCourierDepositRequests(courierId);
+        const updated = reqs.find(r => r.id === createdRequest.id);
+        if (updated && updated.status !== createdRequest.status) {
+          setCreatedRequest(updated);
+          // Refresh the courier's dashboard stats/balance
+          onSuccess();
+        }
+      } catch (err) {
+        console.warn('Gagal polling status deposit:', err);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [createdRequest, courierId, onSuccess]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(adminDanaNumber);
@@ -205,47 +226,96 @@ export default function DepositModal({ courierId, currentBalance, onSuccess, onC
             </div>
           ) : createdRequest ? (
             <div className="text-center py-4 space-y-4">
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto border border-amber-500/30">
-                <Clock className="w-8 h-8 text-amber-400" />
-              </motion.div>
-              <div>
-                <h3 className="text-white font-bold text-lg">Permintaan Deposit Terkirim!</h3>
-                <p className="text-amber-400 font-mono text-xs font-bold mt-1">Ref: {createdRequest.referenceNumber}</p>
-                <p className="text-white/60 text-xs mt-2 leading-relaxed">
-                  Data pengajuan deposit <span className="text-primary font-bold">{formatCurrency(createdRequest.amount)}</span> dan bukti transfer Anda telah masuk ke <span className="text-white font-semibold">Dashboard Admin</span>.
-                </p>
-              </div>
+              {createdRequest.status === 'approved' ? (
+                <>
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1.1 }} className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                  </motion.div>
+                  <div>
+                    <h3 className="text-white font-bold text-lg">Top Up Berhasil Disetujui! 🎉</h3>
+                    <p className="text-emerald-400 font-mono text-xs font-bold mt-1">Ref: {createdRequest.referenceNumber}</p>
+                    <p className="text-white/75 text-xs mt-3 leading-relaxed">
+                      Deposit sebesar <span className="text-primary font-extrabold">{formatCurrency(createdRequest.amount)}</span> telah diverifikasi dan masuk ke saldo kurir Anda.
+                    </p>
+                  </div>
+                </>
+              ) : createdRequest.status === 'rejected' ? (
+                <>
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1.1 }} className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto border border-red-500/30">
+                    <XCircle className="w-8 h-8 text-red-400" />
+                  </motion.div>
+                  <div>
+                    <h3 className="text-white font-bold text-lg">Top Up Ditolak Admin</h3>
+                    <p className="text-red-400 font-mono text-xs font-bold mt-1">Ref: {createdRequest.referenceNumber}</p>
+                    {createdRequest.rejectionReason && (
+                      <p className="text-red-400 text-xs bg-red-500/10 p-3 rounded-xl border border-red-500/20 mt-3 text-left">
+                        <strong>Alasan Penolakan:</strong> {createdRequest.rejectionReason}
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto border border-amber-500/30">
+                    <Clock className="w-8 h-8 text-amber-400" />
+                  </motion.div>
+                  <div>
+                    <h3 className="text-white font-bold text-lg">Permintaan Deposit Terkirim!</h3>
+                    <p className="text-amber-400 font-mono text-xs font-bold mt-1">Ref: {createdRequest.referenceNumber}</p>
+                    <p className="text-white/60 text-xs mt-2 leading-relaxed">
+                      Data pengajuan deposit <span className="text-primary font-bold">{formatCurrency(createdRequest.amount)}</span> dan bukti transfer Anda telah masuk ke <span className="text-white font-semibold">Dashboard Admin</span>.
+                    </p>
+                  </div>
+                </>
+              )}
 
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-left space-y-2 text-xs">
+              {/* Status Box */}
+              <div className={`border rounded-2xl p-4 text-left space-y-2 text-xs ${
+                createdRequest.status === 'approved' ? 'bg-emerald-500/10 border-emerald-500/20' :
+                createdRequest.status === 'rejected' ? 'bg-red-500/10 border-red-500/20' :
+                'bg-amber-500/10 border-amber-500/20'
+              }`}>
                 <div className="flex items-center justify-between">
                   <span className="text-white/60">Status Verifikasi:</span>
-                  <span className="text-amber-400 font-bold">🟡 Menunggu Verifikasi Admin</span>
+                  <span className={`font-bold ${
+                    createdRequest.status === 'approved' ? 'text-emerald-400' :
+                    createdRequest.status === 'rejected' ? 'text-red-400' :
+                    'text-amber-400'
+                  }`}>
+                    {createdRequest.status === 'approved' ? '🟢 Disetujui Admin' :
+                     createdRequest.status === 'rejected' ? '🔴 Ditolak Admin' :
+                     '🟡 Menunggu Verifikasi Admin'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-white/60">DANA Admin:</span>
                   <span className="text-primary font-bold font-mono">{adminDanaNumber}</span>
                 </div>
                 <p className="text-white/40 text-[11px] pt-1 border-t border-white/5">
-                  🔒 Saldo Anda akan bertambah secara otomatis begitu Admin menekan tombol <strong className="text-emerald-400">Approve</strong>.
+                  {createdRequest.status === 'approved' ? '✅ Saldo Anda sudah bertambah.' :
+                   createdRequest.status === 'rejected' ? '❌ Saldo Anda tidak bertambah.' :
+                   '🔒 Saldo Anda akan bertambah secara otomatis begitu Admin menekan tombol Approve.'}
                 </p>
               </div>
 
               <div className="space-y-2 pt-2">
                 <button
                   onClick={() => setCreatedRequest(null)}
-                  className="w-full py-3 bg-primary rounded-xl font-bold text-secondary-900 text-xs shadow-golden"
+                  className="w-full py-3 bg-primary rounded-xl font-bold text-secondary-900 text-xs shadow-golden animate-pulse"
                 >
                   Buat Pengajuan Baru
                 </button>
-                <a
-                  href={`https://wa.me/6288286557710?text=Halo%20Admin%20JSS,%20saya%20sudah%20mengirim%20bukti%20transfer%20deposit%20Rp%20${createdRequest.amount.toLocaleString('id-ID')}%20(Ref:%20${createdRequest.referenceNumber})`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all"
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  Konfirmasi Langsung ke WhatsApp Admin (088286557710)
-                </a>
+                {createdRequest.status === 'pending' && (
+                  <a
+                    href={`https://wa.me/6288286557710?text=Halo%20Admin%20JSS,%20saya%20sudah%20mengirim%20bukti%20transfer%20deposit%20Rp%20${createdRequest.amount.toLocaleString('id-ID')}%20(Ref:%20${createdRequest.referenceNumber})`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    Konfirmasi Langsung ke WhatsApp Admin (088286557710)
+                  </a>
+                )}
               </div>
             </div>
           ) : (
