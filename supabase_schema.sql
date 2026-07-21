@@ -84,3 +84,48 @@ CREATE POLICY "Allow public read orders" ON public.orders FOR SELECT USING (true
 CREATE POLICY "Allow public insert orders" ON public.orders FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update orders" ON public.orders FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete orders" ON public.orders FOR DELETE USING (true);
+
+-- 5. Atomic Deposit Approval Postgres Function (RPC)
+CREATE OR REPLACE FUNCTION approve_deposit(
+  p_request_id UUID,
+  p_admin_name TEXT
+) RETURNS BOOLEAN AS $$
+DECLARE
+  v_status TEXT;
+  v_courier_id TEXT;
+  v_amount NUMERIC;
+  v_courier_name TEXT;
+  v_courier_phone TEXT;
+BEGIN
+  -- 1. Lock the deposit request row and check if it exists & is pending
+  SELECT status, courier_id, amount, courier_name, courier_phone
+  INTO v_status, v_courier_id, v_amount, v_courier_name, v_courier_phone
+  FROM public.deposit_requests
+  WHERE id = p_request_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RETURN FALSE;
+  END IF;
+
+  -- 2. Check if already approved or rejected to prevent double top up
+  IF v_status <> 'pending' THEN
+    RETURN FALSE;
+  END IF;
+
+  -- 3. Update deposit request status
+  UPDATE public.deposit_requests
+  SET status = 'approved',
+      verified_by = p_admin_name,
+      verified_at = NOW()
+  WHERE id = p_request_id;
+
+  -- 4. Upsert courier balance in drivers table
+  INSERT INTO public.drivers (id, name, phone, balance)
+  VALUES (v_courier_id, v_courier_name, COALESCE(v_courier_phone, '081234567890'), v_amount)
+  ON CONFLICT (id) DO UPDATE
+  SET balance = public.drivers.balance + v_amount;
+
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

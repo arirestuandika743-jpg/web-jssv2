@@ -267,50 +267,78 @@ export const courierService = {
 
     if (isSupabaseEnabled && supabase) {
       try {
-        const { data: dbReq, error: getErr } = await supabase
-          .from('deposit_requests')
-          .select('*')
-          .eq('id', requestId)
-          .single();
+        // Try calling the atomic RPC function first
+        const { data: rpcSuccess, error: rpcError } = await supabase
+          .rpc('approve_deposit', {
+            p_request_id: requestId,
+            p_admin_name: adminName
+          });
 
-        if (!getErr && dbReq) {
-          reqCourierId = dbReq.courier_id;
-          reqCourierName = dbReq.courier_name;
-          reqCourierPhone = dbReq.courier_phone || '';
-          reqAmount = Number(dbReq.amount);
-          reqRef = dbReq.reference_number;
-          isPending = dbReq.status === 'pending';
+        if (!rpcError && rpcSuccess !== null) {
+          isPending = rpcSuccess; // true if transaction succeeded and it was pending
 
-          if (isPending) {
-            const { error: updErr } = await supabase
-              .from('deposit_requests')
-              .update({
-                status: 'approved',
-                verified_by: adminName,
-                verified_at: new Date().toISOString()
-              })
-              .eq('id', requestId);
+          // Load request details to sync with mock & trigger notifications
+          const { data: dbReq } = await supabase
+            .from('deposit_requests')
+            .select('*')
+            .eq('id', requestId)
+            .single();
 
-            if (updErr) throw updErr;
+          if (dbReq) {
+            reqCourierId = dbReq.courier_id;
+            reqCourierName = dbReq.courier_name;
+            reqCourierPhone = dbReq.courier_phone || '';
+            reqAmount = Number(dbReq.amount);
+            reqRef = dbReq.reference_number;
+          }
+        } else {
+          // Fallback to manual JS queries if RPC is not created yet
+          console.warn('approve_deposit RPC failed or not found, falling back to JS:', rpcError);
+          const { data: dbReq, error: getErr } = await supabase
+            .from('deposit_requests')
+            .select('*')
+            .eq('id', requestId)
+            .single();
 
-            // Get current driver balance
-            const { data: dbDriver } = await supabase
-              .from('drivers')
-              .select('balance')
-              .eq('id', reqCourierId)
-              .maybeSingle();
+          if (!getErr && dbReq) {
+            reqCourierId = dbReq.courier_id;
+            reqCourierName = dbReq.courier_name;
+            reqCourierPhone = dbReq.courier_phone || '';
+            reqAmount = Number(dbReq.amount);
+            reqRef = dbReq.reference_number;
+            isPending = dbReq.status === 'pending';
 
-            const current = dbDriver ? Number(dbDriver.balance) : 0;
-            const newBal = current + reqAmount;
+            if (isPending) {
+              const { error: updErr } = await supabase
+                .from('deposit_requests')
+                .update({
+                  status: 'approved',
+                  verified_by: adminName,
+                  verified_at: new Date().toISOString()
+                })
+                .eq('id', requestId);
 
-            await supabase
-              .from('drivers')
-              .upsert({
-                id: reqCourierId,
-                name: reqCourierName || 'Kurir JSS',
-                phone: reqCourierPhone || '081234567890',
-                balance: newBal,
-              }, { onConflict: 'id' });
+              if (updErr) throw updErr;
+
+              // Get current driver balance
+              const { data: dbDriver } = await supabase
+                .from('drivers')
+                .select('balance')
+                .eq('id', reqCourierId)
+                .maybeSingle();
+
+              const current = dbDriver ? Number(dbDriver.balance) : 0;
+              const newBal = current + reqAmount;
+
+              await supabase
+                .from('drivers')
+                .upsert({
+                  id: reqCourierId,
+                  name: reqCourierName || 'Kurir JSS',
+                  phone: reqCourierPhone || '081234567890',
+                  balance: newBal,
+                }, { onConflict: 'id' });
+            }
           }
         }
       } catch (err) {
