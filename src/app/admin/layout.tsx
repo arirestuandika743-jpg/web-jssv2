@@ -16,14 +16,26 @@ import {
   LogOut,
   ChevronLeft,
   Menu,
+  Map,
+  MessageCircle,
+  Trophy,
+  BarChart3,
+  Activity,
+  FileDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const sidebarLinks = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
   { icon: ShoppingCart, label: 'Pesanan', href: '/admin/orders' },
+  { icon: Map, label: 'Peta Kurir', href: '/admin/map' },
+  { icon: MessageCircle, label: 'Chat', href: '/admin/chat' },
+  { icon: Trophy, label: 'Leaderboard', href: '/admin/leaderboard' },
+  { icon: BarChart3, label: 'Analytics', href: '/admin/analytics' },
   { icon: Users, label: 'Pelanggan', href: '/admin/customers' },
   { icon: Truck, label: 'Driver', href: '/admin/drivers' },
+  { icon: Activity, label: 'Log Aktivitas', href: '/admin/activity-log' },
+  { icon: FileDown, label: 'Export', href: '/admin/export' },
   { icon: Settings, label: 'Pengaturan', href: '/admin/settings' },
 ];
 
