@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Star, Wallet, Package, MapPin, Zap, Shield, Bell,
   ChevronRight, Navigation, AlertTriangle, Trophy, Clock,
-  TrendingUp, Target,
+  TrendingUp, Target, Plus, CheckCircle, XCircle, ArrowUpRight,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { courierService } from '@/services/courierService';
@@ -17,6 +17,7 @@ import ShiftButton from '@/components/courier/ShiftButton';
 import OrderPopup from '@/components/courier/OrderPopup';
 import PanicButton from '@/components/courier/PanicButton';
 import OrderStatusFlow from '@/components/courier/OrderStatusFlow';
+import DepositModal from '@/components/courier/DepositModal';
 import Link from 'next/link';
 
 const STATUS_CONFIG: Record<CourierStatus, { label: string; color: string; bg: string; icon: string }> = {
@@ -41,14 +42,17 @@ export default function CourierDashboard() {
     todayOrders: 0,
     todayEarnings: 0,
     rating: 5.0,
-    balance: 0,
+    balance: 50000, // Default demo balance Rp 50.000
     totalDeliveries: 0,
     badge: 'rookie' as CourierBadge,
   });
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
+  const [incomingOrders, setIncomingOrders] = useState<Order[]>([]);
   const [pendingBroadcast, setPendingBroadcast] = useState<{ order: Order; broadcastId: string; timeoutAt: string } | null>(null);
   const [dailyProgress, setDailyProgress] = useState({ completed: 0, target: 10, bonusAmount: 20000 });
   const [showIncentive, setShowIncentive] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [lowBalanceAlert, setLowBalanceAlert] = useState<string | null>(null);
   const [notifCount, setNotifCount] = useState(0);
 
   const courierId = user?.id === 'runner-id-123' ? 'drv-1' : 'drv-1';
@@ -67,6 +71,12 @@ export default function CourierDashboard() {
       setIsShiftActive(shiftActive);
       setActiveOrder(active);
       setDailyProgress(progress);
+
+      // Load unassigned waiting orders for "Orderan Masuk" list
+      const ordersKey = 'jss_mock_orders_v2';
+      const allOrders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
+      const waiting = allOrders.filter(o => o.status === 'waiting' && !o.driverId);
+      setIncomingOrders(waiting);
 
       if (shiftActive) {
         const s = await courierService.getCourierStatus(courierId);
@@ -90,7 +100,7 @@ export default function CourierDashboard() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 5000); // Poll every 5s
+    const interval = setInterval(loadData, 4000); // Poll every 4s
     return () => clearInterval(interval);
   }, [loadData]);
 
@@ -125,34 +135,52 @@ export default function CourierDashboard() {
     loadData();
   };
 
-  const handleAcceptOrder = async () => {
-    if (!pendingBroadcast) return;
-    await broadcastService.acceptBroadcast(pendingBroadcast.order.id, courierId);
-    
+  /** Ambil Orderan (Accept) */
+  const handleTakeOrder = async (targetOrder: Order) => {
+    // Check balance first
+    const check = await courierService.canAcceptOrder(courierId);
+    if (!check.allowed) {
+      setLowBalanceAlert(check.reason || 'Saldo deposit tidak mencukupi');
+      return;
+    }
+
     // Assign driver to order
     const ordersKey = 'jss_mock_orders_v2';
-    const orders = JSON.parse(localStorage.getItem(ordersKey) || '[]');
-    const idx = orders.findIndex((o: Order) => o.id === pendingBroadcast.order.id);
+    const orders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
+    const idx = orders.findIndex(o => o.id === targetOrder.id);
     if (idx !== -1) {
       orders[idx].driverId = courierId;
-      orders[idx].driverName = user?.name || 'Kurir';
+      orders[idx].driverName = user?.name || 'Kurir JSS';
       orders[idx].status = 'accepted';
       localStorage.setItem(ordersKey, JSON.stringify(orders));
     }
 
     await courierService.updateCourierStatus(courierId, 'delivering');
-    setPendingBroadcast(null);
     setStatus('delivering');
+    if (pendingBroadcast?.order.id === targetOrder.id) {
+      setPendingBroadcast(null);
+    }
     loadData();
   };
 
-  const handleRejectOrder = async () => {
-    if (!pendingBroadcast) return;
-    await broadcastService.rejectBroadcast(pendingBroadcast.order.id, courierId);
-    setPendingBroadcast(null);
+  /** Cancel/Tolak Order */
+  const handleCancelOrder = async (targetOrderId: string) => {
+    if (pendingBroadcast?.order.id === targetOrderId) {
+      await broadcastService.rejectBroadcast(targetOrderId, courierId);
+      setPendingBroadcast(null);
+    } else {
+      // Hide or reject order locally
+      setIncomingOrders(prev => prev.filter(o => o.id !== targetOrderId));
+    }
   };
 
+  /** Selesaikan Order */
   const handleOrderComplete = async () => {
+    if (activeOrder) {
+      // Deduct Rp 2.000 commission for Admin DANA 088286557710
+      await courierService.deductCommission(courierId, activeOrder.id, activeOrder.orderNumber);
+    }
+
     setActiveOrder(null);
     await courierService.updateCourierStatus(courierId, 'online');
     setStatus('online');
@@ -169,15 +197,71 @@ export default function CourierDashboard() {
   const progressPercent = dailyProgress.target > 0 ? Math.min(100, (dailyProgress.completed / dailyProgress.target) * 100) : 0;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-secondary-900 text-white">
+      {/* Deposit Modal */}
+      <AnimatePresence>
+        {showDepositModal && (
+          <DepositModal
+            courierId={courierId}
+            currentBalance={stats.balance}
+            onSuccess={loadData}
+            onClose={() => setShowDepositModal(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Low Balance Alert Modal */}
+      <AnimatePresence>
+        {lowBalanceAlert && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-secondary-800 rounded-3xl p-6 max-w-sm w-full border border-red-500/30 text-center shadow-2xl"
+            >
+              <div className="w-16 h-16 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8 text-red-400" />
+              </div>
+              <h3 className="text-white font-bold text-lg mb-2">Saldo Deposit Tidak Mencukupi!</h3>
+              <p className="text-white/70 text-xs leading-relaxed mb-6">{lowBalanceAlert}</p>
+              
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setLowBalanceAlert(null);
+                    setShowDepositModal(true);
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-primary to-amber-400 text-secondary-900 font-bold rounded-xl text-xs shadow-golden flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Top Up Deposit Sekarang
+                </button>
+                <button
+                  onClick={() => setLowBalanceAlert(null)}
+                  className="w-full py-2.5 bg-white/10 text-white/60 font-semibold rounded-xl text-xs"
+                >
+                  Tutup
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Order Broadcast Popup */}
       <AnimatePresence>
         {pendingBroadcast && isShiftActive && (
           <OrderPopup
             order={pendingBroadcast.order}
             timeoutAt={pendingBroadcast.timeoutAt}
-            onAccept={handleAcceptOrder}
-            onReject={handleRejectOrder}
+            onAccept={() => handleTakeOrder(pendingBroadcast.order)}
+            onReject={() => handleCancelOrder(pendingBroadcast.order.id)}
             onTimeout={() => {
               broadcastService.handleTimeout(pendingBroadcast.order.id);
               setPendingBroadcast(null);
@@ -212,25 +296,24 @@ export default function CourierDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <div className="bg-gradient-to-b from-secondary-800 to-secondary-900 px-5 pt-6 pb-8">
+      {/* Driver Console Header */}
+      <div className="bg-gradient-to-b from-secondary-800 via-secondary-800 to-secondary-900 px-5 pt-6 pb-8 border-b border-white/5">
         {/* Top bar */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-amber-500 flex items-center justify-center shadow-golden">
-              <span className="text-lg font-bold text-secondary-900">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-amber-500 flex items-center justify-center shadow-golden ring-2 ring-primary/30">
+              <span className="text-lg font-black text-secondary-900">
                 {(user?.name || 'K')[0].toUpperCase()}
               </span>
             </div>
             <div>
-              <h1 className="text-white font-bold text-lg leading-tight">{user?.name || 'Kurir JSS'}</h1>
+              <h1 className="text-white font-bold text-lg leading-tight">{user?.name || 'Kurir JSS Kalirejo'}</h1>
               <div className="flex items-center gap-2 mt-0.5">
-                <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-primary fill-primary" />
-                  <span className="text-white/80 text-sm font-semibold">{stats.rating.toFixed(1)}</span>
+                <div className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-md">
+                  <Star className="w-3 h-3 text-primary fill-primary" />
+                  <span className="text-white text-xs font-bold">{stats.rating.toFixed(1)}</span>
                 </div>
-                <span className="text-white/30">·</span>
-                <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${STATUS_CONFIG[status].bg}`}>
+                <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${STATUS_CONFIG[status].bg}`}>
                   <span>{STATUS_CONFIG[status].icon}</span>
                   <span className={STATUS_CONFIG[status].color}>{STATUS_CONFIG[status].label}</span>
                 </div>
@@ -239,13 +322,11 @@ export default function CourierDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Badge */}
             <div className={`px-3 py-1.5 rounded-xl bg-gradient-to-r ${BADGE_CONFIG[stats.badge].color} shadow-lg`}>
               <span className="text-xs font-bold text-white">
                 {BADGE_CONFIG[stats.badge].icon} {BADGE_CONFIG[stats.badge].label}
               </span>
             </div>
-            {/* Notifications */}
             <Link href="/courier/profile" className="relative w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
               <Bell className="w-5 h-5 text-white/70" />
               {notifCount > 0 && (
@@ -257,31 +338,36 @@ export default function CourierDashboard() {
           </div>
         </div>
 
-        {/* Stats Cards Row */}
+        {/* Stats Cards Row with Deposit Top Up Button */}
         <div className="grid grid-cols-3 gap-3">
+          {/* Saldo + Deposit */}
           <motion.div
-            whileHover={{ scale: 1.03 }}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center border border-white/5"
+            whileHover={{ scale: 1.02 }}
+            onClick={() => setShowDepositModal(true)}
+            className="bg-gradient-to-br from-primary/20 to-amber-500/10 rounded-2xl p-3 text-center border border-primary/30 relative cursor-pointer group"
           >
-            <Wallet className="w-5 h-5 text-primary mx-auto mb-1" />
-            <p className="text-white font-bold text-sm">{formatCurrency(stats.balance)}</p>
-            <p className="text-white/40 text-[10px] mt-0.5">Saldo</p>
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Wallet className="w-4 h-4 text-primary" />
+              <span className="text-[10px] font-bold text-primary bg-primary/20 px-1.5 py-0.2 rounded">+ Deposit</span>
+            </div>
+            <p className="text-white font-extrabold text-sm truncate">{formatCurrency(stats.balance)}</p>
+            <p className="text-primary/70 text-[10px] mt-0.5 font-medium">Klik Top Up</p>
           </motion.div>
           
           <motion.div
-            whileHover={{ scale: 1.03 }}
+            whileHover={{ scale: 1.02 }}
             className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center border border-white/5"
           >
-            <Package className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
+            <Package className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
             <p className="text-white font-bold text-sm">{stats.todayOrders}</p>
             <p className="text-white/40 text-[10px] mt-0.5">Order Hari Ini</p>
           </motion.div>
           
           <motion.div
-            whileHover={{ scale: 1.03 }}
+            whileHover={{ scale: 1.02 }}
             className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center border border-white/5"
           >
-            <TrendingUp className="w-5 h-5 text-blue-400 mx-auto mb-1" />
+            <TrendingUp className="w-4 h-4 text-blue-400 mx-auto mb-1" />
             <p className="text-white font-bold text-sm">{formatCurrency(stats.todayEarnings)}</p>
             <p className="text-white/40 text-[10px] mt-0.5">Pendapatan</p>
           </motion.div>
@@ -289,7 +375,7 @@ export default function CourierDashboard() {
       </div>
 
       {/* Body Content */}
-      <div className="px-5 -mt-4 space-y-4 relative z-10">
+      <div className="px-5 -mt-4 space-y-4 relative z-10 max-w-lg mx-auto pb-24">
         {/* Shift Button */}
         <ShiftButton
           isActive={isShiftActive}
@@ -309,7 +395,31 @@ export default function CourierDashboard() {
             </div>
             <div>
               <p className="text-amber-300 font-semibold text-sm">Shift Belum Dimulai</p>
-              <p className="text-amber-300/60 text-xs mt-0.5">Silakan mulai shift terlebih dahulu untuk menerima order.</p>
+              <p className="text-amber-300/60 text-xs mt-0.5">Silakan klik "🟢 Mulai Kerja" terlebih dahulu untuk melihat dan mengambil order.</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Low Balance Warning Banner */}
+        {isShiftActive && stats.balance < 2000 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => setShowDepositModal(true)}
+            className="bg-red-500/20 border border-red-500/40 rounded-2xl p-4 flex items-center justify-between cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Wallet className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <p className="text-red-400 font-bold text-xs">Saldo Kurang dari Rp 2.000!</p>
+                <p className="text-white/60 text-[11px] mt-0.5">Top up ke DANA Admin <span className="text-primary font-bold">088286557710</span></p>
+              </div>
+            </div>
+            <div className="px-3 py-1.5 bg-primary text-secondary-900 rounded-xl font-bold text-xs flex items-center gap-1 shadow-golden">
+              <Plus className="w-3.5 h-3.5" />
+              Top Up
             </div>
           </motion.div>
         )}
@@ -355,61 +465,147 @@ export default function CourierDashboard() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10"
+            className="bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
           >
             <div className="bg-primary/20 px-4 py-2.5 flex items-center justify-between border-b border-white/10">
               <div className="flex items-center gap-2">
                 <Package className="w-4 h-4 text-primary" />
-                <span className="text-primary font-bold text-sm">Order Aktif</span>
+                <span className="text-primary font-bold text-sm">Orderan Sedang Berjalan</span>
               </div>
               <span className="text-white/50 text-xs font-mono">{activeOrder.orderNumber}</span>
             </div>
             <div className="p-4">
               <div className="flex items-start gap-3 mb-4">
-                <div className="flex flex-col items-center gap-1">
+                <div className="flex flex-col items-center gap-1 pt-1">
                   <div className="w-3 h-3 bg-emerald-400 rounded-full" />
                   <div className="w-0.5 h-8 bg-white/20" />
                   <div className="w-3 h-3 bg-red-400 rounded-full" />
                 </div>
                 <div className="flex-1 space-y-3">
                   <div>
-                    <p className="text-white/40 text-[10px] uppercase tracking-wider">Jemput</p>
+                    <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold">Lokasi Jemput</p>
                     <p className="text-white text-sm font-medium">{activeOrder.pickupAddress}</p>
                   </div>
                   <div>
-                    <p className="text-white/40 text-[10px] uppercase tracking-wider">Tujuan</p>
+                    <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold">Lokasi Tujuan</p>
                     <p className="text-white text-sm font-medium">{activeOrder.destinationAddress}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-white/10">
+              <div className="flex items-center justify-between pt-3 border-t border-white/10 mb-4">
                 <div>
                   <p className="text-white/40 text-xs">Customer</p>
                   <p className="text-white font-semibold text-sm">{activeOrder.customerName}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-white/40 text-xs">Total</p>
+                  <p className="text-white/40 text-xs">Total Bayar</p>
                   <p className="text-primary font-bold text-sm">{formatCurrency(activeOrder.grandTotal)}</p>
                 </div>
               </div>
 
-              {/* Order Status Flow */}
-              <div className="mt-4">
-                <OrderStatusFlow
-                  orderId={activeOrder.id}
-                  currentStatus={activeOrder.status}
-                  courierId={courierId}
-                  onComplete={handleOrderComplete}
-                />
-              </div>
+              {/* Order Status Flow (Ambil, Menuju, Diambil, Mengantar, Selesai) */}
+              <OrderStatusFlow
+                orderId={activeOrder.id}
+                currentStatus={activeOrder.status}
+                courierId={courierId}
+                onComplete={handleOrderComplete}
+              />
             </div>
           </motion.div>
         )}
 
+        {/* Section Orderan Masuk (Available Incoming Orders List with Ambil, Cancel, Selesai) */}
+        {isShiftActive && (
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-white font-bold text-sm flex items-center gap-2">
+                <span>📦 Orderan Masuk Tersedia</span>
+                {incomingOrders.length > 0 && (
+                  <span className="px-2 py-0.5 bg-primary text-secondary-900 rounded-full text-xs font-extrabold">
+                    {incomingOrders.length}
+                  </span>
+                )}
+              </h3>
+              <button onClick={loadData} className="text-xs text-primary font-semibold hover:underline">
+                Refresh
+              </button>
+            </div>
+
+            {incomingOrders.length === 0 ? (
+              <div className="bg-white/5 rounded-2xl p-6 text-center border border-white/5">
+                <Navigation className="w-8 h-8 text-white/20 mx-auto mb-2" />
+                <p className="text-white/50 text-xs font-medium">Belum ada orderan masuk baru</p>
+                <p className="text-white/20 text-[10px] mt-0.5">Orderan dari warga Kalirejo akan tampil secara otomatis di sini</p>
+              </div>
+            ) : (
+              incomingOrders.map(order => (
+                <motion.div
+                  key={order.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 space-y-3"
+                >
+                  <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary font-bold rounded-md">
+                        {order.category.toUpperCase()}
+                      </span>
+                      <span className="text-white/60 text-xs font-mono font-semibold">{order.orderNumber}</span>
+                    </div>
+                    <span className="text-primary font-extrabold text-sm">{formatCurrency(order.grandTotal)}</span>
+                  </div>
+
+                  <div className="flex items-start gap-3 text-xs">
+                    <div className="flex flex-col items-center gap-1 pt-1">
+                      <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full" />
+                      <div className="w-0.5 h-6 bg-white/20" />
+                      <div className="w-2.5 h-2.5 bg-red-400 rounded-full" />
+                    </div>
+                    <div className="flex-1 space-y-1.5">
+                      <p className="text-white font-medium">{order.pickupAddress}</p>
+                      <p className="text-white/70">{order.destinationAddress}</p>
+                    </div>
+                  </div>
+
+                  {/* Actions: Ambil, Cancel, Selesai */}
+                  <div className="grid grid-cols-3 gap-2 pt-2">
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleTakeOrder(order)}
+                      className="py-2.5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-xl text-secondary-900 font-extrabold text-xs flex items-center justify-center gap-1 shadow-emerald-500/20"
+                    >
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      Ambil Order
+                    </motion.button>
+
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleCancelOrder(order.id)}
+                      className="py-2.5 bg-white/10 hover:bg-red-500/20 hover:text-red-400 text-white/60 rounded-xl font-bold text-xs flex items-center justify-center gap-1 border border-white/10 transition-colors"
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                      Cancel
+                    </motion.button>
+
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleOrderComplete}
+                      className="py-2.5 bg-primary/20 text-primary hover:bg-primary hover:text-secondary-900 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-all"
+                    >
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      Selesai
+                    </motion.button>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+        )}
+
         {/* Quick Actions */}
         {isShiftActive && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 pt-2">
             <Link href="/courier/history">
               <motion.div
                 whileHover={{ scale: 1.02 }}
@@ -453,21 +649,6 @@ export default function CourierDashboard() {
             courierName={user?.name || 'Kurir'}
             activeOrderId={activeOrder?.id}
           />
-        )}
-
-        {/* Empty state when no active order and shift is active */}
-        {!activeOrder && isShiftActive && !pendingBroadcast && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
-            <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-4">
-              <Navigation className="w-10 h-10 text-white/20" />
-            </div>
-            <p className="text-white/40 text-sm font-medium">Menunggu order masuk...</p>
-            <p className="text-white/20 text-xs mt-1">Tetap di area jangkauan untuk menerima order</p>
-          </motion.div>
         )}
       </div>
     </div>

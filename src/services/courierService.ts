@@ -52,7 +52,83 @@ const DEFAULT_TARGET: DailyTarget = {
   updatedAt: new Date().toISOString(),
 };
 
+/** Commission deducted per completed order */
+export const COMMISSION_FEE = 2000;
+export const ADMIN_DANA_NUMBER = '088286557710';
+
 export const courierService = {
+  // ============================================
+  // DEPOSIT & COMMISSION SYSTEM
+  // ============================================
+
+  /** Check if courier has sufficient balance to accept order (Min Rp 2.000) */
+  async canAcceptOrder(courierId: string): Promise<{ allowed: boolean; reason?: string; currentBalance: number }> {
+    const stats = await this.getCourierStats(courierId);
+    if (stats.balance < COMMISSION_FEE) {
+      return {
+        allowed: false,
+        reason: `Saldo deposit Anda (${stats.balance.toLocaleString('id-ID')}) kurang dari komisi min. Rp 2.000. Silakan Top Up Deposit ke DANA Admin (${ADMIN_DANA_NUMBER}).`,
+        currentBalance: stats.balance,
+      };
+    }
+    return { allowed: true, currentBalance: stats.balance };
+  },
+
+  /** Top up deposit for courier */
+  async topUpDeposit(courierId: string, amount: number): Promise<{ success: boolean; newBalance: number }> {
+    const drivers = getMock<Driver>(MOCK_DRIVERS_KEY);
+    const driverIdx = drivers.findIndex(d => d.id === courierId);
+    let newBalance = amount;
+    
+    if (driverIdx !== -1) {
+      const current = drivers[driverIdx].balance || 0;
+      newBalance = current + amount;
+      drivers[driverIdx].balance = newBalance;
+      setMock(MOCK_DRIVERS_KEY, drivers);
+    } else {
+      drivers.push({
+        id: courierId,
+        name: 'Kurir JSS',
+        phone: '081234567890',
+        vehicleType: 'motorcycle',
+        vehiclePlate: 'BE 1234 XX',
+        isActive: true,
+        rating: 5.0,
+        totalDeliveries: 0,
+        balance: amount,
+        status: 'online',
+      });
+      setMock(MOCK_DRIVERS_KEY, drivers);
+    }
+
+    await this.logActivity(
+      courierId,
+      'login',
+      `Top up deposit sebesar Rp ${amount.toLocaleString('id-ID')} via DANA Admin (${ADMIN_DANA_NUMBER}). Saldo baru: Rp ${newBalance.toLocaleString('id-ID')}`
+    );
+
+    return { success: true, newBalance };
+  },
+
+  /** Deduct Rp 2.000 commission when order is completed */
+  async deductCommission(courierId: string, orderId: string, orderNumber: string): Promise<boolean> {
+    const drivers = getMock<Driver>(MOCK_DRIVERS_KEY);
+    const driverIdx = drivers.findIndex(d => d.id === courierId);
+    if (driverIdx !== -1) {
+      const current = drivers[driverIdx].balance || 0;
+      drivers[driverIdx].balance = Math.max(0, current - COMMISSION_FEE);
+      setMock(MOCK_DRIVERS_KEY, drivers);
+    }
+
+    // Log activity
+    await this.logActivity(
+      courierId,
+      'order_complete',
+      `Potongan komisi Rp 2.000 untuk order #${orderNumber} dialokasikan ke DANA Admin (${ADMIN_DANA_NUMBER})`
+    );
+
+    return true;
+  },
   // ============================================
   // SHIFT MANAGEMENT
   // ============================================

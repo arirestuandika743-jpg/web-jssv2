@@ -16,9 +16,10 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
 
-  // Detect admin/dashboard pages to hide navbar
+  // Detect admin/dashboard/courier pages to hide navbar
   const isAdminPage = pathname.startsWith('/admin');
   const isDashboardPage = pathname.startsWith('/dashboard');
+  const isCourierPage = pathname.startsWith('/courier');
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -31,7 +32,7 @@ export function Navbar() {
     setIsOpen(false);
   }, [pathname]);
 
-  if (isAdminPage || isDashboardPage) return null;
+  if (isAdminPage || isDashboardPage || isCourierPage) return null;
 
   const navItems = [
     { label: 'Beranda', href: '/' },

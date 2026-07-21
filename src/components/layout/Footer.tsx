@@ -40,7 +40,16 @@ const footerLinks = {
   ],
 };
 
+import { usePathname } from 'next/navigation';
+
 export function Footer() {
+  const pathname = usePathname();
+  const isAdminPage = pathname?.startsWith('/admin');
+  const isDashboardPage = pathname?.startsWith('/dashboard');
+  const isCourierPage = pathname?.startsWith('/courier');
+
+  if (isAdminPage || isDashboardPage || isCourierPage) return null;
+
   return (
     <footer className="relative bg-secondary-900 text-white overflow-hidden pt-12">
       {/* Ambient Glows */}
