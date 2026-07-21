@@ -6,7 +6,7 @@ import type {
   Driver, Order, CourierStatus, CourierShift, CourierOrderStatus,
   OrderProof, OrderOTP, PanicAlert, CourierLocation, ActivityLog,
   ActivityAction, LatLng, CourierPenalty, DailyTarget, CourierIncentive,
-  LeaderboardEntry, CourierBadge, FraudCheckResult
+  LeaderboardEntry, CourierBadge, FraudCheckResult, DepositRequest, DepositStatus
 } from '@/types';
 
 const supabase = isSupabaseEnabled ? createClient() : null;
