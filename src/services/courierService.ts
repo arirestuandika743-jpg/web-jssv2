@@ -57,6 +57,38 @@ const DEFAULT_TARGET: DailyTarget = {
 export const COMMISSION_FEE = 2000;
 export const ADMIN_DANA_NUMBER = '088286557710';
 
+async function compressBase64Image(base64Str: string, maxWidth = 800, maxHeight = 800, quality = 0.7): Promise<string> {
+  if (typeof window === 'undefined' || !base64Str || !base64Str.startsWith('data:image')) return base64Str;
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64Str;
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+      if (width > maxWidth || height > maxHeight) {
+        if (width > height) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        } else {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } else {
+        resolve(base64Str);
+      }
+    };
+    img.onerror = () => resolve(base64Str);
+  });
+}
+
 export const courierService = {
   // ============================================
   // DEPOSIT & COMMISSION SYSTEM
@@ -87,6 +119,9 @@ export const courierService = {
     const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
     const referenceNumber = `DEP-${dateCode}-${randomCode}`;
 
+    // Compress mobile camera photo / screenshot to fit Vercel 4MB payload limit
+    const compressedProof = await compressBase64Image(proofUrl, 800, 800, 0.7);
+
     const request: DepositRequest = {
       id: genId(),
       referenceNumber,
@@ -94,7 +129,7 @@ export const courierService = {
       courierName,
       courierPhone,
       amount,
-      proofUrl,
+      proofUrl: compressedProof,
       status: 'pending',
       createdAt: new Date().toISOString(),
     };

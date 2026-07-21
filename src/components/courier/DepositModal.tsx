@@ -40,12 +40,46 @@ export default function DepositModal({ courierId, currentBalance, onSuccess, onC
 
   const finalAmount = customAmount ? parseInt(customAmount, 10) || 0 : amount;
 
+  const compressImage = (base64Str: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        const max = 800;
+        if (width > max || height > max) {
+          if (width > height) {
+            height = Math.round((height * max) / width);
+            width = max;
+          } else {
+            width = Math.round((width * max) / height);
+            height = max;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        } else {
+          resolve(base64Str);
+        }
+      };
+      img.onerror = () => resolve(base64Str);
+    });
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      setProofPreview(ev.target?.result as string);
+    reader.onload = async (ev) => {
+      const raw = ev.target?.result as string;
+      const compressed = await compressImage(raw);
+      setProofPreview(compressed);
     };
     reader.readAsDataURL(file);
   };
@@ -54,15 +88,18 @@ export default function DepositModal({ courierId, currentBalance, onSuccess, onC
     if (finalAmount < 2000 || !proofPreview) return;
     setSubmitting(true);
     try {
+      const compressed = await compressImage(proofPreview);
       const req = await courierService.createDepositRequest(
         courierId,
         'Kurir JSS Kalirejo',
         '088286557710',
         finalAmount,
-        proofPreview
+        compressed
       );
       setCreatedRequest(req);
       onSuccess();
+    } catch (err) {
+      console.error('Gagal mengirim deposit:', err);
     } finally {
       setSubmitting(false);
     }
