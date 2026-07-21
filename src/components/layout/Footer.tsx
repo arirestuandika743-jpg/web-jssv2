@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
   MapPin,
@@ -94,8 +95,8 @@ export function Footer() {
           {/* Brand Column (2 Cols) */}
           <div className="lg:col-span-2 space-y-5">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-golden">
-                <span className="text-secondary-900 font-black text-xl">JSS</span>
+              <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-golden flex-shrink-0">
+                <Image src="/logo-jss.png" alt="JSS Logo" width={44} height={44} className="w-full h-full object-cover" />
               </div>
               <div>
                 <span className="font-extrabold text-xl text-white block leading-none">{BRAND.shortName} Kalirejo</span>

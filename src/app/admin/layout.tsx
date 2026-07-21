@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -45,8 +46,8 @@ export default function AdminLayout({
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 h-20 border-b border-white/10">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-secondary-900 font-extrabold text-lg">J</span>
+          <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 shadow-golden">
+            <Image src="/logo-jss.png" alt="JSS Logo" width={40} height={40} className="w-full h-full object-cover" />
           </div>
           <AnimatePresence>
             {!sidebarCollapsed && (
