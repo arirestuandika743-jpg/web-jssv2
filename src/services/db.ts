@@ -255,6 +255,17 @@ export const dbService = {
       saveMockOrders(orders);
     }
 
+    // Sync with Server API Route (/api/orders) across all domain origins
+    try {
+      await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: newOrderResult }),
+      });
+    } catch (e) {
+      console.warn('API sync error:', e);
+    }
+
     // Trigger broadcast to couriers, admin notifications, and cross-tab real-time sync
     try {
       await broadcastService.startBroadcast(newOrderResult);
@@ -296,6 +307,10 @@ export const dbService = {
         console.error('Reset Supabase orders error:', e);
       }
     }
+
+    try {
+      await fetch('/api/orders', { method: 'DELETE' });
+    } catch (e) {}
 
     if (typeof window !== 'undefined') {
       localStorage.removeItem('jss_mock_orders');
@@ -405,7 +420,28 @@ export const dbService = {
         updatedAt: item.updated_at,
       }));
     } else {
-      return getMockOrders();
+      let localOrders = getMockOrders();
+      try {
+        const res = await fetch('/api/orders');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.orders)) {
+            const serverOrders: Order[] = json.orders;
+            const mergedMap = new Map<string, Order>();
+            serverOrders.forEach(o => mergedMap.set(o.id, o));
+            localOrders.forEach(o => {
+              if (!mergedMap.has(o.id)) mergedMap.set(o.id, o);
+            });
+            localOrders = Array.from(mergedMap.values()).sort(
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+            saveMockOrders(localOrders);
+          }
+        }
+      } catch (e) {
+        // Ignore API fetch error, use local
+      }
+      return localOrders;
     }
   },
 
