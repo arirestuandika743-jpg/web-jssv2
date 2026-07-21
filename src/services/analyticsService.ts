@@ -19,7 +19,7 @@ const MOCK_RATINGS_KEY = 'jss_courier_ratings';
 export const analyticsService = {
   /** Get full analytics data */
   async getAnalytics(days: number = 30): Promise<AnalyticsData> {
-    const orders = getMock<Order>('jss_mock_orders_v3');
+    const orders = getMock<Order>('jss_mock_orders_v4');
     const drivers = getMock<Driver>('jss_mock_drivers');
 
     // Generate orders per day data
@@ -135,7 +135,7 @@ export const analyticsService = {
     couriersOnBreak: number;
     totalRevenue: number;
   }> {
-    const orders = getMock<Order>('jss_mock_orders_v3');
+    const orders = getMock<Order>('jss_mock_orders_v4');
     const drivers = getMock<Driver>('jss_mock_drivers');
     const statuses = getMock<{ id: string; status: string }>('jss_courier_status');
 
@@ -208,12 +208,12 @@ export const analyticsService = {
     }
 
     // Update order with rating
-    const orders = getMock<Order>('jss_mock_orders_v3');
+    const orders = getMock<Order>('jss_mock_orders_v4');
     const orderIdx = orders.findIndex(o => o.id === orderId);
     if (orderIdx !== -1) {
       orders[orderIdx].customerRating = rating;
       orders[orderIdx].customerReview = review;
-      setMock('jss_mock_orders_v3', orders);
+      setMock('jss_mock_orders_v4', orders);
     }
 
     return ratingEntry;
@@ -231,7 +231,7 @@ export const analyticsService = {
 
   /** Export data to format */
   async prepareExportData(filter: ExportFilter): Promise<any[]> {
-    const orders = getMock<Order>('jss_mock_orders_v3');
+    const orders = getMock<Order>('jss_mock_orders_v4');
     const drivers = getMock<Driver>('jss_mock_drivers');
 
     const startDate = new Date(filter.startDate);

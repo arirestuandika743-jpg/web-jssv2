@@ -24,7 +24,7 @@ export default function CourierOrdersPage() {
       const stats = await courierService.getCourierStats(courierId);
       setBalance(stats.balance);
 
-      const ordersKey = 'jss_mock_orders_v3';
+      const ordersKey = 'jss_mock_orders_v4';
       const allOrders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
       
       const active = allOrders.filter(o => o.driverId === courierId && !['completed', 'cancelled'].includes(o.status));
@@ -68,7 +68,7 @@ export default function CourierOrdersPage() {
       return;
     }
 
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
     const idx = orders.findIndex(o => o.id === targetOrder.id);
     if (idx !== -1) {
@@ -83,7 +83,7 @@ export default function CourierOrdersPage() {
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
     const idx = orders.findIndex(o => o.id === orderId);
     if (idx !== -1 && orders[idx].driverId === courierId) {

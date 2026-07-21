@@ -353,7 +353,7 @@ export const courierService = {
     };
 
     // Update main order status in mock storage
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders = getMock<Order>(ordersKey);
     const orderIdx = orders.findIndex(o => o.id === orderId);
     if (orderIdx !== -1) {
@@ -396,7 +396,7 @@ export const courierService = {
     setMock(MOCK_PROOFS_KEY, proofs);
 
     // Update order
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders = getMock<Order>(ordersKey);
     const orderIdx = orders.findIndex(o => o.id === orderId);
     if (orderIdx !== -1) {
@@ -435,7 +435,7 @@ export const courierService = {
     setMock(MOCK_OTPS_KEY, filtered);
 
     // Store OTP on order
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders = getMock<Order>(ordersKey);
     const orderIdx = orders.findIndex(o => o.id === orderId);
     if (orderIdx !== -1) {
@@ -459,7 +459,7 @@ export const courierService = {
     setMock(MOCK_OTPS_KEY, otps);
 
     // Update order
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders = getMock<Order>(ordersKey);
     const orderIdx = orders.findIndex(o => o.id === orderId);
     if (orderIdx !== -1) {
@@ -678,7 +678,7 @@ export const courierService = {
     const target = await this.getDailyTarget();
     
     // Count today's completed orders for this courier
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders = getMock<Order>(ordersKey);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -738,7 +738,7 @@ export const courierService = {
   /** Get leaderboard */
   async getLeaderboard(): Promise<LeaderboardEntry[]> {
     const drivers = getMock<Driver>(MOCK_DRIVERS_KEY);
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders = getMock<Order>(ordersKey);
 
     const entries: LeaderboardEntry[] = drivers.map(d => {
@@ -796,7 +796,7 @@ export const courierService = {
     const drivers = getMock<Driver>(MOCK_DRIVERS_KEY);
     const driver = drivers.find(d => d.id === courierId);
     
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders = getMock<Order>(ordersKey);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -822,7 +822,7 @@ export const courierService = {
 
   /** Get courier's active order */
   async getActiveOrder(courierId: string): Promise<Order | null> {
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders = getMock<Order>(ordersKey);
     return orders.find(o => 
       o.driverId === courierId && 
@@ -832,7 +832,7 @@ export const courierService = {
 
   /** Get courier order history */
   async getCourierOrders(courierId: string, filter?: 'day' | 'week' | 'month'): Promise<Order[]> {
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders = getMock<Order>(ordersKey);
     let filtered = orders.filter(o => o.driverId === courierId);
     
@@ -870,7 +870,7 @@ export const courierService = {
   async checkFraud(courierId: string): Promise<FraudCheckResult> {
     const drivers = getMock<Driver>(MOCK_DRIVERS_KEY);
     const driver = drivers.find(d => d.id === courierId);
-    const orders = getMock<Order>('jss_mock_orders_v3');
+    const orders = getMock<Order>('jss_mock_orders_v4');
     const courierOrders = orders.filter(o => o.driverId === courierId);
 
     const reasons: string[] = [];

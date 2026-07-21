@@ -12,7 +12,7 @@ import { notificationService } from './notificationService';
 const supabase = isSupabaseEnabled ? createClient() : null;
 
 // Mock key constants
-const MOCK_ORDERS_KEY = 'jss_mock_orders_v3';
+const MOCK_ORDERS_KEY = 'jss_mock_orders_v4';
 const MOCK_DRIVERS_KEY = 'jss_mock_drivers';
 const MOCK_ADDRESSES_KEY = 'jss_mock_addresses';
 const MOCK_USERS_KEY = 'jss_mock_users';
@@ -32,6 +32,22 @@ const INITIAL_ORDERS: Order[] = [];
 // Helper to get/set mock storage
 function getMockOrders(): Order[] {
   if (typeof window === 'undefined') return INITIAL_ORDERS;
+
+  // AUTO PURGE all old dummy order keys (v1, v2, v3) in user's browser localStorage
+  if (
+    localStorage.getItem('jss_mock_orders') ||
+    localStorage.getItem('jss_mock_orders_v1') ||
+    localStorage.getItem('jss_mock_orders_v2') ||
+    localStorage.getItem('jss_mock_orders_v3')
+  ) {
+    localStorage.removeItem('jss_mock_orders');
+    localStorage.removeItem('jss_mock_orders_v1');
+    localStorage.removeItem('jss_mock_orders_v2');
+    localStorage.removeItem('jss_mock_orders_v3');
+    localStorage.setItem(MOCK_ORDERS_KEY, JSON.stringify([]));
+    return [];
+  }
+
   const stored = localStorage.getItem(MOCK_ORDERS_KEY);
   if (!stored) {
     localStorage.setItem(MOCK_ORDERS_KEY, JSON.stringify(INITIAL_ORDERS));
@@ -282,9 +298,12 @@ export const dbService = {
     }
 
     if (typeof window !== 'undefined') {
+      localStorage.removeItem('jss_mock_orders');
+      localStorage.removeItem('jss_mock_orders_v1');
       localStorage.removeItem('jss_mock_orders_v2');
       localStorage.removeItem('jss_mock_orders_v3');
-      localStorage.setItem('jss_mock_orders_v3', JSON.stringify([]));
+      localStorage.removeItem('jss_mock_orders_v4');
+      localStorage.setItem('jss_mock_orders_v4', JSON.stringify([]));
       localStorage.removeItem('jss_order_broadcasts');
       localStorage.removeItem('jss_pending_broadcast');
       localStorage.removeItem('jss_order_courier_status');

@@ -73,7 +73,7 @@ export default function CourierDashboard() {
       setDailyProgress(progress);
 
       // Load unassigned waiting orders for "Orderan Masuk" list
-      const ordersKey = 'jss_mock_orders_v3';
+      const ordersKey = 'jss_mock_orders_v4';
       const allOrders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
       const waiting = allOrders.filter(o => o.status === 'waiting' && !o.driverId);
       setIncomingOrders(waiting);
@@ -163,7 +163,7 @@ export default function CourierDashboard() {
     }
 
     // Assign driver to order
-    const ordersKey = 'jss_mock_orders_v3';
+    const ordersKey = 'jss_mock_orders_v4';
     const orders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
     const idx = orders.findIndex(o => o.id === targetOrder.id);
     if (idx !== -1) {
