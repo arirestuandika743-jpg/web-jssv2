@@ -29,6 +29,16 @@ const INITIAL_DRIVERS: Driver[] = [
 // Clean initial orders list (Reset all dummy sample orders)
 const INITIAL_ORDERS: Order[] = [];
 
+export function getApiUrl(path: string): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host.includes('vercel.app') && host !== 'web-jssv2.vercel.app') {
+      return `https://web-jssv2.vercel.app${path}`;
+    }
+  }
+  return path;
+}
+
 // Helper to get/set mock storage
 function getMockOrders(): Order[] {
   if (typeof window === 'undefined') return INITIAL_ORDERS;
@@ -257,7 +267,7 @@ export const dbService = {
 
     // Sync with Server API Route (/api/orders) across all domain origins
     try {
-      await fetch('/api/orders', {
+      await fetch(getApiUrl('/api/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order: newOrderResult }),
@@ -309,7 +319,7 @@ export const dbService = {
     }
 
     try {
-      await fetch('/api/orders', { method: 'DELETE' });
+      await fetch(getApiUrl('/api/orders'), { method: 'DELETE' });
     } catch (e) {}
 
     if (typeof window !== 'undefined') {
@@ -422,7 +432,7 @@ export const dbService = {
     } else {
       let localOrders = getMockOrders();
       try {
-        const res = await fetch('/api/orders');
+        const res = await fetch(getApiUrl('/api/orders'));
         if (res.ok) {
           const json = await res.json();
           if (json.success && Array.isArray(json.orders)) {

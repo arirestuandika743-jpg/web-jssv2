@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase';
 import { isSupabaseEnabled } from './auth';
+import { getApiUrl } from './db';
 import { notificationService } from './notificationService';
 import type {
   Driver, Order, CourierStatus, CourierShift, CourierOrderStatus,
@@ -140,7 +141,7 @@ export const courierService = {
 
     // Sync with Server API Route (/api/deposits) across all domain origins and HP devices
     try {
-      await fetch('/api/deposits', {
+      await fetch(getApiUrl('/api/deposits'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ deposit: request }),
@@ -172,7 +173,7 @@ export const courierService = {
     let requests = getMock<DepositRequest>('jss_deposit_requests');
 
     try {
-      const res = await fetch('/api/deposits');
+      const res = await fetch(getApiUrl('/api/deposits'));
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.deposits)) {
@@ -208,7 +209,7 @@ export const courierService = {
     const req = requests.find(r => r.id === requestId);
 
     try {
-      await fetch('/api/deposits', {
+      await fetch(getApiUrl('/api/deposits'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve', requestId, adminId, adminName }),
@@ -272,7 +273,7 @@ export const courierService = {
     const req = requests.find(r => r.id === requestId);
 
     try {
-      await fetch('/api/deposits', {
+      await fetch(getApiUrl('/api/deposits'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reject', requestId, adminId, adminName, reason }),
