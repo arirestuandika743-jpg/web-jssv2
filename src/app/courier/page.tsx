@@ -42,7 +42,7 @@ export default function CourierDashboard() {
     todayOrders: 0,
     todayEarnings: 0,
     rating: 5.0,
-    balance: 50000, // Default demo balance Rp 50.000
+    balance: 0, // Initial balance starts at Rp 0 until top up
     totalDeliveries: 0,
     badge: 'rookie' as CourierBadge,
   });

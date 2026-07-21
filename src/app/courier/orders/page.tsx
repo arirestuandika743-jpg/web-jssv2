@@ -13,7 +13,7 @@ export default function CourierOrdersPage() {
   const { user } = useAuth();
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
   const [incomingOrders, setIncomingOrders] = useState<Order[]>([]);
-  const [balance, setBalance] = useState(50000);
+  const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [lowBalanceAlert, setLowBalanceAlert] = useState<string | null>(null);
