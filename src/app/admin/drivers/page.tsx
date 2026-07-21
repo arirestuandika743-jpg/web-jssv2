@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Truck, Phone, Star, Plus, Minus, Pencil, Trash2, Loader2, Power, X, Save, UserPlus } from 'lucide-react';
+import { Truck, Phone, Star, Plus, Minus, Pencil, Trash2, Loader2, Power, X, Save, UserPlus, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/layout/PageTransition';
 import { dbService } from '@/services/db';
@@ -28,6 +28,10 @@ export default function DriversPage() {
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [ratingLoading, setRatingLoading] = useState<string | null>(null);
+
+  // Custom Delete Confirm Modal State
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteConfirmName, setDeleteConfirmName] = useState<string>('');
 
   const fetchDrivers = () => {
     setLoading(true);
@@ -81,12 +85,19 @@ export default function DriversPage() {
     }
   };
 
-  const handleDelete = async (driver: Driver) => {
-    if (!confirm(`Yakin ingin menghapus driver "${driver.name}"?`)) return;
-    setDeletingId(driver.id);
+  const openDeleteConfirm = (driver: Driver) => {
+    setDeleteConfirmId(driver.id);
+    setDeleteConfirmName(driver.name);
+  };
+
+  const executeDelete = async () => {
+    if (!deleteConfirmId) return;
+    setDeletingId(deleteConfirmId);
+    const name = deleteConfirmName;
+    setDeleteConfirmId(null);
     try {
-      await dbService.deleteDriver(driver.id);
-      toast.success(`Driver "${driver.name}" berhasil dihapus`);
+      await dbService.deleteDriver(deleteConfirmId);
+      toast.success(`Driver "${name}" berhasil dihapus`);
       fetchDrivers();
     } catch (err) {
       toast.error('Gagal menghapus driver');
@@ -255,6 +266,55 @@ export default function DriversPage() {
         )}
       </AnimatePresence>
 
+      {/* Custom Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirmId && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              onClick={() => setDeleteConfirmId(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed inset-x-4 top-[25%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-md bg-white rounded-3xl shadow-2xl z-[60] overflow-hidden"
+            >
+              <div className="p-6 text-center space-y-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-600">
+                  <AlertTriangle className="w-6 h-6 animate-pulse" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-secondary-900">Konfirmasi Hapus</h3>
+                  <p className="text-sm text-secondary-500 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus driver <strong className="text-secondary-900">&quot;{deleteConfirmName}&quot;</strong>? 
+                    Tindakan ini permanen dan tidak dapat dibatalkan.
+                  </p>
+                </div>
+              </div>
+              <div className="p-5 border-t border-secondary-100 flex items-center gap-3 bg-secondary-50/50">
+                <button
+                  onClick={() => setDeleteConfirmId(null)}
+                  className="btn-outline flex-1 py-3 text-sm bg-white"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={executeDelete}
+                  className="flex-1 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-button flex items-center justify-center gap-2 transition-all shadow-md"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Hapus Driver
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Drivers List */}
       <StaggerContainer className="space-y-4">
         {drivers.map((driver) => (
@@ -345,7 +405,7 @@ export default function DriversPage() {
                   <Pencil className="w-4 h-4 text-blue-600" />
                 </button>
                 <button
-                  onClick={() => handleDelete(driver)}
+                  onClick={() => openDeleteConfirm(driver)}
                   disabled={deletingId === driver.id}
                   className="w-9 h-9 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors"
                   title="Hapus Driver"
