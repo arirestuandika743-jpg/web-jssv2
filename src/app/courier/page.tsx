@@ -395,7 +395,7 @@ export default function CourierDashboard() {
             </div>
             <div>
               <p className="text-amber-300 font-semibold text-sm">Shift Belum Dimulai</p>
-              <p className="text-amber-300/60 text-xs mt-0.5">Silakan klik "🟢 Mulai Kerja" terlebih dahulu untuk melihat dan mengambil order.</p>
+              <p className="text-amber-300/60 text-xs mt-0.5">Silakan klik &quot;🟢 Mulai Kerja&quot; terlebih dahulu untuk melihat dan mengambil order.</p>
             </div>
           </motion.div>
         )}
