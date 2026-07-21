@@ -5,11 +5,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Phone, ChevronRight, Sparkles, Navigation } from 'lucide-react';
+import { Menu, X, Phone, ChevronRight, Sparkles, Navigation, LogOut, User as UserIcon } from 'lucide-react';
 import { BRAND } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 export function Navbar() {
+  const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
@@ -105,6 +107,43 @@ export function Navbar() {
                 <Phone className="w-4 h-4 text-primary-600" />
                 <span>WhatsApp Admin</span>
               </Link>
+
+              {user ? (
+                <>
+                  {user.role === 'admin' || user.role === 'super_admin' ? (
+                    <Link
+                      href="/admin"
+                      className="px-5 py-2.5 bg-secondary-900 hover:bg-secondary-800 text-white rounded-full text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                    >
+                      <UserIcon className="w-3.5 h-3.5" />
+                      Panel Admin
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/dashboard/orders"
+                      className="px-5 py-2.5 bg-secondary-900 hover:bg-secondary-800 text-white rounded-full text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                    >
+                      <UserIcon className="w-3.5 h-3.5" />
+                      Dashboard Saya
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => signOut()}
+                    className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-full transition-all"
+                    title="Keluar"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  className="px-5 py-2.5 border border-secondary-900 hover:bg-secondary-900 hover:text-white rounded-full text-xs font-bold text-secondary-900 transition-all"
+                >
+                  Masuk / Daftar
+                </Link>
+              )}
+
               <Link
                 href="/order"
                 className="btn-primary text-xs font-bold px-6 py-3 rounded-full flex items-center gap-2 shadow-golden hover:scale-[1.02] active:scale-100 transition-all"
@@ -203,8 +242,50 @@ export function Navbar() {
                   ))}
                 </div>
 
-                {/* Mobile Bottom CTA */}
+                 {/* Mobile Bottom CTA */}
                 <div className="pt-6 border-t border-secondary-100 space-y-3">
+                  {user ? (
+                    <>
+                      {user.role === 'admin' || user.role === 'super_admin' ? (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsOpen(false)}
+                          className="w-full text-center py-3.5 bg-secondary-900 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 shadow-md"
+                        >
+                          <UserIcon className="w-4 h-4" />
+                          Panel Admin (Kelola Kurir)
+                        </Link>
+                      ) : (
+                        <Link
+                          href="/dashboard/orders"
+                          onClick={() => setIsOpen(false)}
+                          className="w-full text-center py-3.5 bg-secondary-900 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 shadow-md"
+                        >
+                          <UserIcon className="w-4 h-4" />
+                          Dashboard Saya (Beri Rating)
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => {
+                          signOut();
+                          setIsOpen(false);
+                        }}
+                        className="w-full text-center py-3 bg-red-50 text-red-600 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-100 transition-all"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Keluar Akun
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      href="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="w-full text-center py-3.5 border border-secondary-900 text-secondary-900 rounded-2xl text-sm font-bold flex items-center justify-center gap-2"
+                    >
+                      Masuk / Daftar Akun
+                    </Link>
+                  )}
+
                   <Link
                     href="/order"
                     onClick={() => setIsOpen(false)}
