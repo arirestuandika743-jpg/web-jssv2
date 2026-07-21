@@ -114,8 +114,12 @@ export async function PATCH(request: Request) {
 
             await supabase
               .from('drivers')
-              .update({ balance: newBal })
-              .eq('id', dbReq.courier_id);
+              .upsert({
+                id: dbReq.courier_id,
+                name: dbReq.courier_name || 'Kurir JSS',
+                phone: dbReq.courier_phone || '081234567890',
+                balance: newBal
+              }, { onConflict: 'id' });
           } else if (action === 'reject') {
             await supabase
               .from('deposit_requests')

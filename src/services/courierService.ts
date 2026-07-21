@@ -305,8 +305,12 @@ export const courierService = {
 
             await supabase
               .from('drivers')
-              .update({ balance: newBal })
-              .eq('id', reqCourierId);
+              .upsert({
+                id: reqCourierId,
+                name: reqCourierName || 'Kurir JSS',
+                phone: reqCourierPhone || '081234567890',
+                balance: newBal,
+              }, { onConflict: 'id' });
           }
         }
       } catch (err) {
@@ -480,8 +484,12 @@ export const courierService = {
 
         await supabase
           .from('drivers')
-          .update({ balance: newBal })
-          .eq('id', courierId);
+          .upsert({
+            id: courierId,
+            name: 'Kurir JSS',
+            phone: '081234567890',
+            balance: newBal
+          }, { onConflict: 'id' });
       } catch (err) {
         console.error('Supabase deduct commission error:', err);
       }
