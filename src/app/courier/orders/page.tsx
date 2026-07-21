@@ -24,7 +24,7 @@ export default function CourierOrdersPage() {
       const stats = await courierService.getCourierStats(courierId);
       setBalance(stats.balance);
 
-      const ordersKey = 'jss_mock_orders_v2';
+      const ordersKey = 'jss_mock_orders_v3';
       const allOrders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
       
       const active = allOrders.filter(o => o.driverId === courierId && !['completed', 'cancelled'].includes(o.status));
@@ -39,8 +39,26 @@ export default function CourierOrdersPage() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 4000);
-    return () => clearInterval(interval);
+    const interval = setInterval(loadData, 3000);
+
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('jss_orders_sync');
+      bc.onmessage = () => loadData();
+    } catch (e) {}
+
+    const handleSync = () => loadData();
+    window.addEventListener('jss_order_created', handleSync);
+    window.addEventListener('jss_orders_reset', handleSync);
+    window.addEventListener('storage', handleSync);
+
+    return () => {
+      clearInterval(interval);
+      if (bc) bc.close();
+      window.removeEventListener('jss_order_created', handleSync);
+      window.removeEventListener('jss_orders_reset', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, [loadData]);
 
   const handleTakeOrder = async (targetOrder: Order) => {
@@ -50,7 +68,7 @@ export default function CourierOrdersPage() {
       return;
     }
 
-    const ordersKey = 'jss_mock_orders_v2';
+    const ordersKey = 'jss_mock_orders_v3';
     const orders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
     const idx = orders.findIndex(o => o.id === targetOrder.id);
     if (idx !== -1) {
@@ -65,7 +83,7 @@ export default function CourierOrdersPage() {
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    const ordersKey = 'jss_mock_orders_v2';
+    const ordersKey = 'jss_mock_orders_v3';
     const orders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
     const idx = orders.findIndex(o => o.id === orderId);
     if (idx !== -1 && orders[idx].driverId === courierId) {

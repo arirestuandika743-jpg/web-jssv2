@@ -73,7 +73,7 @@ export default function CourierDashboard() {
       setDailyProgress(progress);
 
       // Load unassigned waiting orders for "Orderan Masuk" list
-      const ordersKey = 'jss_mock_orders_v2';
+      const ordersKey = 'jss_mock_orders_v3';
       const allOrders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
       const waiting = allOrders.filter(o => o.status === 'waiting' && !o.driverId);
       setIncomingOrders(waiting);
@@ -100,8 +100,26 @@ export default function CourierDashboard() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 4000); // Poll every 4s
-    return () => clearInterval(interval);
+    const interval = setInterval(loadData, 3000); // Poll every 3s
+
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('jss_orders_sync');
+      bc.onmessage = () => loadData();
+    } catch (e) {}
+
+    const handleSync = () => loadData();
+    window.addEventListener('jss_order_created', handleSync);
+    window.addEventListener('jss_orders_reset', handleSync);
+    window.addEventListener('storage', handleSync);
+
+    return () => {
+      clearInterval(interval);
+      if (bc) bc.close();
+      window.removeEventListener('jss_order_created', handleSync);
+      window.removeEventListener('jss_orders_reset', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, [loadData]);
 
   const handleShiftStart = async () => {
@@ -145,7 +163,7 @@ export default function CourierDashboard() {
     }
 
     // Assign driver to order
-    const ordersKey = 'jss_mock_orders_v2';
+    const ordersKey = 'jss_mock_orders_v3';
     const orders: Order[] = JSON.parse(localStorage.getItem(ordersKey) || '[]');
     const idx = orders.findIndex(o => o.id === targetOrder.id);
     if (idx !== -1) {

@@ -6,10 +6,13 @@ import { sanitizeString, sanitizePhoneNumber } from '@/lib/sanitizer';
 import { auditLogger } from '@/services/auditLogger';
 import type { Order, OrderFormData, Driver, User, OrderStatus, LatLng, DashboardStats } from '@/types';
 
+import { broadcastService } from './broadcastService';
+import { notificationService } from './notificationService';
+
 const supabase = isSupabaseEnabled ? createClient() : null;
 
 // Mock key constants
-const MOCK_ORDERS_KEY = 'jss_mock_orders_v2';
+const MOCK_ORDERS_KEY = 'jss_mock_orders_v3';
 const MOCK_DRIVERS_KEY = 'jss_mock_drivers';
 const MOCK_ADDRESSES_KEY = 'jss_mock_addresses';
 const MOCK_USERS_KEY = 'jss_mock_users';
@@ -23,84 +26,8 @@ const INITIAL_DRIVERS: Driver[] = [
   { id: 'drv-5', name: 'Bambang Wijaya', phone: '081298765436', vehicleType: 'Motorcycle', vehiclePlate: 'BE 7890 KL', isActive: true, rating: 4.5, totalDeliveries: 89 },
 ];
 
-// Demo initial orders to seed (Created in the past, so Today's stats start at 0)
-const INITIAL_ORDERS: Order[] = [
-  {
-    id: 'order-1',
-    orderNumber: 'JSS-2401',
-    customerId: 'customer-id-123',
-    customerName: 'Rina Sulistiani',
-    whatsappNumber: '081234567890',
-    pickupAddress: 'Pasar Kalirejo',
-    pickupCoordinates: { lat: -5.2818, lng: 104.9833 },
-    destinationAddress: 'Desa Bangun Rejo, RT 03/RW 02',
-    destinationCoordinates: { lat: -5.2700, lng: 104.9700 },
-    category: 'shopping',
-    description: 'Belanja bahan pokok: beras 5kg, minyak 2L, gula 1kg',
-    estimatedItemPrice: 85000,
-    deliveryFee: 14500,
-    grandTotal: 99500,
-    status: 'delivering',
-    paymentMethod: 'cash',
-    paymentStatus: 'pending',
-    distance: 3200,
-    duration: 720,
-    driverId: 'drv-1',
-    driverName: 'Agus Setiawan',
-    createdAt: '2026-07-15T08:30:00.000Z',
-    updatedAt: '2026-07-15T09:00:00.000Z',
-  },
-  {
-    id: 'order-2',
-    orderNumber: 'JSS-2400',
-    customerId: 'customer-id-123',
-    customerName: 'Budi Hartono',
-    whatsappNumber: '081234567891',
-    pickupAddress: 'Warung Makan Jaya',
-    pickupCoordinates: { lat: -5.2830, lng: 104.9850 },
-    destinationAddress: 'Desa Sendang Agung',
-    destinationCoordinates: { lat: -5.2900, lng: 105.0000 },
-    category: 'food',
-    description: 'Beli nasi goreng 2 porsi',
-    estimatedItemPrice: 28000,
-    deliveryFee: 10000,
-    grandTotal: 38000,
-    status: 'accepted',
-    paymentMethod: 'cash',
-    paymentStatus: 'pending',
-    distance: 4100,
-    duration: 900,
-    driverId: 'drv-2',
-    driverName: 'Deni Kurniawan',
-    createdAt: '2026-07-15T12:15:00.000Z',
-    updatedAt: '2026-07-15T12:45:00.000Z',
-  },
-  {
-    id: 'order-3',
-    orderNumber: 'JSS-2399',
-    customerId: 'customer-id-123',
-    customerName: 'Siti Aminah',
-    whatsappNumber: '081234567892',
-    pickupAddress: 'Apotek Sehat',
-    pickupCoordinates: { lat: -5.2835, lng: 104.9830 },
-    destinationAddress: 'Desa Padang Ratu',
-    destinationCoordinates: { lat: -5.3000, lng: 104.9600 },
-    category: 'medicine',
-    description: 'Beli Paracetamol 1 strip dan Vitamin C',
-    estimatedItemPrice: 15000,
-    deliveryFee: 12000,
-    grandTotal: 27000,
-    status: 'completed',
-    paymentMethod: 'qris',
-    paymentStatus: 'paid',
-    distance: 5000,
-    duration: 1100,
-    driverId: 'drv-3',
-    driverName: 'Rudi Hermawan',
-    createdAt: '2026-07-14T15:20:00.000Z',
-    updatedAt: '2026-07-14T15:50:00.000Z',
-  }
-];
+// Clean initial orders list (Reset all dummy sample orders)
+const INITIAL_ORDERS: Order[] = [];
 
 // Helper to get/set mock storage
 function getMockOrders(): Order[] {
@@ -218,6 +145,8 @@ export const dbService = {
     const cleanDescription = sanitizeString(formData.description);
     const cleanDeliveryNotes = formData.deliveryNotes ? sanitizeString(formData.deliveryNotes) : null;
 
+    let newOrderResult: Order;
+
     if (isSupabaseEnabled && supabase) {
       const { data, error } = await supabase
         .from('orders')
@@ -251,7 +180,7 @@ export const dbService = {
 
       auditLogger.log('ORDER_CREATED', `Pesanan baru dibuat: ${data.order_number}`, { orderId: data.id }, customerId);
 
-      return {
+      newOrderResult = {
         id: data.id,
         orderNumber: data.order_number,
         customerId: data.customer_id,
@@ -278,9 +207,9 @@ export const dbService = {
       };
     } else {
       const orders = getMockOrders();
-      const newOrderNum = `JSS-${2402 + orders.length}`;
+      const newOrderNum = `JSS-${2401 + orders.length}`;
       
-      const newOrder: Order = {
+      newOrderResult = {
         id: `ord-${Math.random().toString(36).substr(2, 9)}`,
         orderNumber: newOrderNum,
         customerId: customerId || 'customer-id-123',
@@ -306,10 +235,69 @@ export const dbService = {
         updatedAt: new Date().toISOString(),
       };
 
-      orders.unshift(newOrder); // Add to beginning
+      orders.unshift(newOrderResult); // Add to beginning
       saveMockOrders(orders);
-      return newOrder;
     }
+
+    // Trigger broadcast to couriers, admin notifications, and cross-tab real-time sync
+    try {
+      await broadcastService.startBroadcast(newOrderResult);
+    } catch (e) {
+      console.warn('Broadcast start error:', e);
+    }
+
+    try {
+      await notificationService.notifyAdmins(
+        'order_new',
+        'Pesanan Baru Masuk! 🛒',
+        `Pesanan #${newOrderResult.orderNumber} dari ${newOrderResult.customerName} (${newOrderResult.category})`,
+        { orderId: newOrderResult.id, orderNumber: newOrderResult.orderNumber }
+      );
+    } catch (e) {
+      console.warn('Admin notification error:', e);
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const bc = new BroadcastChannel('jss_orders_sync');
+        bc.postMessage({ type: 'NEW_ORDER', order: newOrderResult });
+        bc.close();
+      } catch (e) {}
+      window.dispatchEvent(new CustomEvent('jss_order_created', { detail: newOrderResult }));
+    }
+
+    return newOrderResult;
+  },
+
+  /**
+   * Reset seluruh data pesanan (Menghapus semua mock & sample orders)
+   */
+  async resetAllOrders(): Promise<boolean> {
+    if (isSupabaseEnabled && supabase) {
+      try {
+        await supabase.from('orders').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      } catch (e) {
+        console.error('Reset Supabase orders error:', e);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('jss_mock_orders_v2');
+      localStorage.removeItem('jss_mock_orders_v3');
+      localStorage.setItem('jss_mock_orders_v3', JSON.stringify([]));
+      localStorage.removeItem('jss_order_broadcasts');
+      localStorage.removeItem('jss_pending_broadcast');
+      localStorage.removeItem('jss_order_courier_status');
+
+      try {
+        const bc = new BroadcastChannel('jss_orders_sync');
+        bc.postMessage({ type: 'RESET_ORDERS' });
+        bc.close();
+      } catch (e) {}
+      window.dispatchEvent(new CustomEvent('jss_orders_reset'));
+    }
+
+    return true;
   },
 
   /**

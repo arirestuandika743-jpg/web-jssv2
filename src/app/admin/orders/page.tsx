@@ -16,6 +16,7 @@ import {
   Calendar,
   Download,
   RefreshCw,
+  Trash2,
   Loader2,
 } from 'lucide-react';
 import { formatCurrency, formatDistance, cn } from '@/lib/utils';
@@ -45,6 +46,7 @@ export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('Semua');
   const [assigningOrder, setAssigningOrder] = useState<Order | null>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const fetchAllData = () => {
     setLoading(true);
@@ -62,7 +64,36 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     fetchAllData();
+
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('jss_orders_sync');
+      bc.onmessage = () => fetchAllData();
+    } catch (e) {}
+
+    const handleSync = () => fetchAllData();
+    window.addEventListener('jss_order_created', handleSync);
+    window.addEventListener('jss_orders_reset', handleSync);
+    window.addEventListener('storage', handleSync);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('jss_order_created', handleSync);
+      window.removeEventListener('jss_orders_reset', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
+
+  const handleResetOrders = async () => {
+    try {
+      await dbService.resetAllOrders();
+      toast.success('Seluruh data pesanan berhasil di-reset!');
+      setShowResetConfirm(false);
+      fetchAllData();
+    } catch (err) {
+      toast.error('Gagal mereset pesanan');
+    }
+  };
 
   const handleUpdateStatus = async (orderId: string, nextStatus: OrderStatus) => {
     try {
@@ -129,9 +160,12 @@ export default function AdminOrdersPage() {
             <p className="text-secondary-500 mt-1">Kelola semua pesanan yang masuk</p>
           </div>
           <div className="flex gap-2">
-            <button className="btn-outline text-sm py-2 flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Export
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-button text-sm font-semibold flex items-center gap-1.5 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Reset Pesanan</span>
             </button>
             <button onClick={fetchAllData} className="btn-primary text-sm py-2 flex items-center gap-2">
               <RefreshCw className="w-4 h-4" />
@@ -140,6 +174,49 @@ export default function AdminOrdersPage() {
           </div>
         </div>
       </FadeIn>
+
+      {/* Reset Confirmation Modal */}
+      <AnimatePresence>
+        {showResetConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-card p-6 max-w-md w-full shadow-2xl space-y-4"
+            >
+              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-bold text-secondary-900">Reset Seluruh Pesanan?</h3>
+                <p className="text-secondary-500 text-xs mt-2 leading-relaxed">
+                  Tindakan ini akan menghapus <strong>seluruh pesanan sample / dummy</strong> yang telah ada, sehingga Anda bisa memulai dari awal dengan pesanan asli pelanggan.
+                </p>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="flex-1 py-2.5 border border-secondary-200 rounded-xl text-xs font-semibold text-secondary-600"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleResetOrders}
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-md transition-colors"
+                >
+                  Ya, Reset Semua Pesanan
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <FadeIn delay={0.05}>
         <div className="bg-white rounded-card p-4 shadow-soft flex flex-col md:flex-row gap-4 items-start md:items-center">
