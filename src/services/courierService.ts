@@ -123,21 +123,53 @@ export const courierService = {
     // Compress mobile camera photo / screenshot to fit Vercel 4MB payload limit
     const compressedProof = await compressBase64Image(proofUrl, 800, 800, 0.7);
 
-    const request: DepositRequest = {
-      id: genId(),
-      referenceNumber,
-      courierId,
-      courierName,
-      courierPhone,
-      amount,
-      proofUrl: compressedProof,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
+    let request: DepositRequest;
 
-    const requests = getMock<DepositRequest>('jss_deposit_requests');
-    requests.unshift(request);
-    setMock('jss_deposit_requests', requests);
+    if (isSupabaseEnabled && supabase) {
+      const { data, error } = await supabase
+        .from('deposit_requests')
+        .insert({
+          reference_number: referenceNumber,
+          courier_id: courierId,
+          courier_name: courierName,
+          courier_phone: courierPhone,
+          amount,
+          proof_url: compressedProof,
+          status: 'pending',
+        })
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      request = {
+        id: data.id,
+        referenceNumber: data.reference_number,
+        courierId: data.courier_id,
+        courierName: data.courier_name,
+        courierPhone: data.courier_phone,
+        amount: Number(data.amount),
+        proofUrl: data.proof_url,
+        status: data.status,
+        createdAt: data.created_at,
+      };
+    } else {
+      request = {
+        id: genId(),
+        referenceNumber,
+        courierId,
+        courierName,
+        courierPhone,
+        amount,
+        proofUrl: compressedProof,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+
+      const requests = getMock<DepositRequest>('jss_deposit_requests');
+      requests.unshift(request);
+      setMock('jss_deposit_requests', requests);
+    }
 
     // Sync with Server API Route (/api/deposits) across all domain origins and HP devices
     try {
@@ -170,6 +202,27 @@ export const courierService = {
 
   /** Get all deposit requests (for Admin view - multi-device sync) */
   async getDepositRequests(filterStatus?: DepositStatus): Promise<DepositRequest[]> {
+    if (isSupabaseEnabled && supabase) {
+      let query = supabase.from('deposit_requests').select('*').order('created_at', { ascending: false });
+      if (filterStatus) query = query.eq('status', filterStatus);
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []).map(d => ({
+        id: d.id,
+        referenceNumber: d.reference_number,
+        courierId: d.courier_id,
+        courierName: d.courier_name,
+        courierPhone: d.courier_phone,
+        amount: Number(d.amount),
+        proofUrl: d.proof_url,
+        status: d.status,
+        rejectionReason: d.rejection_reason,
+        verifiedBy: d.verified_by,
+        verifiedAt: d.verified_at,
+        createdAt: d.created_at,
+      }));
+    }
+
     let requests = getMock<DepositRequest>('jss_deposit_requests');
 
     try {
