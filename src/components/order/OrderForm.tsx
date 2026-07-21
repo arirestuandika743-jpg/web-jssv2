@@ -205,6 +205,7 @@ export function OrderForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [createdOrderNumber, setCreatedOrderNumber] = useState<string>('');
+  const [whatsappUrl, setWhatsappUrl] = useState<string>('');
 
   // Auto-detect Peak Hour (17.00 - 19.00)
   useEffect(() => {
@@ -573,14 +574,20 @@ ${additionalText}
 ${osmLink}`;
 
     const encodedMessage = encodeURIComponent(rawMessage);
-    const whatsappUrl = `https://wa.me/${BRAND.phone}?text=${encodedMessage}`;
+    const whatsappUrlString = `https://wa.me/${BRAND.phone}?text=${encodedMessage}`;
 
+    setWhatsappUrl(whatsappUrlString);
     setIsSubmitted(true);
     setIsSubmitting(false);
 
     // Open WhatsApp after small timeout
     setTimeout(() => {
-      window.open(whatsappUrl, '_blank');
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobileDevice) {
+        window.location.href = whatsappUrlString;
+      } else {
+        window.open(whatsappUrlString, '_blank');
+      }
     }, 1000);
   };
 
@@ -623,8 +630,9 @@ ${osmLink}`;
           </p>
           <div className="space-y-2">
             <a
-              href={`https://wa.me/${BRAND.phone}`}
+              href={whatsappUrl || `https://wa.me/${BRAND.phone}`}
               target="_blank"
+              rel="noopener noreferrer"
               className="btn-primary w-full flex items-center justify-center gap-2 py-3.5"
             >
               <MessageCircle className="w-5 h-5" />
