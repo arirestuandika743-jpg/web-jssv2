@@ -352,7 +352,10 @@ export const courierService = {
     try {
       await fetch(getApiUrl('/api/deposits'), {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Key': process.env.NEXT_PUBLIC_ADMIN_SECRET || 'jss-admin-secret-2026',
+        },
         body: JSON.stringify({ action: 'approve', requestId, adminId, adminName }),
       });
     } catch (e) {}
@@ -460,7 +463,10 @@ export const courierService = {
     try {
       await fetch(getApiUrl('/api/deposits'), {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Key': process.env.NEXT_PUBLIC_ADMIN_SECRET || 'jss-admin-secret-2026',
+        },
         body: JSON.stringify({ action: 'reject', requestId, adminId, adminName, reason }),
       });
     } catch (e) {}
