@@ -90,14 +90,45 @@ export async function reverseGeocodeWithCache(lat: number, lng: number): Promise
     return reverseGeocodeCache.get(key);
   }
 
-  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': 'Jasa-Suruh-Kalirejo-Delivery-App/1.0',
+  try {
+    // 1. Try local API proxy route first (avoids CORS and browser User-Agent restrictions)
+    const proxyUrl = `/api/geocode?type=reverse&lat=${lat}&lng=${lng}`;
+    const res = await fetch(proxyUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && (data.display_name || data.address)) {
+        reverseGeocodeCache.set(key, data);
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('Proxy geocode failed, attempting direct fetch fallback:', err);
+  }
+
+  try {
+    // 2. Direct Nominatim fallback
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      reverseGeocodeCache.set(key, data);
+      return data;
+    }
+  } catch (err) {
+    console.error('Direct reverse geocode failed:', err);
+  }
+
+  // 3. Graceful fallback object when network/geocoding API is unreachable or rate limited
+  const fallback = {
+    display_name: `Lokasi Peta (${lat.toFixed(5)}, ${lng.toFixed(5)})`,
+    lat: lat.toString(),
+    lon: lng.toString(),
+    address: {
+      road: `Koordinat (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+      county: 'Lampung',
+      state: 'Lampung',
     },
-  });
-  if (!res.ok) throw new Error('Reverse geocoding failed');
-  const data = await res.json();
-  reverseGeocodeCache.set(key, data);
-  return data;
+  };
+  reverseGeocodeCache.set(key, fallback);
+  return fallback;
 }

@@ -207,15 +207,22 @@ export function AddressAutocomplete({
     setIsLoading(true);
     const handler = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=id&format=json&addressdetails=1&limit=15`,
-          {
-            headers: {
-              'User-Agent': 'Jasa-Suruh-Kalirejo-Delivery-App/1.0',
-            },
+        let data: any = null;
+        try {
+          const proxyRes = await fetch(`/api/geocode?type=search&q=${encodeURIComponent(query)}`);
+          if (proxyRes.ok) {
+            data = await proxyRes.json();
           }
-        );
-        const data = await res.json();
+        } catch (e) {
+          console.warn('Proxy search failed, using direct fallback:', e);
+        }
+
+        if (!data || !Array.isArray(data)) {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=id&format=json&addressdetails=1&limit=15`
+          );
+          data = await res.json();
+        }
 
         if (Array.isArray(data)) {
           const formatted = data.map((item: any) => {

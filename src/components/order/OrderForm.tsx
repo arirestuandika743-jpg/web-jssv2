@@ -280,23 +280,23 @@ export function OrderForm() {
   const handlePickupCoordsChange = async (coords: LatLng) => {
     setPickupCoords(coords);
     setIsReverseGeocoding(true);
-    toast.info('Mencari alamat lokasi jemput...');
     try {
       const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
-      if (data) {
-        const details = parseNominatimAddress(data);
-        setPickupDetails(details);
-        setPickupAddress(details.displayName);
-        setErrors((prev) => {
-          const copy = { ...prev };
-          delete copy.pickupAddress;
-          return copy;
-        });
-        toast.success('Lokasi jemput diperbarui dari pin peta');
-      }
+      const details = parseNominatimAddress(data);
+      const addressText = details.displayName || `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
+      setPickupDetails(details);
+      setPickupAddress(addressText);
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy.pickupAddress;
+        return copy;
+      });
+      toast.success('Lokasi jemput diperbarui dari pin peta');
     } catch (err) {
       console.error(err);
-      toast.error('Gagal memproses alamat koordinat jemput');
+      const fallbackAddress = `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
+      setPickupAddress(fallbackAddress);
+      toast.success('Lokasi jemput disesuaikan dengan koordinat peta');
     } finally {
       setIsReverseGeocoding(false);
     }
@@ -305,23 +305,23 @@ export function OrderForm() {
   const handleDestinationCoordsChange = async (coords: LatLng) => {
     setDestinationCoords(coords);
     setIsReverseGeocoding(true);
-    toast.info('Mencari alamat lokasi tujuan...');
     try {
       const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
-      if (data) {
-        const details = parseNominatimAddress(data);
-        setDestinationDetails(details);
-        setDestinationAddress(details.displayName);
-        setErrors((prev) => {
-          const copy = { ...prev };
-          delete copy.destinationAddress;
-          return copy;
-        });
-        toast.success('Lokasi tujuan diperbarui dari pin peta');
-      }
+      const details = parseNominatimAddress(data);
+      const addressText = details.displayName || `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
+      setDestinationDetails(details);
+      setDestinationAddress(addressText);
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy.destinationAddress;
+        return copy;
+      });
+      toast.success('Lokasi tujuan diperbarui dari pin peta');
     } catch (err) {
       console.error(err);
-      toast.error('Gagal memproses alamat koordinat tujuan');
+      const fallbackAddress = `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
+      setDestinationAddress(fallbackAddress);
+      toast.success('Lokasi tujuan disesuaikan dengan koordinat peta');
     } finally {
       setIsReverseGeocoding(false);
     }
