@@ -39,7 +39,8 @@ import {
   Percent,
   Check,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
+  Info
 } from 'lucide-react';
 import { ORDER_CATEGORIES, PAYMENT_METHODS, BRAND, MAP_CENTER } from '@/lib/constants';
 import dynamic from 'next/dynamic';
@@ -594,7 +595,11 @@ ${osmLink}`;
   const handleOpenConfirm = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) {
-      toast.error('Harap lengkapi isian form yang wajib');
+      toast.error('Harap lengkapi seluruh kolom yang WAJIB diisi (* WAJIB)');
+      const formElement = document.getElementById('order-form-container');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
       return;
     }
     setShowConfirmModal(true);
@@ -702,36 +707,82 @@ ${osmLink}`;
             </div>
 
             {/* Form */}
-            <form onSubmit={handleOpenConfirm} className="space-y-5">
+            <form id="order-form-container" onSubmit={handleOpenConfirm} className="space-y-5">
               
+              {/* Top Help Guide Banner */}
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 flex items-start gap-3 text-xs leading-relaxed text-amber-950 shadow-sm">
+                <Info className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-bold text-xs font-outfit">📌 Petunjuk Pengisian Form:</p>
+                  <p className="text-[11px] text-secondary-700">
+                    Kolom bertanda <span className="text-red-600 font-extrabold px-1.5 py-0.5 bg-red-100/90 rounded border border-red-200 text-[10px]">* WAJIB</span> harus diisi. Kolom bertanda <span className="text-secondary-600 font-semibold px-1.5 py-0.5 bg-secondary-150 rounded border border-secondary-250 text-[10px]">(OPSIONAL)</span> boleh dikosongkan jika tidak ada catatan.
+                  </p>
+                </div>
+              </div>
+
               {/* Profile/Customer name */}
               <div className="space-y-4 bg-secondary-50/40 p-4 border border-secondary-100 rounded-2xl">
-                <h3 className="text-sm font-bold text-secondary-900 flex items-center gap-2 font-outfit">
-                  <User className="w-4 h-4 text-primary" />
-                  Pemesanan Akun
+                <h3 className="text-sm font-bold text-secondary-900 flex items-center justify-between font-outfit">
+                  <span className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-primary" />
+                    Pemesanan Akun
+                  </span>
+                  <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-lg border border-amber-200">
+                    Data Pelanggan
+                  </span>
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-[10px] font-bold text-secondary-500 uppercase tracking-wider mb-1">Nama Lengkap *</label>
+                    <label className="block text-[11px] font-bold text-secondary-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                      <span>Nama Lengkap</span>
+                      <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
+                    </label>
                     <input
                       type="text"
                       value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="Nama Pelanggan"
-                      className="input-premium py-2.5 text-xs rounded-xl bg-white"
+                      onChange={(e) => {
+                        setCustomerName(e.target.value);
+                        if (errors.customerName) {
+                          setErrors(prev => { const copy = { ...prev }; delete copy.customerName; return copy; });
+                        }
+                      }}
+                      placeholder="Contoh: Budi Santoso"
+                      className={cn(
+                        "input-premium py-2.5 text-xs rounded-xl transition-all",
+                        errors.customerName ? "bg-red-50/50 border-red-500 focus:ring-red-200" : customerName ? "bg-emerald-50/30 border-emerald-300" : "bg-white border-secondary-200"
+                      )}
                     />
-                    {errors.customerName && <p className="text-[10px] text-red-500 mt-0.5 font-medium">{errors.customerName}</p>}
+                    {errors.customerName ? (
+                      <p className="text-[10px] text-red-500 mt-1 font-semibold flex items-center gap-1">⚠️ {errors.customerName}</p>
+                    ) : (
+                      <p className="text-[9.5px] text-secondary-400 mt-1">Nama pemesan atau panggilan untuk konfirmasi</p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-secondary-500 uppercase tracking-wider mb-1">No. WhatsApp *</label>
+                    <label className="block text-[11px] font-bold text-secondary-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                      <span>No. WhatsApp</span>
+                      <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
+                    </label>
                     <input
                       type="tel"
                       value={whatsappNumber}
-                      onChange={(e) => setWhatsappNumber(e.target.value)}
+                      onChange={(e) => {
+                        setWhatsappNumber(e.target.value);
+                        if (errors.whatsappNumber) {
+                          setErrors(prev => { const copy = { ...prev }; delete copy.whatsappNumber; return copy; });
+                        }
+                      }}
                       placeholder="08xxxxxxxxxx"
-                      className="input-premium py-2.5 text-xs rounded-xl bg-white"
+                      className={cn(
+                        "input-premium py-2.5 text-xs rounded-xl transition-all",
+                        errors.whatsappNumber ? "bg-red-50/50 border-red-500 focus:ring-red-200" : whatsappNumber ? "bg-emerald-50/30 border-emerald-300" : "bg-white border-secondary-200"
+                      )}
                     />
-                    {errors.whatsappNumber && <p className="text-[10px] text-red-500 mt-0.5 font-medium">{errors.whatsappNumber}</p>}
+                    {errors.whatsappNumber ? (
+                      <p className="text-[10px] text-red-500 mt-1 font-semibold flex items-center gap-1">⚠️ {errors.whatsappNumber}</p>
+                    ) : (
+                      <p className="text-[9.5px] text-secondary-400 mt-1">10-14 digit nomor aktif untuk konfirmasi kurir</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -781,7 +832,10 @@ ${osmLink}`;
                     <div className="bg-secondary-50/30 p-3 border border-secondary-100 rounded-2xl space-y-2">
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-[8px] font-extrabold text-secondary-400 uppercase tracking-wider">Jenis Lokasi</label>
+                          <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                            <span>Jenis Lokasi</span>
+                            <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                          </label>
                           <select
                             value={pickupLocationType}
                             onChange={(e) => setPickupLocationType(e.target.value)}
@@ -793,7 +847,10 @@ ${osmLink}`;
                           </select>
                         </div>
                         <div>
-                          <label className="block text-[8px] font-extrabold text-secondary-400 uppercase tracking-wider">Foto Tempat</label>
+                          <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                            <span>Foto Tempat</span>
+                            <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                          </label>
                           <div className="flex items-center gap-1.5 mt-1.5">
                             <label className="cursor-pointer bg-white hover:bg-secondary-50 border border-secondary-200 rounded-lg text-[9px] font-bold px-2 py-1 flex items-center gap-1">
                               <span>📸 Upload</span>
@@ -804,7 +861,10 @@ ${osmLink}`;
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[8px] font-extrabold text-secondary-400 uppercase tracking-wider">Patokan / Catatan Jemput</label>
+                        <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                          <span>Patokan / Catatan Jemput</span>
+                          <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                        </label>
                         <input
                           type="text"
                           value={pickupLandmark}
@@ -839,7 +899,10 @@ ${osmLink}`;
 
               {/* Service Categories */}
               <div className="space-y-3">
-                <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider">Kategori Layanan *</label>
+                <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider flex items-center justify-between">
+                  <span>Kategori Layanan</span>
+                  <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
+                </label>
                 <div className="grid grid-cols-3 gap-2">
                   {ORDER_CATEGORIES.map((cat) => {
                     const Icon = CATEGORY_ICONS[cat.icon];
@@ -1196,7 +1259,10 @@ ${osmLink}`;
 
               {/* Payment selection */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider">Metode Pembayaran</label>
+                <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider flex items-center justify-between">
+                  <span>Metode Pembayaran</span>
+                  <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
+                </label>
                 <div className="grid grid-cols-3 gap-2">
                   {PAYMENT_METHODS.map((method) => {
                     const Icon = PAYMENT_ICONS[method.icon];

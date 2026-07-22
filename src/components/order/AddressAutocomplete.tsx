@@ -360,11 +360,27 @@ export function AddressAutocomplete({
     }
   };
 
+  const renderLabel = () => {
+    if (typeof label !== 'string') return label;
+    if (label.includes('*')) {
+      const cleanText = label.replace('*', '').trim();
+      return (
+        <span className="flex items-center gap-1">
+          <span>{cleanText}</span>
+          <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 uppercase tracking-wider">
+            * WAJIB
+          </span>
+        </span>
+      );
+    }
+    return label;
+  };
+
   return (
     <div ref={containerRef} className="relative w-full text-left">
       <div className="flex items-center justify-between mb-1.5">
         <label className="block text-sm font-bold text-secondary-700 font-outfit">
-          {label}
+          {renderLabel()}
         </label>
         {showGpsButton && (
           <button
