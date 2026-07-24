@@ -107,40 +107,57 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   Building2,
 };
 
-const renderDetailedAddress = (details: DetailedAddress | null) => {
-  if (!details) return null;
+const renderDetailedAddress = (details: DetailedAddress | null, labelTag: string = 'Lokasi') => {
+  if (!details || (!details.village && !details.subdistrict && !details.county)) return null;
   return (
-    <div className="bg-secondary-50/50 p-3 border border-secondary-100 rounded-2xl text-xs space-y-1 mt-1.5 text-left">
-      {details.name && (
-        <div className="flex items-start gap-1.5 font-bold text-secondary-800">
+    <div className="mt-2 p-3 bg-amber-50/80 border border-amber-200/90 rounded-2xl text-xs space-y-1.5 shadow-soft-xs text-left">
+      <div className="flex items-center justify-between border-b border-amber-200/60 pb-1.5 font-bold text-[10px] text-amber-900 uppercase tracking-wider">
+        <span className="flex items-center gap-1">
           <span>📍</span>
-          <span>{details.name}</span>
-        </div>
-      )}
-      {details.road && (
-        <div className="flex items-start gap-1.5 text-secondary-600">
-          <span>🏠</span>
-          <span>{details.road}</span>
-        </div>
-      )}
-      {details.village && (
-        <div className="flex items-start gap-1.5 text-secondary-600">
-          <span>🏘</span>
-          <span>{details.village}</span>
-        </div>
-      )}
-      {details.subdistrict && (
-        <div className="flex items-start gap-1.5 text-secondary-600">
-          <span>📌</span>
-          <span>{details.subdistrict.startsWith('Kecamatan') ? details.subdistrict : `Kecamatan ${details.subdistrict}`}</span>
-        </div>
-      )}
-      {details.county && (
-        <div className="flex items-start gap-1.5 text-secondary-600 font-semibold">
-          <span>🏙</span>
-          <span>{details.county}</span>
-        </div>
-      )}
+          <span>Detail Wilayah ({labelTag})</span>
+        </span>
+        <span className="text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full text-[9px] font-extrabold border border-emerald-200">
+          ✓ Rincian Lengkap
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-1.5 text-[11px] pt-0.5">
+        {details.village && (
+          <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
+            <span className="text-xs">🏡</span>
+            <span className="truncate">
+              <strong className="text-secondary-500 font-semibold text-[10px]">Desa/Kel:</strong>{' '}
+              <span className="font-bold text-secondary-900">{details.village}</span>
+            </span>
+          </div>
+        )}
+        {details.subdistrict && (
+          <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
+            <span className="text-xs">🏘️</span>
+            <span className="truncate">
+              <strong className="text-secondary-500 font-semibold text-[10px]">Kecamatan:</strong>{' '}
+              <span className="font-bold text-secondary-900">{details.subdistrict}</span>
+            </span>
+          </div>
+        )}
+        {details.county && (
+          <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
+            <span className="text-xs">🏙️</span>
+            <span className="truncate">
+              <strong className="text-secondary-500 font-semibold text-[10px]">Kab/Kota:</strong>{' '}
+              <span className="font-bold text-secondary-900">{details.county}</span>
+            </span>
+          </div>
+        )}
+        {details.state && (
+          <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
+            <span className="text-xs">🗺️</span>
+            <span className="truncate">
+              <strong className="text-secondary-500 font-semibold text-[10px]">Provinsi:</strong>{' '}
+              <span className="font-bold text-secondary-900">{details.state}</span>
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -827,6 +844,7 @@ ${osmLink}`;
                     gpsLoading={isLocating}
                     onFocus={() => setActiveMarkerType('pickup')}
                   />
+                  {renderDetailedAddress(pickupDetails, 'Jemput')}
 
                   {pickupCoords && (
                     <div className="bg-secondary-50/30 p-3 border border-secondary-100 rounded-2xl space-y-2">
@@ -894,6 +912,7 @@ ${osmLink}`;
                     icon={<Navigation className="w-4.5 h-4.5 text-red-500" />}
                     onFocus={() => setActiveMarkerType('destination')}
                   />
+                  {renderDetailedAddress(destinationDetails, 'Tujuan')}
                 </div>
               </div>
 
@@ -1364,10 +1383,12 @@ ${osmLink}`;
                     <span className="text-[9px] uppercase font-extrabold text-secondary-400">Titik Jemput</span>
                     <p className="font-bold text-secondary-800 leading-snug">{pickupAddress}</p>
                     {pickupLandmark && <p className="text-[10px] text-amber-600 font-semibold">📍 Patokan: {pickupLandmark}</p>}
+                    {renderDetailedAddress(pickupDetails, 'Jemput')}
                   </div>
                   <div className="space-y-1.5 pt-1">
                     <span className="text-[9px] uppercase font-extrabold text-secondary-400">Titik Tujuan</span>
                     <p className="font-bold text-secondary-800 leading-snug">{destinationAddress}</p>
+                    {renderDetailedAddress(destinationDetails, 'Tujuan')}
                   </div>
                 </div>
 

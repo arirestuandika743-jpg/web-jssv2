@@ -25,6 +25,7 @@ export function isWithinLampung(lat: number, lng: number): boolean {
 
 export interface DetailedAddress {
   displayName: string;
+  formattedAddress: string;
   name?: string;
   road?: string;
   village?: string;
@@ -35,39 +36,126 @@ export interface DetailedAddress {
 }
 
 /**
+ * Formats a DetailedAddress object into a clear, unambiguous Indonesian address string
+ * with explicit Desa/Kel, Kecamatan, Kab/Kota, and Provinsi details.
+ */
+export function formatDetailedAddress(details: Partial<DetailedAddress>): string {
+  const parts: string[] = [];
+
+  if (details.name && details.name !== details.road && details.name !== details.village && details.name !== details.subdistrict) {
+    parts.push(details.name);
+  }
+
+  if (details.road) {
+    const r = details.road.trim();
+    parts.push(/^(jl|jalan|gang|gg)\.?/i.test(r) ? r : `Jl. ${r}`);
+  }
+
+  if (details.village) {
+    const v = details.village.trim();
+    if (/^(desa|kelurahan|kel\.|pekon|kampung|kmpg\.)/i.test(v)) {
+      parts.push(v);
+    } else {
+      parts.push(`Desa/Kel. ${v}`);
+    }
+  }
+
+  if (details.subdistrict) {
+    const s = details.subdistrict.trim();
+    if (/^(kecamatan|kec\.)/i.test(s)) {
+      parts.push(s);
+    } else {
+      parts.push(`Kec. ${s}`);
+    }
+  }
+
+  if (details.county) {
+    const c = details.county.trim();
+    if (/^(kabupaten|kab\.|kota)/i.test(c)) {
+      parts.push(c);
+    } else if (c.toLowerCase().includes('kota')) {
+      parts.push(`Kota ${c}`);
+    } else {
+      parts.push(`Kab. ${c}`);
+    }
+  }
+
+  if (details.state) {
+    const st = details.state.trim();
+    if (/^(provinsi|prov\.)/i.test(st)) {
+      parts.push(st);
+    } else {
+      parts.push(`Prov. ${st}`);
+    }
+  }
+
+  if (parts.length === 0) {
+    return details.displayName || '';
+  }
+
+  return parts.join(', ');
+}
+
+/**
  * Parses raw Nominatim search/reverse item into DetailedAddress format
  */
 export function parseNominatimAddress(item: any): DetailedAddress {
-  if (!item) return { displayName: '' };
-  const addr = item.address || {};
+  if (!item) return { displayName: '', formattedAddress: '' };
+  
+  // If item is already parsed DetailedAddress object
+  if (item.formattedAddress && item.displayName) {
+    return item as DetailedAddress;
+  }
+
+  const addr = item.address || item.details?.address || {};
   
   const nameKeys = [
     'amenity', 'building', 'shop', 'tourism', 'historic', 'leisure', 
-    'office', 'craft', 'emergency', 'railway', 'highway', 'aeroway'
+    'office', 'craft', 'emergency', 'railway', 'highway', 'aeroway', 'place', 'attraction'
   ];
-  let name = '';
-  for (const key of nameKeys) {
-    if (addr[key]) {
-      name = addr[key];
-      break;
-    }
-  }
-  if (!name && item.display_name) {
-    const firstChunk = item.display_name.split(',')[0].trim();
-    if (firstChunk !== addr.road) {
-      name = firstChunk;
+  let name = item.name || '';
+  if (!name) {
+    for (const key of nameKeys) {
+      if (addr[key]) {
+        name = addr[key];
+        break;
+      }
     }
   }
 
-  const road = addr.road || addr.pedestrian || addr.cycleway || addr.path || addr.footway || '';
-  const village = addr.village || addr.hamlet || addr.neighbourhood || addr.suburb || '';
-  const subdistrict = addr.subdistrict || addr.town || addr.city_district || '';
-  const county = addr.county || addr.city || addr.municipality || '';
-  const state = addr.state || 'Lampung';
+  const road = addr.road || addr.pedestrian || addr.cycleway || addr.path || addr.footway || addr.street || '';
+  const village = addr.village || addr.hamlet || addr.neighbourhood || addr.suburb || addr.quarter || addr.residential || addr.village_district || '';
+  let subdistrict = addr.subdistrict || addr.district || addr.city_district || addr.town || addr.county_subdistrict || '';
+  let county = addr.county || addr.city || addr.regency || addr.municipality || addr.state_district || '';
+  const state = addr.state || addr.province || 'Lampung';
   const postcode = addr.postcode || '';
 
-  return {
-    displayName: item.display_name || '',
+  const displayNameRaw = item.display_name || item.displayName || '';
+
+  // If subdistrict or village is omitted by Nominatim's address object, try fallback extraction from display_name chunks
+  if (displayNameRaw) {
+    const chunks = displayNameRaw.split(',').map((c: string) => c.trim()).filter(Boolean);
+    if (!name && chunks[0] && chunks[0] !== road && chunks[0] !== village && chunks[0] !== subdistrict) {
+      name = chunks[0];
+    }
+    if (!subdistrict && chunks.length >= 3) {
+      const possibleSub = chunks.find((c: string, idx: number) => {
+        if (idx === 0) return false;
+        const lower = c.toLowerCase();
+        if (village && lower === village.toLowerCase()) return false;
+        if (county && lower === county.toLowerCase()) return false;
+        if (state && lower === state.toLowerCase()) return false;
+        if (lower === 'indonesia' || lower === 'sumatra' || lower === 'sumatera') return false;
+        return true;
+      });
+      if (possibleSub) {
+        subdistrict = possibleSub;
+      }
+    }
+  }
+
+  const rawDetails = {
+    displayName: displayNameRaw,
     name: name || undefined,
     road: road || undefined,
     village: village || undefined,
@@ -75,6 +163,14 @@ export function parseNominatimAddress(item: any): DetailedAddress {
     county: county || undefined,
     state: state || undefined,
     postcode: postcode || undefined
+  };
+
+  const formattedAddress = formatDetailedAddress(rawDetails) || displayNameRaw;
+
+  return {
+    ...rawDetails,
+    displayName: formattedAddress || displayNameRaw,
+    formattedAddress,
   };
 }
 

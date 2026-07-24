@@ -6,6 +6,7 @@ import { MapPin, Search, Loader2, AlertCircle, X, Trash2, Star, Home, Briefcase,
 import type { LatLng } from '@/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { parseNominatimAddress } from '@/services/maps';
 
 interface AddressAutocompleteProps {
   label: string;
@@ -28,6 +29,7 @@ interface NominatimSuggestion {
   mainText: string;
   secondaryText: string;
   address?: any;
+  parsedDetails?: any;
 }
 
 interface FavoriteLocation {
@@ -226,17 +228,29 @@ export function AddressAutocomplete({
 
         if (Array.isArray(data)) {
           const formatted = data.map((item: any) => {
-            const parts = item.display_name.split(',');
-            const mainText = parts[0].trim();
-            const secondaryText = parts.slice(1).join(',').trim();
+            const parsed = parseNominatimAddress(item);
+            const mainText = parsed.name || parsed.road || parsed.village || item.display_name.split(',')[0].trim();
+            
+            const secondaryParts = [
+              parsed.village ? (parsed.village.toLowerCase().includes('desa') || parsed.village.toLowerCase().includes('kel') ? parsed.village : `Desa/Kel. ${parsed.village}`) : null,
+              parsed.subdistrict ? (parsed.subdistrict.toLowerCase().includes('kec') ? parsed.subdistrict : `Kec. ${parsed.subdistrict}`) : null,
+              parsed.county ? (parsed.county.toLowerCase().includes('kota') || parsed.county.toLowerCase().includes('kab') ? parsed.county : `Kab. ${parsed.county}`) : null,
+              parsed.state ? (parsed.state.toLowerCase().includes('prov') ? parsed.state : `Prov. ${parsed.state}`) : null,
+            ].filter(Boolean);
+
+            const secondaryText = secondaryParts.length > 0 
+              ? secondaryParts.join(', ') 
+              : item.display_name.split(',').slice(1).join(',').trim();
+
             return {
               place_id: String(item.place_id),
-              display_name: item.display_name,
+              display_name: parsed.formattedAddress || item.display_name,
               lat: item.lat,
               lon: item.lon,
               mainText,
               secondaryText,
               address: item.address,
+              parsedDetails: parsed,
             };
           });
 
@@ -273,12 +287,12 @@ export function AddressAutocomplete({
   // Handle suggestion select
   const handleSelect = (item: NominatimSuggestion) => {
     const address = item.display_name;
-    setQuery(item.mainText);
+    setQuery(item.display_name);
     setIsOpen(false);
     
     const coords = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
     setActiveCoords(coords);
-    setActiveAddressDetails(item);
+    setActiveAddressDetails(item.parsedDetails || item);
 
     // Save to history
     const filtered = history.filter(h => h.display_name !== item.display_name);
@@ -286,7 +300,7 @@ export function AddressAutocomplete({
     setHistory(updatedHistory);
     localStorage.setItem('jss_search_history', JSON.stringify(updatedHistory));
 
-    onChange(address, coords, item);
+    onChange(address, coords, item.parsedDetails || item);
   };
 
   // Select favorite
