@@ -495,7 +495,7 @@ export function OrderForm() {
     try {
       const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
       const details = parseNominatimAddress(data, coords);
-      const addressText = details.formattedAddress || details.displayName || `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
+      const addressText = details.formattedAddress || formatDetailedAddress(details) || 'Lokasi Peta Pilihan';
       setPickupDetails(details);
       setPickupAddress(addressText);
       setErrors((prev) => {
@@ -506,7 +506,8 @@ export function OrderForm() {
       toast.success('Lokasi jemput diperbarui dari pin peta');
     } catch (err) {
       console.error(err);
-      const fallbackAddress = `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
+      const details = parseNominatimAddress(null, coords);
+      const fallbackAddress = details.formattedAddress || 'Lokasi Peta Pilihan';
       setPickupAddress(fallbackAddress);
       toast.success('Lokasi jemput disesuaikan dengan koordinat peta');
     } finally {
@@ -520,7 +521,7 @@ export function OrderForm() {
     try {
       const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
       const details = parseNominatimAddress(data, coords);
-      const addressText = details.formattedAddress || details.displayName || `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
+      const addressText = details.formattedAddress || formatDetailedAddress(details) || 'Lokasi Peta Pilihan';
       setDestinationDetails(details);
       setDestinationAddress(addressText);
       setErrors((prev) => {
@@ -531,7 +532,8 @@ export function OrderForm() {
       toast.success('Lokasi tujuan diperbarui dari pin peta');
     } catch (err) {
       console.error(err);
-      const fallbackAddress = `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
+      const details = parseNominatimAddress(null, coords);
+      const fallbackAddress = details.formattedAddress || 'Lokasi Peta Pilihan';
       setDestinationAddress(fallbackAddress);
       toast.success('Lokasi tujuan disesuaikan dengan koordinat peta');
     } finally {

@@ -170,13 +170,16 @@ export function inferKecamatan(village?: string, lat?: number, lng?: number): { 
  * with explicit Desa/Kel, Kecamatan, Kab/Kota, and Provinsi details.
  */
 export function formatDetailedAddress(details: Partial<DetailedAddress>): string {
+  if (!details) return '';
   const parts: string[] = [];
 
-  if (details.name && details.name !== details.road && details.name !== details.village && details.name !== details.subdistrict) {
+  const isUglyName = (s?: string) => !s || /lokasi peta|koordinat|fallback_/i.test(s);
+
+  if (details.name && details.name !== details.road && details.name !== details.village && details.name !== details.subdistrict && !isUglyName(details.name)) {
     parts.push(details.name);
   }
 
-  if (details.road) {
+  if (details.road && !isUglyName(details.road)) {
     const r = details.road.trim();
     parts.push(/^(jl|jalan|gang|gg)\.?/i.test(r) ? r : `Jl. ${r}`);
   }
@@ -220,7 +223,10 @@ export function formatDetailedAddress(details: Partial<DetailedAddress>): string
   }
 
   if (parts.length === 0) {
-    return details.displayName || '';
+    if (details.displayName && !isUglyName(details.displayName)) {
+      return details.displayName;
+    }
+    return '';
   }
 
   return parts.join(', ');
@@ -233,7 +239,7 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
   if (!item) return { displayName: '', formattedAddress: '' };
   
   // If item is already parsed DetailedAddress object with subdistrict populated
-  if (item.formattedAddress && item.displayName && item.subdistrict) {
+  if (item.formattedAddress && item.displayName && item.subdistrict && !/lokasi peta|koordinat/i.test(item.formattedAddress)) {
     return item as DetailedAddress;
   }
 
@@ -253,6 +259,9 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
     }
   }
 
+  const isUglyStr = (s?: string) => !s || /lokasi peta|koordinat|fallback_/i.test(s);
+  if (isUglyStr(name)) name = '';
+
   const road = addr.road || addr.pedestrian || addr.cycleway || addr.path || addr.footway || addr.street || '';
   const village = addr.village || addr.hamlet || addr.neighbourhood || addr.suburb || addr.quarter || addr.residential || addr.village_district || '';
   let subdistrict = addr.subdistrict || addr.district || addr.city_district || addr.town || addr.county_subdistrict || '';
@@ -267,10 +276,12 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
   const lngNum = overrideCoords?.lng ?? (item.lon ? parseFloat(item.lon) : item.lng ? parseFloat(item.lng) : item.longitude ? parseFloat(item.longitude) : undefined);
 
   // If subdistrict or village is omitted by Nominatim, try display_name chunks first
-  if (displayNameRaw) {
+  if (displayNameRaw && !isUglyStr(displayNameRaw)) {
     const chunks = displayNameRaw.split(',').map((c: string) => c.trim()).filter(Boolean);
     if (!name && chunks[0] && chunks[0] !== road && chunks[0] !== village && chunks[0] !== subdistrict) {
-      name = chunks[0];
+      if (!isUglyStr(chunks[0])) {
+        name = chunks[0];
+      }
     }
     if (!subdistrict && chunks.length >= 3) {
       const possibleSub = chunks.find((c: string, idx: number) => {
@@ -280,6 +291,7 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
         if (county && lower === county.toLowerCase()) return false;
         if (state && lower === state.toLowerCase()) return false;
         if (lower === 'indonesia' || lower === 'sumatra' || lower === 'sumatera') return false;
+        if (isUglyStr(lower)) return false;
         return true;
       });
       if (possibleSub) {
@@ -297,17 +309,16 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
         county = inferred.county;
       }
     } else {
-      // Default fallback for operational area (Kalirejo) if within Central Lampung
-      if (county.toLowerCase().includes('lampung tengah') || isWithinLampung(latNum || -5.28, lngNum || 104.98)) {
+      if ((county && county.toLowerCase().includes('lampung tengah')) || isWithinLampung(latNum || -5.28, lngNum || 104.98)) {
         subdistrict = 'Kalirejo';
       }
     }
   }
 
   const rawDetails = {
-    displayName: displayNameRaw,
+    displayName: isUglyStr(displayNameRaw) ? '' : displayNameRaw,
     name: name || undefined,
-    road: road || undefined,
+    road: isUglyStr(road) ? undefined : road,
     village: village || undefined,
     subdistrict: subdistrict || undefined,
     county: county || 'Lampung Tengah',
@@ -315,11 +326,23 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
     postcode: postcode || undefined
   };
 
-  const formattedAddress = formatDetailedAddress(rawDetails) || displayNameRaw;
+  let formattedAddress = formatDetailedAddress(rawDetails);
+  if (!formattedAddress || isUglyStr(formattedAddress)) {
+    if (village || subdistrict) {
+      formattedAddress = [
+        village ? `Desa/Kel. ${village}` : null,
+        subdistrict ? `Kec. ${subdistrict}` : null,
+        county ? `Kab. ${county}` : 'Kab. Lampung Tengah',
+        'Prov. Lampung'
+      ].filter(Boolean).join(', ');
+    } else {
+      formattedAddress = displayNameRaw && !isUglyStr(displayNameRaw) ? displayNameRaw : 'Lokasi Peta Pilihan';
+    }
+  }
 
   return {
     ...rawDetails,
-    displayName: formattedAddress || displayNameRaw,
+    displayName: formattedAddress,
     formattedAddress,
   };
 }
@@ -328,21 +351,20 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
 const reverseGeocodeCache = new Map<string, any>();
 
 /**
- * Performs reverse geocoding with caching to prevent redundant API calls
+ * Perform reverse geocoding with in-memory cache to prevent duplicate Nominatim requests
  */
 export async function reverseGeocodeWithCache(lat: number, lng: number): Promise<any> {
-  const key = `${lat.toFixed(5)},${lng.toFixed(5)}`; // ~1 meter precision grouping
+  const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
   if (reverseGeocodeCache.has(key)) {
     return reverseGeocodeCache.get(key);
   }
 
   try {
-    // 1. Try local API proxy route first (avoids CORS and browser User-Agent restrictions)
     const proxyUrl = `/api/geocode?type=reverse&lat=${lat}&lng=${lng}`;
     const res = await fetch(proxyUrl);
     if (res.ok) {
       const data = await res.json();
-      if (data && (data.display_name || data.address)) {
+      if (data) {
         reverseGeocodeCache.set(key, data);
         return data;
       }
@@ -352,7 +374,6 @@ export async function reverseGeocodeWithCache(lat: number, lng: number): Promise
   }
 
   try {
-    // 2. Direct Nominatim fallback
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
     const res = await fetch(url);
     if (res.ok) {
@@ -364,14 +385,12 @@ export async function reverseGeocodeWithCache(lat: number, lng: number): Promise
     console.error('Direct reverse geocode failed:', err);
   }
 
-  // 3. Graceful fallback object when network/geocoding API is unreachable or rate limited
   const fallback = {
     display_name: `Lokasi Peta (${lat.toFixed(5)}, ${lng.toFixed(5)})`,
     lat: lat.toString(),
     lon: lng.toString(),
     address: {
-      road: `Koordinat (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
-      county: 'Lampung',
+      county: 'Lampung Tengah',
       state: 'Lampung',
     },
   };
@@ -399,6 +418,7 @@ export async function geocodeAddressText(
 
   if (v && s) {
     queries.push(`${v}, ${s}, ${c}, Lampung`);
+    queries.push(`${v}, ${s}, Lampung`);
     queries.push(`${v}, ${s}`);
   }
   if (v) {
@@ -410,7 +430,7 @@ export async function geocodeAddressText(
   }
 
   const cleanInput = text.replace(/^(desa\/kel\.|desa|kel\.|kec\.|kab\.|prov\.)\s*/gi, '').trim();
-  if (cleanInput) {
+  if (cleanInput && !/lokasi peta|koordinat/i.test(cleanInput)) {
     queries.push(`${cleanInput}, Lampung`);
     queries.push(cleanInput);
   }
@@ -424,9 +444,18 @@ export async function geocodeAddressText(
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          const item = data[0];
-          const lat = parseFloat(item.lat);
-          const lng = parseFloat(item.lon);
+          const bestMatch = data.find((item: any) => 
+            item.class === 'place' || 
+            item.class === 'boundary' || 
+            item.type === 'village' || 
+            item.type === 'hamlet' || 
+            item.type === 'administrative' ||
+            item.addresstype === 'village' ||
+            item.addresstype === 'hamlet'
+          ) || data[0];
+
+          const lat = parseFloat(bestMatch.lat);
+          const lng = parseFloat(bestMatch.lon);
           if (!isNaN(lat) && !isNaN(lng)) {
             return { lat, lng };
           }

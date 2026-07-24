@@ -99,7 +99,7 @@ export async function GET(request: Request) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=id&format=json&addressdetails=1&limit=15`;
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=id&viewbox=103.5,-3.5,106.5,-6.2&format=json&addressdetails=1&limit=15`;
       const res = await fetch(url, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 JSS-Delivery-App/1.0',
