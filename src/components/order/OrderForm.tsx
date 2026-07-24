@@ -46,7 +46,7 @@ import { ORDER_CATEGORIES, PAYMENT_METHODS, BRAND, MAP_CENTER } from '@/lib/cons
 import dynamic from 'next/dynamic';
 import { formatCurrency, formatDistance, formatDuration, cn } from '@/lib/utils';
 import { usePriceCalculation } from '@/hooks/usePriceCalculation';
-import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, formatDetailedAddress, type DetailedAddress } from '@/services/maps';
+import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, formatDetailedAddress, geocodeAddressText, type DetailedAddress } from '@/services/maps';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import type { OrderCategory, PaymentMethod, LatLng, ShoppingItem } from '@/types';
 
@@ -297,35 +297,71 @@ export function OrderForm() {
       }
 
       // Auto-search & relocate map pin to the updated typed address
-      const queryParts = [
-        updatedDetails.village ? `Desa ${updatedDetails.village}` : '',
-        updatedDetails.subdistrict ? `Kecamatan ${updatedDetails.subdistrict}` : '',
-        updatedDetails.county || 'Lampung Tengah',
-        updatedDetails.state || 'Lampung',
-      ].filter(Boolean);
-
-      if (queryParts.length >= 2) {
-        const searchQuery = queryParts.join(', ');
-        fetch(`/api/geocode?type=search&q=${encodeURIComponent(searchQuery)}`)
-          .then((res) => res.json())
-          .then((results) => {
-            if (Array.isArray(results) && results.length > 0) {
-              const top = results[0];
-              const coords = { lat: parseFloat(top.lat), lng: parseFloat(top.lon) };
-              if (isPickup) {
-                setPickupCoords(coords);
-                toast.success(`📍 Pin jemput disesuaikan ke ${updatedDetails.village || updatedDetails.subdistrict}`);
-              } else {
-                setDestinationCoords(coords);
-                toast.success(`📍 Pin tujuan disesuaikan ke ${updatedDetails.village || updatedDetails.subdistrict}`);
-              }
-            }
-          })
-          .catch((err) => console.warn('Auto relocation failed:', err));
-      }
+      geocodeAddressText(
+        newFormattedAddress,
+        updatedDetails.village,
+        updatedDetails.subdistrict,
+        updatedDetails.county
+      ).then((coords) => {
+        if (coords) {
+          if (isPickup) {
+            setPickupCoords(coords);
+            toast.success(`📍 Pin jemput disesuaikan ke ${updatedDetails.village || updatedDetails.subdistrict}`);
+          } else {
+            setDestinationCoords(coords);
+            toast.success(`📍 Pin tujuan disesuaikan ke ${updatedDetails.village || updatedDetails.subdistrict}`);
+          }
+        }
+      });
     },
     [pickupDetails, destinationDetails]
   );
+
+  // Auto-geocode pickupAddress text when coords is null or text changes
+  useEffect(() => {
+    if (!pickupAddress.trim()) return;
+    const timer = setTimeout(async () => {
+      const coords = await geocodeAddressText(
+        pickupAddress,
+        pickupDetails?.village,
+        pickupDetails?.subdistrict,
+        pickupDetails?.county
+      );
+      if (coords) {
+        setPickupCoords((prev) => {
+          if (!prev || Math.abs(prev.lat - coords.lat) > 0.005 || Math.abs(prev.lng - coords.lng) > 0.005) {
+            return coords;
+          }
+          return prev;
+        });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [pickupAddress, pickupDetails]);
+
+  // Auto-geocode destinationAddress text when coords is null or text changes
+  useEffect(() => {
+    if (!destinationAddress.trim()) return;
+    const timer = setTimeout(async () => {
+      const coords = await geocodeAddressText(
+        destinationAddress,
+        destinationDetails?.village,
+        destinationDetails?.subdistrict,
+        destinationDetails?.county
+      );
+      if (coords) {
+        setDestinationCoords((prev) => {
+          if (!prev || Math.abs(prev.lat - coords.lat) > 0.005 || Math.abs(prev.lng - coords.lng) > 0.005) {
+            return coords;
+          }
+          return prev;
+        });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [destinationAddress, destinationDetails]);
 
   const renderDetailedAddress = (details: DetailedAddress | null, labelTag: string = 'Lokasi', type?: 'pickup' | 'destination') => {
     const village = details?.village || '';

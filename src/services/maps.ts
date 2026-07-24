@@ -378,3 +378,64 @@ export async function reverseGeocodeWithCache(lat: number, lng: number): Promise
   reverseGeocodeCache.set(key, fallback);
   return fallback;
 }
+
+/**
+ * Geocodes an address text or village/subdistrict combo into LatLng coordinates
+ * with fallback search strategies for Indonesian addresses.
+ */
+export async function geocodeAddressText(
+  text: string,
+  village?: string,
+  subdistrict?: string,
+  county?: string
+): Promise<LatLng | null> {
+  const cleanStr = (s: string) => s.replace(/^(desa\/kel\.|desa|kelurahan|kel\.|kecamatan|kec\.|kabupaten|kab\.|provinsi|prov\.)\s*/gi, '').trim();
+
+  const v = village ? cleanStr(village) : '';
+  const s = subdistrict ? cleanStr(subdistrict) : '';
+  const c = county ? cleanStr(county) : 'Lampung Tengah';
+
+  const queries: string[] = [];
+
+  if (v && s) {
+    queries.push(`${v}, ${s}, ${c}, Lampung`);
+    queries.push(`${v}, ${s}`);
+  }
+  if (v) {
+    queries.push(`${v}, ${c}, Lampung`);
+    queries.push(`${v}, Lampung`);
+  }
+  if (s) {
+    queries.push(`${s}, ${c}, Lampung`);
+  }
+
+  const cleanInput = text.replace(/^(desa\/kel\.|desa|kel\.|kec\.|kab\.|prov\.)\s*/gi, '').trim();
+  if (cleanInput) {
+    queries.push(`${cleanInput}, Lampung`);
+    queries.push(cleanInput);
+  }
+
+  const uniqueQueries = Array.from(new Set(queries.filter(Boolean)));
+
+  for (const q of uniqueQueries) {
+    try {
+      const proxyUrl = `/api/geocode?type=search&q=${encodeURIComponent(q)}`;
+      const res = await fetch(proxyUrl);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const item = data[0];
+          const lat = parseFloat(item.lat);
+          const lng = parseFloat(item.lon);
+          if (!isNaN(lat) && !isNaN(lng)) {
+            return { lat, lng };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('geocodeAddressText query attempt failed:', q, e);
+    }
+  }
+
+  return null;
+}
