@@ -36,6 +36,136 @@ export interface DetailedAddress {
 }
 
 /**
+ * Known Lampung Kecamatan Bounding Boxes
+ */
+interface KecamatanBoundary {
+  name: string;
+  county: string;
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+}
+
+export const LAMPUNG_KECAMATAN_BOUNDS: KecamatanBoundary[] = [
+  // Lampung Tengah
+  { name: 'Kalirejo', county: 'Lampung Tengah', minLat: -5.38, maxLat: -5.20, minLng: 104.91, maxLng: 105.05 },
+  { name: 'Sendang Agung', county: 'Lampung Tengah', minLat: -5.38, maxLat: -5.20, minLng: 104.76, maxLng: 104.91 },
+  { name: 'Bangunrejo', county: 'Lampung Tengah', minLat: -5.22, maxLat: -5.06, minLng: 104.90, maxLng: 105.08 },
+  { name: 'Padang Ratu', county: 'Lampung Tengah', minLat: -5.16, maxLat: -4.98, minLng: 104.82, maxLng: 104.98 },
+  { name: 'Pubian', county: 'Lampung Tengah', minLat: -5.22, maxLat: -4.95, minLng: 104.65, maxLng: 104.85 },
+  { name: 'Anak Tuha', county: 'Lampung Tengah', minLat: -5.10, maxLat: -4.92, minLng: 104.98, maxLng: 105.15 },
+  { name: 'Bekri', county: 'Lampung Tengah', minLat: -5.26, maxLat: -5.08, minLng: 105.04, maxLng: 105.22 },
+  { name: 'Gunung Sugih', county: 'Lampung Tengah', minLat: -5.08, maxLat: -4.85, minLng: 105.12, maxLng: 105.28 },
+  { name: 'Terbanggi Besar', county: 'Lampung Tengah', minLat: -4.96, maxLat: -4.75, minLng: 105.10, maxLng: 105.32 },
+  { name: 'Trimurjo', county: 'Lampung Tengah', minLat: -5.18, maxLat: -5.00, minLng: 105.20, maxLng: 105.35 },
+  { name: 'Punggur', county: 'Lampung Tengah', minLat: -5.08, maxLat: -4.92, minLng: 105.26, maxLng: 105.42 },
+  { name: 'Kota Gajah', county: 'Lampung Tengah', minLat: -5.04, maxLat: -4.88, minLng: 105.32, maxLng: 105.45 },
+  { name: 'Seputih Raman', county: 'Lampung Tengah', minLat: -4.98, maxLat: -4.78, minLng: 105.35, maxLng: 105.52 },
+  { name: 'Seputih Banyak', county: 'Lampung Tengah', minLat: -4.95, maxLat: -4.70, minLng: 105.45, maxLng: 105.65 },
+  { name: 'Rumbia', county: 'Lampung Tengah', minLat: -4.92, maxLat: -4.65, minLng: 105.55, maxLng: 105.80 },
+  { name: 'Way Pengubuan', county: 'Lampung Tengah', minLat: -4.86, maxLat: -4.68, minLng: 105.18, maxLng: 105.35 },
+  { name: 'Terusan Nunyai', county: 'Lampung Tengah', minLat: -4.78, maxLat: -4.55, minLng: 105.15, maxLng: 105.38 },
+
+  // Pringsewu
+  { name: 'Sukoharjo', county: 'Pringsewu', minLat: -5.40, maxLat: -5.26, minLng: 104.91, maxLng: 105.05 },
+  { name: 'Adiluwih', county: 'Pringsewu', minLat: -5.35, maxLat: -5.22, minLng: 105.00, maxLng: 105.12 },
+  { name: 'Pringsewu', county: 'Pringsewu', minLat: -5.45, maxLat: -5.32, minLng: 104.92, maxLng: 105.03 },
+  { name: 'Gadingrejo', county: 'Pringsewu', minLat: -5.45, maxLat: -5.32, minLng: 105.02, maxLng: 105.16 },
+
+  // Pesawaran
+  { name: 'Negeri Katon', county: 'Pesawaran', minLat: -5.36, maxLat: -5.18, minLng: 105.06, maxLng: 105.20 },
+  { name: 'Gedong Tataan', county: 'Pesawaran', minLat: -5.48, maxLat: -5.32, minLng: 105.06, maxLng: 105.22 },
+
+  // Kota Metro
+  { name: 'Metro Pusat', county: 'Kota Metro', minLat: -5.16, maxLat: -5.06, minLng: 105.26, maxLng: 105.35 },
+
+  // Bandar Lampung
+  { name: 'Bandar Lampung', county: 'Kota Bandar Lampung', minLat: -5.52, maxLat: -5.32, minLng: 105.18, maxLng: 105.38 },
+];
+
+/**
+ * Direct Village Name -> Kecamatan Lookup Dictionary
+ */
+export const VILLAGE_TO_KECAMATAN_MAP: Record<string, { kecamatan: string; county: string }> = {
+  // Kecamatan Kalirejo
+  'sri basuki': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'sri wungu': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'sri mulyo': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'kalirejo': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'kali rejo': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'sukosari': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'watu agung': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'balai rejo': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'sinar sari': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'agung timur': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'pondok agung': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+  'way wayo': { kecamatan: 'Kalirejo', county: 'Lampung Tengah' },
+
+  // Sendang Agung
+  'sendang agung': { kecamatan: 'Sendang Agung', county: 'Lampung Tengah' },
+  'sendang retno': { kecamatan: 'Sendang Agung', county: 'Lampung Tengah' },
+  'sendang asri': { kecamatan: 'Sendang Agung', county: 'Lampung Tengah' },
+  'sendang mukti': { kecamatan: 'Sendang Agung', county: 'Lampung Tengah' },
+  'sendang baru': { kecamatan: 'Sendang Agung', county: 'Lampung Tengah' },
+  'sendang mulyo': { kecamatan: 'Sendang Agung', county: 'Lampung Tengah' },
+
+  // Bangunrejo
+  'bangunrejo': { kecamatan: 'Bangunrejo', county: 'Lampung Tengah' },
+  'bangun rejo': { kecamatan: 'Bangunrejo', county: 'Lampung Tengah' },
+  'sukarame': { kecamatan: 'Bangunrejo', county: 'Lampung Tengah' },
+  'sidomulyo': { kecamatan: 'Bangunrejo', county: 'Lampung Tengah' },
+  'cimutu': { kecamatan: 'Bangunrejo', county: 'Lampung Tengah' },
+  'tanjung jaya': { kecamatan: 'Bangunrejo', county: 'Lampung Tengah' },
+  'purwodadi': { kecamatan: 'Bangunrejo', county: 'Lampung Tengah' },
+  'sri dadi': { kecamatan: 'Bangunrejo', county: 'Lampung Tengah' },
+
+  // Sukoharjo
+  'sukoharjo': { kecamatan: 'Sukoharjo', county: 'Pringsewu' },
+  'pandansari': { kecamatan: 'Sukoharjo', county: 'Pringsewu' },
+  'sinar baru': { kecamatan: 'Sukoharjo', county: 'Pringsewu' },
+
+  // Adiluwih
+  'adiluwih': { kecamatan: 'Adiluwih', county: 'Pringsewu' },
+  'kutawaringin': { kecamatan: 'Adiluwih', county: 'Pringsewu' },
+  'bandung baru': { kecamatan: 'Adiluwih', county: 'Pringsewu' },
+
+  // Terbanggi Besar / Bandar Jaya
+  'bandar jaya': { kecamatan: 'Terbanggi Besar', county: 'Lampung Tengah' },
+  'bandar jaya barat': { kecamatan: 'Terbanggi Besar', county: 'Lampung Tengah' },
+  'bandar jaya timur': { kecamatan: 'Terbanggi Besar', county: 'Lampung Tengah' },
+  'yukum jaya': { kecamatan: 'Terbanggi Besar', county: 'Lampung Tengah' },
+  'terbanggi besar': { kecamatan: 'Terbanggi Besar', county: 'Lampung Tengah' },
+  'poncowati': { kecamatan: 'Terbanggi Besar', county: 'Lampung Tengah' },
+};
+
+/**
+ * Infers Kecamatan and County when Nominatim address object omits subdistrict
+ */
+export function inferKecamatan(village?: string, lat?: number, lng?: number): { subdistrict: string; county?: string } | undefined {
+  // 1. Coordinate Bounding Box lookup
+  if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+    const matchedBound = LAMPUNG_KECAMATAN_BOUNDS.find(b => 
+      lat >= b.minLat && lat <= b.maxLat && lng >= b.minLng && lng <= b.maxLng
+    );
+    if (matchedBound) {
+      return { subdistrict: matchedBound.name, county: matchedBound.county };
+    }
+  }
+
+  // 2. Village Name Dictionary lookup
+  if (village) {
+    const cleanV = village.toLowerCase().replace(/^(desa|kelurahan|kel\.|pekon|kampung|kmpg\.)\s*/i, '').trim();
+    if (VILLAGE_TO_KECAMATAN_MAP[cleanV]) {
+      const match = VILLAGE_TO_KECAMATAN_MAP[cleanV];
+      return { subdistrict: match.kecamatan, county: match.county };
+    }
+  }
+
+  return undefined;
+}
+
+/**
  * Formats a DetailedAddress object into a clear, unambiguous Indonesian address string
  * with explicit Desa/Kel, Kecamatan, Kab/Kota, and Provinsi details.
  */
@@ -99,11 +229,11 @@ export function formatDetailedAddress(details: Partial<DetailedAddress>): string
 /**
  * Parses raw Nominatim search/reverse item into DetailedAddress format
  */
-export function parseNominatimAddress(item: any): DetailedAddress {
+export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null): DetailedAddress {
   if (!item) return { displayName: '', formattedAddress: '' };
   
-  // If item is already parsed DetailedAddress object
-  if (item.formattedAddress && item.displayName) {
+  // If item is already parsed DetailedAddress object with subdistrict populated
+  if (item.formattedAddress && item.displayName && item.subdistrict) {
     return item as DetailedAddress;
   }
 
@@ -127,12 +257,16 @@ export function parseNominatimAddress(item: any): DetailedAddress {
   const village = addr.village || addr.hamlet || addr.neighbourhood || addr.suburb || addr.quarter || addr.residential || addr.village_district || '';
   let subdistrict = addr.subdistrict || addr.district || addr.city_district || addr.town || addr.county_subdistrict || '';
   let county = addr.county || addr.city || addr.regency || addr.municipality || addr.state_district || '';
-  const state = addr.state || addr.province || 'Lampung';
+  let state = addr.state || addr.province || 'Lampung';
   const postcode = addr.postcode || '';
 
   const displayNameRaw = item.display_name || item.displayName || '';
 
-  // If subdistrict or village is omitted by Nominatim's address object, try fallback extraction from display_name chunks
+  // Extract lat/lng for coordinate-based Kecamatan inference
+  const latNum = overrideCoords?.lat ?? (item.lat ? parseFloat(item.lat) : item.latitude ? parseFloat(item.latitude) : undefined);
+  const lngNum = overrideCoords?.lng ?? (item.lon ? parseFloat(item.lon) : item.lng ? parseFloat(item.lng) : item.longitude ? parseFloat(item.longitude) : undefined);
+
+  // If subdistrict or village is omitted by Nominatim, try display_name chunks first
   if (displayNameRaw) {
     const chunks = displayNameRaw.split(',').map((c: string) => c.trim()).filter(Boolean);
     if (!name && chunks[0] && chunks[0] !== road && chunks[0] !== village && chunks[0] !== subdistrict) {
@@ -154,14 +288,30 @@ export function parseNominatimAddress(item: any): DetailedAddress {
     }
   }
 
+  // If subdistrict is STILL missing, use our Lampung Kecamatan Inference engine
+  if (!subdistrict) {
+    const inferred = inferKecamatan(village, latNum, lngNum);
+    if (inferred) {
+      subdistrict = inferred.subdistrict;
+      if (!county && inferred.county) {
+        county = inferred.county;
+      }
+    } else {
+      // Default fallback for operational area (Kalirejo) if within Central Lampung
+      if (county.toLowerCase().includes('lampung tengah') || isWithinLampung(latNum || -5.28, lngNum || 104.98)) {
+        subdistrict = 'Kalirejo';
+      }
+    }
+  }
+
   const rawDetails = {
     displayName: displayNameRaw,
     name: name || undefined,
     road: road || undefined,
     village: village || undefined,
     subdistrict: subdistrict || undefined,
-    county: county || undefined,
-    state: state || undefined,
+    county: county || 'Lampung Tengah',
+    state: state || 'Lampung',
     postcode: postcode || undefined
   };
 

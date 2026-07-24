@@ -46,7 +46,7 @@ import { ORDER_CATEGORIES, PAYMENT_METHODS, BRAND, MAP_CENTER } from '@/lib/cons
 import dynamic from 'next/dynamic';
 import { formatCurrency, formatDistance, formatDuration, cn } from '@/lib/utils';
 import { usePriceCalculation } from '@/hooks/usePriceCalculation';
-import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, type DetailedAddress } from '@/services/maps';
+import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, type DetailedAddress } from '@/services/maps';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import type { OrderCategory, PaymentMethod, LatLng, ShoppingItem } from '@/types';
 
@@ -108,7 +108,12 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 };
 
 const renderDetailedAddress = (details: DetailedAddress | null, labelTag: string = 'Lokasi') => {
-  if (!details || (!details.village && !details.subdistrict && !details.county)) return null;
+  if (!details) return null;
+  const inferred = inferKecamatan(details.village);
+  const subdistrictName = details.subdistrict || inferred?.subdistrict || 'Kalirejo';
+  const countyName = details.county || inferred?.county || 'Lampung Tengah';
+  const stateName = details.state || 'Lampung';
+
   return (
     <div className="mt-2 p-3 bg-amber-50/80 border border-amber-200/90 rounded-2xl text-xs space-y-1.5 shadow-soft-xs text-left">
       <div className="flex items-center justify-between border-b border-amber-200/60 pb-1.5 font-bold text-[10px] text-amber-900 uppercase tracking-wider">
@@ -130,33 +135,30 @@ const renderDetailedAddress = (details: DetailedAddress | null, labelTag: string
             </span>
           </div>
         )}
-        {details.subdistrict && (
-          <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
-            <span className="text-xs">🏘️</span>
-            <span className="truncate">
-              <strong className="text-secondary-500 font-semibold text-[10px]">Kecamatan:</strong>{' '}
-              <span className="font-bold text-secondary-900">{details.subdistrict}</span>
-            </span>
-          </div>
-        )}
-        {details.county && (
-          <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
-            <span className="text-xs">🏙️</span>
-            <span className="truncate">
-              <strong className="text-secondary-500 font-semibold text-[10px]">Kab/Kota:</strong>{' '}
-              <span className="font-bold text-secondary-900">{details.county}</span>
-            </span>
-          </div>
-        )}
-        {details.state && (
-          <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
-            <span className="text-xs">🗺️</span>
-            <span className="truncate">
-              <strong className="text-secondary-500 font-semibold text-[10px]">Provinsi:</strong>{' '}
-              <span className="font-bold text-secondary-900">{details.state}</span>
-            </span>
-          </div>
-        )}
+
+        <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
+          <span className="text-xs">🏘️</span>
+          <span className="truncate">
+            <strong className="text-secondary-500 font-semibold text-[10px]">Kecamatan:</strong>{' '}
+            <span className="font-extrabold text-amber-900">{subdistrictName}</span>
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
+          <span className="text-xs">🏙️</span>
+          <span className="truncate">
+            <strong className="text-secondary-500 font-semibold text-[10px]">Kab/Kota:</strong>{' '}
+            <span className="font-bold text-secondary-900">{countyName}</span>
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
+          <span className="text-xs">🗺️</span>
+          <span className="truncate">
+            <strong className="text-secondary-500 font-semibold text-[10px]">Provinsi:</strong>{' '}
+            <span className="font-bold text-secondary-900">{stateName}</span>
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -300,8 +302,8 @@ export function OrderForm() {
     setIsReverseGeocoding(true);
     try {
       const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
-      const details = parseNominatimAddress(data);
-      const addressText = details.displayName || `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
+      const details = parseNominatimAddress(data, coords);
+      const addressText = details.formattedAddress || details.displayName || `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
       setPickupDetails(details);
       setPickupAddress(addressText);
       setErrors((prev) => {
@@ -325,8 +327,8 @@ export function OrderForm() {
     setIsReverseGeocoding(true);
     try {
       const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
-      const details = parseNominatimAddress(data);
-      const addressText = details.displayName || `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
+      const details = parseNominatimAddress(data, coords);
+      const addressText = details.formattedAddress || details.displayName || `Lokasi Peta (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`;
       setDestinationDetails(details);
       setDestinationAddress(addressText);
       setErrors((prev) => {
@@ -360,9 +362,9 @@ export function OrderForm() {
         try {
           const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
           if (data) {
-            const details = parseNominatimAddress(data);
+            const details = parseNominatimAddress(data, coords);
             setPickupDetails(details);
-            setPickupAddress(details.displayName);
+            setPickupAddress(details.formattedAddress || details.displayName);
             toast.success('Lokasi jemput berhasil disesuaikan dengan GPS!');
           }
         } catch (err) {
