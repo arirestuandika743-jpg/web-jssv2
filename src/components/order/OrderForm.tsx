@@ -46,9 +46,34 @@ import { ORDER_CATEGORIES, PAYMENT_METHODS, BRAND, MAP_CENTER } from '@/lib/cons
 import dynamic from 'next/dynamic';
 import { formatCurrency, formatDistance, formatDuration, cn } from '@/lib/utils';
 import { usePriceCalculation } from '@/hooks/usePriceCalculation';
-import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, type DetailedAddress } from '@/services/maps';
+import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, formatDetailedAddress, type DetailedAddress } from '@/services/maps';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import type { OrderCategory, PaymentMethod, LatLng, ShoppingItem } from '@/types';
+
+const KECAMATAN_OPTIONS = [
+  'Kalirejo',
+  'Sendang Agung',
+  'Bangunrejo',
+  'Padang Ratu',
+  'Pubian',
+  'Anak Tuha',
+  'Bekri',
+  'Gunung Sugih',
+  'Terbanggi Besar',
+  'Trimurjo',
+  'Punggur',
+  'Kota Gajah',
+  'Seputih Raman',
+  'Seputih Banyak',
+  'Rumbia',
+  'Sukoharjo',
+  'Adiluwih',
+  'Pringsewu',
+  'Gadingrejo',
+  'Negeri Katon',
+  'Metro',
+  'Bandar Lampung',
+];
 
 const OrderMapPreview = dynamic(
   () => import('./OrderMapPreview').then((mod) => mod.OrderMapPreview),
@@ -107,62 +132,7 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   Building2,
 };
 
-const renderDetailedAddress = (details: DetailedAddress | null, labelTag: string = 'Lokasi') => {
-  if (!details) return null;
-  const inferred = inferKecamatan(details.village);
-  const subdistrictName = details.subdistrict || inferred?.subdistrict || 'Kalirejo';
-  const countyName = details.county || inferred?.county || 'Lampung Tengah';
-  const stateName = details.state || 'Lampung';
-
-  return (
-    <div className="mt-2 p-3 bg-amber-50/80 border border-amber-200/90 rounded-2xl text-xs space-y-1.5 shadow-soft-xs text-left">
-      <div className="flex items-center justify-between border-b border-amber-200/60 pb-1.5 font-bold text-[10px] text-amber-900 uppercase tracking-wider">
-        <span className="flex items-center gap-1">
-          <span>📍</span>
-          <span>Detail Wilayah ({labelTag})</span>
-        </span>
-        <span className="text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full text-[9px] font-extrabold border border-emerald-200">
-          ✓ Rincian Lengkap
-        </span>
-      </div>
-      <div className="grid grid-cols-2 gap-1.5 text-[11px] pt-0.5">
-        {details.village && (
-          <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
-            <span className="text-xs">🏡</span>
-            <span className="truncate">
-              <strong className="text-secondary-500 font-semibold text-[10px]">Desa/Kel:</strong>{' '}
-              <span className="font-bold text-secondary-900">{details.village}</span>
-            </span>
-          </div>
-        )}
-
-        <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
-          <span className="text-xs">🏘️</span>
-          <span className="truncate">
-            <strong className="text-secondary-500 font-semibold text-[10px]">Kecamatan:</strong>{' '}
-            <span className="font-extrabold text-amber-900">{subdistrictName}</span>
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
-          <span className="text-xs">🏙️</span>
-          <span className="truncate">
-            <strong className="text-secondary-500 font-semibold text-[10px]">Kab/Kota:</strong>{' '}
-            <span className="font-bold text-secondary-900">{countyName}</span>
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 text-secondary-800 bg-white/90 px-2 py-1.5 rounded-xl border border-amber-150 shadow-soft-xs">
-          <span className="text-xs">🗺️</span>
-          <span className="truncate">
-            <strong className="text-secondary-500 font-semibold text-[10px]">Provinsi:</strong>{' '}
-            <span className="font-bold text-secondary-900">{stateName}</span>
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-};
+  
 
 export function OrderForm() {
   const { user } = useAuth();
@@ -295,6 +265,192 @@ export function OrderForm() {
     ojekRoundTrip,
     calculate
   ]);
+
+  // Manual Edit handler for Detail Wilayah fields with auto relocation & search
+  const handleUpdateDetailField = useCallback(
+    (type: 'pickup' | 'destination', field: keyof DetailedAddress, value: string) => {
+      const isPickup = type === 'pickup';
+      const currentDetails = isPickup ? pickupDetails : destinationDetails;
+
+      const updatedDetails: DetailedAddress = {
+        displayName: currentDetails?.displayName || '',
+        formattedAddress: '',
+        name: currentDetails?.name,
+        road: currentDetails?.road,
+        village: currentDetails?.village || '',
+        subdistrict: currentDetails?.subdistrict || '',
+        county: currentDetails?.county || 'Lampung Tengah',
+        state: currentDetails?.state || 'Lampung',
+        [field]: value,
+      };
+
+      const newFormattedAddress = formatDetailedAddress(updatedDetails);
+      updatedDetails.formattedAddress = newFormattedAddress;
+      updatedDetails.displayName = newFormattedAddress;
+
+      if (isPickup) {
+        setPickupDetails(updatedDetails);
+        setPickupAddress(newFormattedAddress);
+      } else {
+        setDestinationDetails(updatedDetails);
+        setDestinationAddress(newFormattedAddress);
+      }
+
+      // Auto-search & relocate map pin to the updated typed address
+      const queryParts = [
+        updatedDetails.village ? `Desa ${updatedDetails.village}` : '',
+        updatedDetails.subdistrict ? `Kecamatan ${updatedDetails.subdistrict}` : '',
+        updatedDetails.county || 'Lampung Tengah',
+        updatedDetails.state || 'Lampung',
+      ].filter(Boolean);
+
+      if (queryParts.length >= 2) {
+        const searchQuery = queryParts.join(', ');
+        fetch(`/api/geocode?type=search&q=${encodeURIComponent(searchQuery)}`)
+          .then((res) => res.json())
+          .then((results) => {
+            if (Array.isArray(results) && results.length > 0) {
+              const top = results[0];
+              const coords = { lat: parseFloat(top.lat), lng: parseFloat(top.lon) };
+              if (isPickup) {
+                setPickupCoords(coords);
+                toast.success(`📍 Pin jemput disesuaikan ke ${updatedDetails.village || updatedDetails.subdistrict}`);
+              } else {
+                setDestinationCoords(coords);
+                toast.success(`📍 Pin tujuan disesuaikan ke ${updatedDetails.village || updatedDetails.subdistrict}`);
+              }
+            }
+          })
+          .catch((err) => console.warn('Auto relocation failed:', err));
+      }
+    },
+    [pickupDetails, destinationDetails]
+  );
+
+  const renderDetailedAddress = (details: DetailedAddress | null, labelTag: string = 'Lokasi', type?: 'pickup' | 'destination') => {
+    const village = details?.village || '';
+    const inferred = inferKecamatan(village);
+    const subdistrict = details?.subdistrict || inferred?.subdistrict || '';
+    const county = details?.county || inferred?.county || 'Lampung Tengah';
+    const state = details?.state || 'Lampung';
+
+    const isEditable = Boolean(type);
+
+    return (
+      <div className="mt-2.5 p-3.5 bg-gradient-to-br from-amber-50/90 to-amber-100/40 border border-amber-200/90 rounded-2xl text-xs space-y-2.5 shadow-soft-xs text-left">
+        <div className="flex items-center justify-between border-b border-amber-200/60 pb-2 font-bold text-[10px] text-amber-900 uppercase tracking-wider">
+          <span className="flex items-center gap-1.5">
+            <span className="text-sm">📍</span>
+            <span>Detail Wilayah ({labelTag})</span>
+          </span>
+          <span className="text-emerald-700 bg-white/90 px-2 py-0.5 rounded-full text-[9px] font-extrabold border border-emerald-200 shadow-soft-xs">
+            {isEditable ? '✏️ Bisa Diisi / Diedit Manual' : '✓ Terverifikasi'}
+          </span>
+        </div>
+
+        {/* Inputs Grid */}
+        <div className="grid grid-cols-2 gap-2 text-[11px]">
+          {/* Desa / Kelurahan */}
+          <div className="space-y-1">
+            <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center gap-1">
+              <span>🏡</span>
+              <span>Desa / Kelurahan</span>
+            </label>
+            {isEditable && type ? (
+              <input
+                type="text"
+                value={village}
+                onChange={(e) => handleUpdateDetailField(type, 'village', e.target.value)}
+                placeholder="cth: Sri Basuki / Kalirejo"
+                className="w-full bg-white font-bold text-secondary-900 px-2.5 py-1.5 rounded-xl border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-400 text-xs shadow-soft-xs"
+              />
+            ) : (
+              <div className="bg-white/90 font-bold text-secondary-900 px-2.5 py-1.5 rounded-xl border border-amber-150">
+                {village || '-'}
+              </div>
+            )}
+          </div>
+
+          {/* Kecamatan */}
+          <div className="space-y-1">
+            <label className="block text-[9px] font-extrabold text-amber-900 uppercase tracking-wider flex items-center gap-1">
+              <span>🏘️</span>
+              <span>Kecamatan</span>
+            </label>
+            {isEditable && type ? (
+              <>
+                <input
+                  type="text"
+                  list={`kec-list-${type}`}
+                  value={subdistrict}
+                  onChange={(e) => handleUpdateDetailField(type, 'subdistrict', e.target.value)}
+                  placeholder="cth: Kalirejo"
+                  className="w-full bg-white font-extrabold text-amber-950 px-2.5 py-1.5 rounded-xl border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs shadow-soft-xs"
+                />
+                <datalist id={`kec-list-${type}`}>
+                  {KECAMATAN_OPTIONS.map((k) => (
+                    <option key={k} value={k} />
+                  ))}
+                </datalist>
+              </>
+            ) : (
+              <div className="bg-white/90 font-extrabold text-amber-950 px-2.5 py-1.5 rounded-xl border border-amber-150">
+                {subdistrict || 'Kalirejo'}
+              </div>
+            )}
+          </div>
+
+          {/* Kabupaten / Kota */}
+          <div className="space-y-1">
+            <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center gap-1">
+              <span>🏙️</span>
+              <span>Kabupaten / Kota</span>
+            </label>
+            {isEditable && type ? (
+              <input
+                type="text"
+                value={county}
+                onChange={(e) => handleUpdateDetailField(type, 'county', e.target.value)}
+                placeholder="cth: Lampung Tengah"
+                className="w-full bg-white font-semibold text-secondary-800 px-2.5 py-1.5 rounded-xl border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-400 text-xs shadow-soft-xs"
+              />
+            ) : (
+              <div className="bg-white/90 font-semibold text-secondary-800 px-2.5 py-1.5 rounded-xl border border-amber-150">
+                {county}
+              </div>
+            )}
+          </div>
+
+          {/* Provinsi */}
+          <div className="space-y-1">
+            <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center gap-1">
+              <span>🗺️</span>
+              <span>Provinsi</span>
+            </label>
+            {isEditable && type ? (
+              <input
+                type="text"
+                value={state}
+                onChange={(e) => handleUpdateDetailField(type, 'state', e.target.value)}
+                placeholder="cth: Lampung"
+                className="w-full bg-white font-semibold text-secondary-800 px-2.5 py-1.5 rounded-xl border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-400 text-xs shadow-soft-xs"
+              />
+            ) : (
+              <div className="bg-white/90 font-semibold text-secondary-800 px-2.5 py-1.5 rounded-xl border border-amber-150">
+                {state}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {isEditable && (
+          <p className="text-[9px] text-amber-800/80 italic font-medium pt-0.5">
+            💡 Kamu bisa mengubah Desa atau Kecamatan di atas secara manual. Alamat & lokasi peta akan otomatis menyesuaikan data yang kamu isi.
+          </p>
+        )}
+      </div>
+    );
+  };
 
   // Geocoding Coordinates handlers
   const handlePickupCoordsChange = async (coords: LatLng) => {
@@ -846,7 +1002,7 @@ ${osmLink}`;
                     gpsLoading={isLocating}
                     onFocus={() => setActiveMarkerType('pickup')}
                   />
-                  {renderDetailedAddress(pickupDetails, 'Jemput')}
+                  {renderDetailedAddress(pickupDetails, 'Jemput', 'pickup')}
 
                   {pickupCoords && (
                     <div className="bg-secondary-50/30 p-3 border border-secondary-100 rounded-2xl space-y-2">
@@ -914,7 +1070,7 @@ ${osmLink}`;
                     icon={<Navigation className="w-4.5 h-4.5 text-red-500" />}
                     onFocus={() => setActiveMarkerType('destination')}
                   />
-                  {renderDetailedAddress(destinationDetails, 'Tujuan')}
+                  {renderDetailedAddress(destinationDetails, 'Tujuan', 'destination')}
                 </div>
               </div>
 
