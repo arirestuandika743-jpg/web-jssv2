@@ -96,7 +96,7 @@ export const ORDER_CATEGORIES = [
 /** Pricing configuration */
 export const PRICING = {
   baseFee: 5000,         // Base service fee in IDR
-  perKmRate: 2000,       // Price per kilometer
+  perKmRate: 2800,       // Price per kilometer
   minFee: 5000,          // Minimum delivery fee
   maxFee: 50000,         // Maximum delivery fee
   currency: 'IDR',
@@ -228,7 +228,7 @@ export const FAQS = [
   },
   {
     question: 'Berapa tarif pengiriman?',
-    answer: 'Tarif pengiriman mulai dari Rp 5.000 dengan harga Rp 2.000/km. Biaya sudah termasuk ongkos jalan dan layanan. Estimasi harga bisa langsung dihitung di halaman pemesanan.',
+    answer: 'Tarif pengiriman mulai dari Rp 5.000 dengan harga Rp 2.800/km. Biaya sudah termasuk ongkos jalan dan layanan. Estimasi harga bisa langsung dihitung di halaman pemesanan.',
   },
   {
     question: 'Area mana saja yang dilayani?',
