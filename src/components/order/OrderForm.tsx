@@ -807,244 +807,74 @@ ${osmLink}`;
     }, 1000);
   };
 
-  const handleDownloadReceipt = () => {
+  const handleDownloadReceipt = async () => {
     if (!pricing) return;
     setIsDownloadingReceipt(true);
 
     try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        toast.error('Browser tidak mendukung ekspor struk.');
+      let targetElement = document.getElementById('jss-confirm-modal-card');
+      let openedModalByUs = false;
+
+      if (!targetElement) {
+        setShowConfirmModal(true);
+        openedModalByUs = true;
+        await new Promise((res) => setTimeout(res, 350));
+        targetElement = document.getElementById('jss-confirm-modal-card');
+      }
+
+      if (!targetElement) {
+        toast.error('Tampilan konfirmasi pesanan tidak ditemukan.');
         setIsDownloadingReceipt(false);
         return;
       }
 
-      // Base canvas size & high resolution scaling
-      const width = 640;
-      let extraLines = 0;
-      if (pickupLandmark) extraLines++;
-      if (pricing.weightFee > 0) extraLines++;
-      if (pricing.shoppingFee > 0) extraLines++;
-      if (pricing.waitingFee > 0) extraLines++;
-      if (pricing.rainFee > 0) extraLines++;
-      if (pricing.holidayFee && pricing.holidayFee > 0) extraLines++;
-      if (pricing.peakHourFee && pricing.peakHourFee > 0) extraLines++;
-      if (pricing.insuranceFee && pricing.insuranceFee > 0) extraLines++;
-      if (pricing.isRoundTrip && pricing.roundTripFee && pricing.roundTripFee > 0) extraLines++;
-      if (pricing.promoDiscount && pricing.promoDiscount > 0) extraLines++;
+      const html2canvasModule = (await import('html2canvas')).default;
 
-      const height = 960 + extraLines * 24;
-      const scale = 2; // Retina scale factor
-      canvas.width = width * scale;
-      canvas.height = height * scale;
-      ctx.scale(scale, scale);
+      const canvas = await html2canvasModule(targetElement, {
+        scale: 2.5,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        allowTaint: true,
+        onclone: (clonedDoc) => {
+          const card = clonedDoc.getElementById('jss-confirm-modal-card');
+          if (card) {
+            card.style.maxHeight = 'none';
+            card.style.height = 'auto';
+            card.style.overflow = 'visible';
+            card.style.borderRadius = '20px';
+            card.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)';
 
-      // 1. Background
-      ctx.fillStyle = '#F8FAFC';
-      ctx.fillRect(0, 0, width, height);
+            const scrollable = card.querySelector('.overflow-y-auto') as HTMLElement;
+            if (scrollable) {
+              scrollable.style.maxHeight = 'none';
+              scrollable.style.overflow = 'visible';
+              scrollable.style.paddingBottom = '20px';
+            }
 
-      // 2. Header Gradient Card
-      const grad = ctx.createLinearGradient(0, 0, width, 0);
-      grad.addColorStop(0, '#0F172A');
-      grad.addColorStop(1, '#1E293B');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, 115);
+            // Hide close button (✕)
+            const closeBtn = card.querySelector('button');
+            if (closeBtn && closeBtn.innerText.includes('✕')) {
+              closeBtn.style.display = 'none';
+            }
 
-      // Gold accent bar
-      ctx.fillStyle = '#EAB308';
-      ctx.fillRect(0, 111, width, 4);
-
-      // Header Brand Text
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-      ctx.fillText('JSS - JASA SURUH KALIREJO', 24, 44);
-
-      ctx.fillStyle = '#94A3B8';
-      ctx.font = '12px system-ui, -apple-system, sans-serif';
-      ctx.fillText('Struk Resmi Konfirmasi Pemesanan', 24, 68);
-
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      ctx.fillText(`Waktu: ${dateStr} WIB`, 24, 90);
-
-      // Order Code Badge Top Right
-      const orderCode = createdOrderNumber || `JSS-${Math.floor(100000 + Math.random() * 900000)}`;
-      ctx.fillStyle = 'rgba(234, 179, 8, 0.15)';
-      ctx.fillRect(width - 190, 34, 166, 40);
-      ctx.strokeStyle = '#EAB308';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(width - 190, 34, 166, 40);
-
-      ctx.fillStyle = '#FACC15';
-      ctx.font = 'bold 13px monospace';
-      ctx.fillText(orderCode, width - 176, 59);
-
-      let y = 140;
-
-      // Helper Card Container
-      const drawCard = (startY: number, cardH: number, title?: string) => {
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(20, startY, width - 40, cardH);
-        ctx.strokeStyle = '#E2E8F0';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(20, startY, width - 40, cardH);
-
-        if (title) {
-          ctx.fillStyle = '#64748B';
-          ctx.font = 'bold 10px system-ui, sans-serif';
-          ctx.fillText(title.toUpperCase(), 36, startY + 22);
+            // Replace action buttons footer with branded receipt footer
+            const actionDiv = card.querySelector('.bg-secondary-50.border-t') as HTMLElement;
+            if (actionDiv) {
+              actionDiv.className = 'p-4 bg-secondary-900 text-center text-white border-t border-secondary-800';
+              actionDiv.innerHTML = `
+                <div style="font-size: 11px; font-weight: 800; color: #FACC15; letter-spacing: 0.5px; margin-bottom: 2px;">JSS (JASA SURUH KALIREJO)</div>
+                <div style="font-size: 9.5px; color: #94A3B8;">Struk Resmi Konfirmasi Pemesanan • WA Admin: ${BRAND.phone} • https://web-jssv2.vercel.app</div>
+              `;
+            }
+          }
         }
-      };
+      });
 
-      // 3. PEMESAN CARD
-      drawCard(y, 82, 'Detail Pemesan');
-      ctx.fillStyle = '#0F172A';
-      ctx.font = 'bold 14px system-ui, sans-serif';
-      ctx.fillText(customerName || 'Pelanggan JSS', 36, y + 46);
-
-      ctx.fillStyle = '#475569';
-      ctx.font = '12px system-ui, sans-serif';
-      const categoryText = category === 'ride' ? 'Ojek JSS (Transportasi)' : 'Pengiriman Barang / Suruh';
-      ctx.fillText(`No. WA: ${whatsappNumber || '-'}   •   Layanan: ${categoryText}`, 36, y + 66);
-
-      y += 98;
-
-      // 4. RUTE & LOKASI CARD
-      const ruteH = 165 + (pickupLandmark ? 20 : 0);
-      drawCard(y, ruteH, 'Detail Rute Pengiriman');
-
-      // Pickup
-      ctx.fillStyle = '#16A34A';
-      ctx.font = 'bold 11px system-ui, sans-serif';
-      ctx.fillText('📍 TITIK JEMPUT', 36, y + 46);
-
-      ctx.fillStyle = '#0F172A';
-      ctx.font = 'bold 13px system-ui, sans-serif';
-      const pText = pickupAddress.length > 58 ? pickupAddress.substring(0, 55) + '...' : pickupAddress;
-      ctx.fillText(pText, 36, y + 65);
-
-      let ruteY = y + 82;
-      if (pickupLandmark) {
-        ctx.fillStyle = '#D97706';
-        ctx.font = '11px system-ui, sans-serif';
-        ctx.fillText(`Patokan: ${pickupLandmark}`, 36, ruteY);
-        ruteY += 20;
-      }
-
-      // Destination
-      ctx.fillStyle = '#DC2626';
-      ctx.font = 'bold 11px system-ui, sans-serif';
-      ctx.fillText('🎯 TITIK TUJUAN', 36, ruteY);
-
-      ctx.fillStyle = '#0F172A';
-      ctx.font = 'bold 13px system-ui, sans-serif';
-      const dText = destinationAddress.length > 58 ? destinationAddress.substring(0, 55) + '...' : destinationAddress;
-      ctx.fillText(dText, 36, ruteY + 19);
-
-      // Travel Stats Badge
-      const statY = ruteY + 38;
-      ctx.fillStyle = '#F1F5F9';
-      ctx.fillRect(36, statY, width - 72, 34);
-      ctx.fillStyle = '#334155';
-      ctx.font = '600 12px system-ui, sans-serif';
-      const etaMins = Math.round(5 + pricing.distance / 1500);
-      ctx.fillText(`Jarak: ${formatDistance(pricing.distance)}   |   Estimasi: ${formatDuration(pricing.duration)}   |   ETA Jemput: ~${etaMins} mnt`, 48, statY + 21);
-
-      y += ruteH + 16;
-
-      // 5. RINCIAN BIAYA CARD
-      const costCardY = y;
-      y += 38;
-
-      const addRow = (label: string, val: string, isHighlight = false, color = '#334155') => {
-        ctx.fillStyle = color;
-        ctx.font = isHighlight ? 'bold 13px system-ui, sans-serif' : '13px system-ui, sans-serif';
-        ctx.fillText(label, 36, y);
-        ctx.textAlign = 'right';
-        ctx.fillText(val, width - 36, y);
-        ctx.textAlign = 'left';
-        y += 24;
-      };
-
-      addRow(`Tarif Dasar (${category === 'ride' ? 'Ojek' : 'Logistik'})`, formatCurrency(pricing.baseFee));
-      addRow('Tarif Jarak Tempuh', formatCurrency(pricing.distanceFee));
-
-      if (pricing.weightFee > 0) addRow(`Surcharge Berat (${weightRange} kg)`, formatCurrency(pricing.weightFee));
-      if (pricing.shoppingFee > 0) addRow('Jasa Titip Belanja', formatCurrency(pricing.shoppingFee));
-      if (pricing.waitingFee > 0) addRow('Biaya Tunggu Antrean', formatCurrency(pricing.waitingFee));
-      if (pricing.rainFee > 0) addRow('Surcharge Cuaca Hujan', formatCurrency(pricing.rainFee));
-      if (pricing.holidayFee && pricing.holidayFee > 0) addRow('Surcharge Hari Libur', formatCurrency(pricing.holidayFee));
-      if (pricing.peakHourFee && pricing.peakHourFee > 0) addRow('Surcharge Jam Sibuk', formatCurrency(pricing.peakHourFee));
-      if (pricing.insuranceFee && pricing.insuranceFee > 0) addRow('Asuransi Perjalanan JSS', formatCurrency(pricing.insuranceFee));
-      if (pricing.isRoundTrip && pricing.roundTripFee && pricing.roundTripFee > 0) addRow('Perjalanan Pulang Pergi (PP)', `+${formatCurrency(pricing.roundTripFee)}`, true, '#B45309');
-      if (pricing.promoDiscount && pricing.promoDiscount > 0) addRow(`Diskon Promo (${appliedPromo})`, `-${formatCurrency(pricing.promoDiscount)}`, true, '#059669');
-
-      // Dotted separator line
-      ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = '#CBD5E1';
-      ctx.beginPath();
-      ctx.moveTo(36, y + 2);
-      ctx.lineTo(width - 36, y + 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      y += 18;
-
-      // GRAND TOTAL HIGHLIGHT BOX
-      ctx.fillStyle = '#FEF9C3';
-      ctx.fillRect(36, y, width - 72, 48);
-      ctx.strokeStyle = '#EAB308';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(36, y, width - 72, 48);
-
-      ctx.fillStyle = '#854D0E';
-      ctx.font = 'bold 13px system-ui, sans-serif';
-      ctx.fillText('GRAND TOTAL TAGIHAN', 52, y + 29);
-
-      ctx.fillStyle = '#854D0E';
-      ctx.font = 'bold 20px system-ui, sans-serif';
-      ctx.textAlign = 'right';
-      ctx.fillText(formatCurrency(pricing.grandTotal), width - 52, y + 32);
-      ctx.textAlign = 'left';
-
-      y += 66;
-      drawCard(costCardY, y - costCardY, 'Rincian Ongkos Kirim');
-
-      y += 16;
-
-      // 6. METODE PEMBAYARAN CARD
-      drawCard(y, 52);
-      ctx.fillStyle = '#334155';
-      ctx.font = 'bold 12px system-ui, sans-serif';
-      ctx.fillText('Metode Pembayaran:', 36, y + 31);
-
-      const payLabel = paymentMethod === 'cash' ? '💵 TUNAI (COD)' : paymentMethod === 'qris' ? '📱 QRIS' : '🏦 TRANSFER BANK';
-      ctx.fillStyle = '#0F172A';
-      ctx.font = 'bold 13px system-ui, sans-serif';
-      ctx.textAlign = 'right';
-      ctx.fillText(payLabel, width - 36, y + 31);
-      ctx.textAlign = 'left';
-
-      y += 76;
-
-      // FOOTER
-      ctx.fillStyle = '#64748B';
-      ctx.font = '11px system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('Terima kasih telah menggunakan layanan JSS (Jasa Suruh Kalirejo).', width / 2, y);
-      ctx.fillText('Customer Service / WhatsApp: 0882-0207-05153  •  https://web-jssv2.vercel.app', width / 2, y + 18);
-
-      // Trigger PNG Download
-      const dataUrl = canvas.toDataURL('image/png');
+      const orderCode = createdOrderNumber || `JSS-${Math.floor(100000 + Math.random() * 900000)}`;
+      const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.href = dataUrl;
+      link.href = image;
       link.download = `Struk_Konfirmasi_JSS_${orderCode}.png`;
       document.body.appendChild(link);
       link.click();
@@ -1052,7 +882,7 @@ ${osmLink}`;
 
       toast.success('Struk konfirmasi pesanan berhasil di-download! 📥');
     } catch (err) {
-      console.error('Error generating receipt canvas:', err);
+      console.error('Error html2canvas:', err);
       toast.error('Gagal mengunduh struk pesanan.');
     } finally {
       setIsDownloadingReceipt(false);
@@ -1827,6 +1657,7 @@ ${osmLink}`;
               initial={{ scale: 0.95, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              id="jss-confirm-modal-card"
               className="bg-white rounded-card overflow-hidden border border-secondary-150 shadow-soft-xl max-w-lg w-full flex flex-col max-h-[90vh]"
             >
               {/* Header */}
@@ -1881,96 +1712,96 @@ ${osmLink}`;
                 <div className="space-y-2 bg-white border border-secondary-150 p-4 rounded-2xl shadow-sm">
                   <h4 className="text-[10px] font-extrabold text-secondary-450 uppercase tracking-wider border-b border-secondary-100 pb-1.5 mb-2">Rincian Ongkos Kirim</h4>
                   
-                  <div className="flex justify-between">
-                    <span className="text-secondary-500">Tarif Dasar ({category === 'ride' ? 'Ojek' : 'Logistik'})</span>
-                    <span className="font-bold text-secondary-800">{formatCurrency(pricing.baseFee)}</span>
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-secondary-500 shrink-0">Tarif Dasar ({category === 'ride' ? 'Ojek' : 'Logistik'})</span>
+                    <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.baseFee)}</span>
                   </div>
 
-                  <div className="flex justify-between">
-                    <span className="text-secondary-500">Tarif Jarak Tempuh</span>
-                    <span className="font-bold text-secondary-800">{formatCurrency(pricing.distanceFee)}</span>
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-secondary-500 shrink-0">Tarif Jarak Tempuh</span>
+                    <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.distanceFee)}</span>
                   </div>
 
                   {pricing.weightFee > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-secondary-500">Surcharge Berat ({weightRange} kg)</span>
-                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.weightFee)}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-secondary-500 shrink-0">Surcharge Berat ({weightRange} kg)</span>
+                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.weightFee)}</span>
                     </div>
                   )}
 
                   {pricing.shoppingFee > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-secondary-500">Jasa Titip Belanja</span>
-                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.shoppingFee)}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-secondary-500 shrink-0">Jasa Titip Belanja</span>
+                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.shoppingFee)}</span>
                     </div>
                   )}
 
                   {pricing.waitingFee > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-secondary-500">Biaya Tunggu Driver Antrean</span>
-                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.waitingFee)}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-secondary-500 shrink-0">Biaya Tunggu Driver Antrean</span>
+                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.waitingFee)}</span>
                     </div>
                   )}
 
                   {pricing.rainFee > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-secondary-500">Surcharge Cuaca Hujan</span>
-                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.rainFee)}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-secondary-500 shrink-0">Surcharge Cuaca Hujan</span>
+                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.rainFee)}</span>
                     </div>
                   )}
 
                   {pricing.holidayFee && pricing.holidayFee > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-secondary-500">Surcharge Hari Libur</span>
-                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.holidayFee)}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-secondary-500 shrink-0">Surcharge Hari Libur</span>
+                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.holidayFee)}</span>
                     </div>
                   )}
 
                   {pricing.peakHourFee && pricing.peakHourFee > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-secondary-500">Surcharge Jam Sibuk</span>
-                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.peakHourFee)}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-secondary-500 shrink-0">Surcharge Jam Sibuk</span>
+                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.peakHourFee)}</span>
                     </div>
                   )}
 
                   {pricing.serviceFee && pricing.serviceFee > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-secondary-500">Biaya Layanan Platform</span>
-                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.serviceFee)}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-secondary-500 shrink-0">Biaya Layanan Platform</span>
+                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.serviceFee)}</span>
                     </div>
                   )}
 
                   {pricing.insuranceFee && pricing.insuranceFee > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-secondary-500">Asuransi Perjalanan JSS</span>
-                      <span className="font-bold text-secondary-800">{formatCurrency(pricing.insuranceFee)}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-secondary-500 shrink-0">Asuransi Perjalanan JSS</span>
+                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.insuranceFee)}</span>
                     </div>
                   )}
 
                   {pricing.isRoundTrip && pricing.roundTripFee && pricing.roundTripFee > 0 && (
-                    <div className="flex justify-between text-amber-700 font-semibold bg-amber-50 p-1.5 rounded-lg border border-amber-200 mt-1">
+                    <div className="flex justify-between items-center gap-2 text-amber-700 font-semibold bg-amber-50 p-1.5 rounded-lg border border-amber-200 mt-1">
                       <span>Perjalanan Pulang Pergi (PP 2x)</span>
-                      <span>+{formatCurrency(pricing.roundTripFee)}</span>
+                      <span className="whitespace-nowrap">+{formatCurrency(pricing.roundTripFee)}</span>
                     </div>
                   )}
 
                   {pricing.promoDiscount && pricing.promoDiscount > 0 && (
-                    <div className="flex justify-between text-emerald-600 font-semibold bg-emerald-50 p-1.5 rounded-lg border border-emerald-100 mt-1">
+                    <div className="flex justify-between items-center gap-2 text-emerald-600 font-semibold bg-emerald-50 p-1.5 rounded-lg border border-emerald-100 mt-1">
                       <span>Promo Discount ({appliedPromo})</span>
-                      <span>-{formatCurrency(pricing.promoDiscount)}</span>
+                      <span className="whitespace-nowrap">-{formatCurrency(pricing.promoDiscount)}</span>
                     </div>
                   )}
 
                   {category !== 'ride' && totalItemPrice > 0 && (
-                    <div className="flex justify-between text-secondary-500 border-t border-dashed pt-2 mt-2">
+                    <div className="flex justify-between items-center gap-2 text-secondary-500 border-t border-dashed pt-2 mt-2">
                       <span>Estimasi Budget Belanja</span>
-                      <span>{formatCurrency(totalItemPrice)}</span>
+                      <span className="whitespace-nowrap">{formatCurrency(totalItemPrice)}</span>
                     </div>
                   )}
 
                   <div className="flex justify-between items-center pt-3 border-t border-secondary-100 font-extrabold text-sm text-secondary-900">
                     <span>Grand Total Tagihan</span>
-                    <span className="text-lg text-primary-700 font-outfit">{formatCurrency(pricing.grandTotal)}</span>
+                    <span className="text-lg text-primary-700 font-outfit whitespace-nowrap">{formatCurrency(pricing.grandTotal)}</span>
                   </div>
                 </div>
 
