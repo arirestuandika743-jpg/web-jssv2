@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jss-v1.0.0';
+const CACHE_NAME = 'jss-v1.0.1';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -7,11 +7,6 @@ const STATIC_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
   self.skipWaiting();
 });
 
@@ -32,16 +27,26 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  
+  // Network-first strategy: Always fetch fresh code from Vercel/server first
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return (
-        response ||
-        fetch(event.request).catch(() => {
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && event.request.url.startsWith('http')) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
           if (event.request.mode === 'navigate') {
             return caches.match('/offline.html');
           }
-        })
-      );
-    })
+        });
+      })
   );
 });
