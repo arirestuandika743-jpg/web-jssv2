@@ -1756,22 +1756,41 @@ ${osmLink}`;
                 </div>
               </div>
 
-              {/* Submit triggers confirmation modal */}
-              <button
-                type="submit"
-                disabled={isSubmitDisabled}
-                className="w-full btn-primary text-sm py-3.5 flex items-center justify-center gap-2 disabled:opacity-40 rounded-2xl shadow-golden mt-4"
-              >
-                {isCalculating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Menghitung Rute...
-                  </>
-                ) : (
-                  <>
-                    Pesan Sekarang <ArrowRight className="w-4 h-4" />
-                  </>
+              {/* Submit triggers confirmation modal & Quick Download */}
+              <div className="flex gap-2.5 mt-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitDisabled}
+                  className="flex-1 btn-primary text-sm py-3.5 flex items-center justify-center gap-2 disabled:opacity-40 rounded-2xl shadow-golden"
+                >
+                  {isCalculating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Menghitung Rute...
+                    </>
+                  ) : (
+                    <>
+                      Pesan Sekarang <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+
+                {pricing && (
+                  <button
+                    type="button"
+                    onClick={handleDownloadReceipt}
+                    disabled={isDownloadingReceipt}
+                    className="bg-secondary-900 hover:bg-secondary-800 text-amber-400 font-bold px-4 py-3.5 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-md disabled:opacity-50 border border-amber-500/30 shrink-0"
+                    title="Download Struk Konfirmasi (PNG)"
+                  >
+                    {isDownloadingReceipt ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    ) : (
+                      <Download className="w-5 h-5 text-amber-400" />
+                    )}
+                    <span className="font-bold">Download Struk</span>
+                  </button>
                 )}
-              </button>
+              </div>
             </form>
           </div>
         </div>
