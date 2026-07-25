@@ -752,7 +752,7 @@ export function OrderForm() {
   - Biaya Dasar (Base): ${formatCurrency(pricing.baseFee)}
   - Biaya Jarak Tempuh: ${formatCurrency(pricing.distanceFee)}
   ${pricing.serviceFee && pricing.serviceFee > 0 ? `  - Biaya Layanan Sistem: ${formatCurrency(pricing.serviceFee)}\n` : ''}  - Asuransi Layanan: ${formatCurrency(pricing.insuranceFee || 0)}
-  ${pricing.isRoundTrip && pricing.roundTripFee && pricing.roundTripFee > 0 ? `  - Layanan Pulang Pergi (PP 2x Tarif): +${formatCurrency(pricing.roundTripFee)}\n` : ''}${pricing.waitingFee > 0 ? `  - Biaya Tunggu: ${formatCurrency(pricing.waitingFee)}\n` : ''}${pricing.rainFee > 0 ? `  - Surcharge Hujan: ${formatCurrency(pricing.rainFee)}\n` : ''}${pricing.holidayFee && pricing.holidayFee > 0 ? `  - Surcharge Hari Libur: ${formatCurrency(pricing.holidayFee)}\n` : ''}${pricing.peakHourFee && pricing.peakHourFee > 0 ? `  - Surcharge Jam Sibuk: ${formatCurrency(pricing.peakHourFee)}\n` : ''}${pricing.weightFee > 0 ? `  - Surcharge Berat Paket: ${formatCurrency(pricing.weightFee)}\n` : ''}${pricing.shoppingFee > 0 ? `  - Biaya Jasa Titip Belanja: ${formatCurrency(pricing.shoppingFee)}\n` : ''}${pricing.promoDiscount && pricing.promoDiscount > 0 ? `  - Diskon Promo (${appliedPromo}): -${formatCurrency(pricing.promoDiscount)}\n` : ''}` : '';
+  ${pricing.isRoundTrip && pricing.roundTripFee && pricing.roundTripFee > 0 ? `  - Layanan Pulang Pergi (PP 2x Tarif): +${formatCurrency(pricing.roundTripFee)}\n` : ''}${pricing.waitingFee > 0 ? `  - Biaya Tunggu: ${formatCurrency(pricing.waitingFee)}\n` : ''}${pricing.rainFee > 0 ? `  - Surcharge Hujan: ${formatCurrency(pricing.rainFee)}\n` : ''}${pricing.holidayFee && pricing.holidayFee > 0 ? `  - Surcharge Hari Libur: ${formatCurrency(pricing.holidayFee)}\n` : ''}${pricing.peakHourFee && pricing.peakHourFee > 0 ? `  - Surcharge Jam Sibuk: ${formatCurrency(pricing.peakHourFee)}\n` : ''}${pricing.weightFee > 0 ? `  - Surcharge Berat Paket: ${formatCurrency(pricing.weightFee)}\n` : ''}${['shopping', 'food', 'medicine'].includes(category) ? `  - Biaya Jasa Titip Belanja: GRATIS 🎉\n` : pricing.shoppingFee > 0 ? `  - Biaya Jasa Titip Belanja: ${formatCurrency(pricing.shoppingFee)}\n` : ''}${pricing.promoDiscount && pricing.promoDiscount > 0 ? `  - Diskon Promo (${appliedPromo}): -${formatCurrency(pricing.promoDiscount)}\n` : ''}` : '';
 
     const osmLink = pickupCoords && destinationCoords 
       ? `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${pickupCoords.lat}%2C${pickupCoords.lng}%3B${destinationCoords.lat}%2C${destinationCoords.lng}`
@@ -1739,10 +1739,16 @@ ${osmLink}`;
                     </div>
                   )}
 
-                  {pricing.shoppingFee > 0 && (
+                  {(pricing.shoppingFee > 0 || ['shopping', 'food', 'medicine'].includes(category)) && (
                     <div className="flex justify-between items-center gap-2">
                       <span className="text-secondary-500 shrink-0">Jasa Titip Belanja</span>
-                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.shoppingFee)}</span>
+                      {pricing.shoppingFee > 0 ? (
+                        <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.shoppingFee)}</span>
+                      ) : (
+                        <span className="font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full text-xs tracking-wide uppercase whitespace-nowrap">
+                          GRATIS
+                        </span>
+                      )}
                     </div>
                   )}
 

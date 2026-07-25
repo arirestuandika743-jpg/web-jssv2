@@ -47,10 +47,10 @@ export function calculateDeliveryPrice(
     else if (weightRange === '20+') weightFee = 30000;
   }
 
-  // 4. Shopping Fee (Layanan Titip Belanja Rp4.000 flat for shopping, food, medicine)
+  // 4. Shopping Fee (Layanan Titip Belanja - GRATIS / Rp0 promo)
   let shoppingFee = 0;
   if (!isRide && ['shopping', 'food', 'medicine'].includes(category)) {
-    shoppingFee = 4000;
+    shoppingFee = 0;
   }
 
   // 5. Waiting Fee (Rp500/minute)
