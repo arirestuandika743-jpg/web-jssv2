@@ -818,7 +818,7 @@ ${osmLink}`;
       if (!targetElement) {
         setShowConfirmModal(true);
         openedModalByUs = true;
-        await new Promise((res) => setTimeout(res, 350));
+        await new Promise((res) => setTimeout(res, 400));
         targetElement = document.getElementById('jss-confirm-modal-card');
       }
 
@@ -836,6 +836,8 @@ ${osmLink}`;
         backgroundColor: '#ffffff',
         logging: false,
         allowTaint: true,
+        scrollX: 0,
+        scrollY: 0,
         onclone: (clonedDoc) => {
           const card = clonedDoc.getElementById('jss-confirm-modal-card');
           if (card) {
@@ -843,28 +845,36 @@ ${osmLink}`;
             card.style.height = 'auto';
             card.style.overflow = 'visible';
             card.style.borderRadius = '20px';
-            card.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)';
+            card.style.boxShadow = 'none';
+            card.style.position = 'relative';
 
-            const scrollable = card.querySelector('.overflow-y-auto') as HTMLElement;
-            if (scrollable) {
-              scrollable.style.maxHeight = 'none';
-              scrollable.style.overflow = 'visible';
-              scrollable.style.paddingBottom = '20px';
-            }
+            // Find all scrollable parent & child containers and remove scroll restrictions
+            const divs = card.querySelectorAll('div');
+            divs.forEach((el) => {
+              if (el.classList.contains('overflow-y-auto') || el.style.overflowY === 'auto' || el.style.maxHeight) {
+                el.style.maxHeight = 'none';
+                el.style.height = 'auto';
+                el.style.overflow = 'visible';
+                el.style.paddingBottom = '20px';
+                el.classList.remove('overflow-y-auto');
+              }
+            });
 
             // Hide close button (✕)
-            const closeBtn = card.querySelector('button');
-            if (closeBtn && closeBtn.innerText.includes('✕')) {
-              closeBtn.style.display = 'none';
-            }
+            const buttons = card.querySelectorAll('button');
+            buttons.forEach((btn) => {
+              if (btn.innerText.includes('✕')) {
+                btn.style.display = 'none';
+              }
+            });
 
             // Replace action buttons footer with branded receipt footer
             const actionDiv = card.querySelector('.bg-secondary-50.border-t') as HTMLElement;
             if (actionDiv) {
               actionDiv.className = 'p-4 bg-secondary-900 text-center text-white border-t border-secondary-800';
               actionDiv.innerHTML = `
-                <div style="font-size: 11px; font-weight: 800; color: #FACC15; letter-spacing: 0.5px; margin-bottom: 2px;">JSS (JASA SURUH KALIREJO)</div>
-                <div style="font-size: 9.5px; color: #94A3B8;">Struk Resmi Konfirmasi Pemesanan • WA Admin: ${BRAND.phone} • https://web-jssv2.vercel.app</div>
+                <div style="font-size: 12px; font-weight: 800; color: #FACC15; letter-spacing: 0.5px; margin-bottom: 3px;">JSS (JASA SURUH KALIREJO)</div>
+                <div style="font-size: 10px; color: #94A3B8;">Struk Resmi Konfirmasi Pemesanan • WA Admin: ${BRAND.phone} • https://web-jssv2.vercel.app</div>
               `;
             }
           }
