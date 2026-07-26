@@ -199,6 +199,7 @@ interface ReusableMapProps {
   markers?: MapMarker[];
   circles?: MapCircle[];
   height?: string;
+  showDrivers?: boolean;
   onPickupChange?: (coords: LatLng) => void;
   onDestinationChange?: (coords: LatLng) => void;
   onClickMap?: (coords: LatLng) => void;
@@ -224,6 +225,7 @@ export default function ReusableMap({
   markers = [],
   circles = [],
   height = '350px',
+  showDrivers = false,
   onPickupChange,
   onDestinationChange,
   onClickMap,
@@ -707,7 +709,7 @@ export default function ReusableMap({
         )}
 
         {/* Simulated driver markers */}
-        {simDrivers.map((driver) => (
+        {showDrivers && simDrivers.map((driver) => (
           <Marker
             key={`driver-${driver.id}`}
             position={[driver.lat, driver.lng]}
