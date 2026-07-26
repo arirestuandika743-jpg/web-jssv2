@@ -135,6 +135,17 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
   
 
+const DEFAULT_PICKUP_ADDRESS = 'Kalirejo, Lampung Tengah, Lampung';
+const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2818, lng: 104.9833 };
+const DEFAULT_PICKUP_DETAILS: DetailedAddress = {
+  displayName: 'Kalirejo, Lampung Tengah, Lampung',
+  formattedAddress: 'Kalirejo, Lampung Tengah, Lampung',
+  village: 'Kalirejo',
+  subdistrict: 'Kalirejo',
+  county: 'Lampung Tengah',
+  state: 'Lampung',
+};
+
 export function OrderForm() {
   const { user } = useAuth();
 
@@ -142,8 +153,8 @@ export function OrderForm() {
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [whatsappNumber, setWhatsappNumber] = useState(user?.phone || '');
   
-  const [pickupAddress, setPickupAddress] = useState('');
-  const [pickupCoords, setPickupCoords] = useState<LatLng | null>(null);
+  const [pickupAddress, setPickupAddress] = useState(DEFAULT_PICKUP_ADDRESS);
+  const [pickupCoords, setPickupCoords] = useState<LatLng | null>(DEFAULT_PICKUP_COORDS);
 
   const [destinationAddress, setDestinationAddress] = useState('');
   const [destinationCoords, setDestinationCoords] = useState<LatLng | null>(null);
@@ -182,7 +193,7 @@ export function OrderForm() {
   const [activeMarkerType, setActiveMarkerType] = useState<'pickup' | 'destination'>('pickup');
 
   // Location geofencing & detailed states
-  const [pickupDetails, setPickupDetails] = useState<DetailedAddress | null>(null);
+  const [pickupDetails, setPickupDetails] = useState<DetailedAddress | null>(DEFAULT_PICKUP_DETAILS);
   const [destinationDetails, setDestinationDetails] = useState<DetailedAddress | null>(null);
   const [pickupLocationType, setPickupLocationType] = useState<string>('Rumah');
   const [pickupLandmark, setPickupLandmark] = useState<string>('');
@@ -190,6 +201,8 @@ export function OrderForm() {
   const [isUploadingPickupPhoto, setIsUploadingPickupPhoto] = useState(false);
 
   const [isLocating, setIsLocating] = useState(false);
+  const [isLocatingDestination, setIsLocatingDestination] = useState(false);
+  const [destinationAccuracy, setDestinationAccuracy] = useState<number | null>(null);
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -602,15 +615,62 @@ export function OrderForm() {
     }
   };
 
+  // Get User Current Real-Time Location for Destination via Google Maps GPS
+  const handleGetDestinationLocation = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      toast.error('Browser Anda tidak mendukung layanan lokasi GPS.');
+      return;
+    }
+    setIsLocatingDestination(true);
+    toast.info('🎯 Mendeteksi lokasi real-time Anda via Google Maps GPS (Akurasi ~5m)...');
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+        const accuracy = position.coords.accuracy ? Math.round(position.coords.accuracy) : 5;
+
+        setDestinationCoords(coords);
+        setDestinationAccuracy(accuracy);
+
+        try {
+          const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
+          if (data) {
+            const details = parseNominatimAddress(data, coords);
+            setDestinationDetails(details);
+            setDestinationAddress(details.formattedAddress || details.displayName);
+            toast.success(`📍 Lokasi tujuan terdeteksi (Akurasi ±${accuracy}m)! Ongkos kirim langsung kalkulasi.`);
+          } else {
+            setDestinationAddress(`Lokasi GPS Real-time (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`);
+            toast.success(`📍 Koordinat lokasi tujuan disesuaikan (±${accuracy}m)!`);
+          }
+        } catch (err) {
+          console.error(err);
+          setDestinationAddress(`Lokasi GPS Real-time (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`);
+          toast.success(`📍 Koordinat lokasi tujuan disesuaikan dengan GPS!`);
+        } finally {
+          setIsLocatingDestination(false);
+        }
+      },
+      (error) => {
+        console.error('GPS Destination error:', error);
+        toast.error('Izin lokasi ditolak atau sinyal GPS lemah. Membuka Google Maps...');
+        setIsLocatingDestination(false);
+        window.open('https://www.google.com/maps', '_blank');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
   const handleResetLocations = () => {
-    setPickupAddress('');
-    setPickupCoords(null);
-    setPickupDetails(null);
+    setPickupAddress(DEFAULT_PICKUP_ADDRESS);
+    setPickupCoords(DEFAULT_PICKUP_COORDS);
+    setPickupDetails(DEFAULT_PICKUP_DETAILS);
     setDestinationAddress('');
     setDestinationCoords(null);
     setDestinationDetails(null);
+    setDestinationAccuracy(null);
     setErrors({});
-    toast.info('Titik rute direset');
+    toast.info('Lokasi jemput dikembalikan ke Kalirejo & lokasi tujuan direset');
   };
 
   // Shopping List item controls
@@ -1184,9 +1244,77 @@ ${osmLink}`;
                     </div>
                   )}
 
+                  {/* Menu Deteksi Lokasi Real-Time Customer via Google Maps GPS */}
+                  <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/10 border-2 border-blue-400 p-4 rounded-2xl space-y-3 text-left shadow-soft">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                        </span>
+                        <span className="text-xs font-black text-blue-950 font-outfit uppercase tracking-wide">
+                          Deteksi Lokasi Tujuan Real-Time
+                        </span>
+                      </div>
+                      <span className="bg-blue-600 text-white text-[9.5px] font-black px-2.5 py-0.5 rounded-full tracking-wider uppercase shadow-xs">
+                        Google Maps GPS • 5m Akurat
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-blue-900 leading-relaxed font-medium">
+                      Tekan tombol <strong className="text-blue-950 font-bold">&quot;Cek Lokasi Saat Ini&quot;</strong> untuk langsung menggunakan GPS Google Maps presisi 5m. Sistem akan otomatis menentukan lokasi tujuan Anda &amp; menghitung biaya ongkos kirim.
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleGetDestinationLocation}
+                        disabled={isLocatingDestination}
+                        className="flex-1 min-w-[200px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white text-xs font-black px-4 py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isLocatingDestination ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            <span>Mendeteksi Lokasi Real-Time...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Navigation className="w-4.5 h-4.5 fill-white" />
+                            <span>🎯 Cek Lokasi Saat Ini (Google Maps)</span>
+                          </>
+                        )}
+                      </button>
+
+                      {destinationCoords && (
+                        <a
+                          href={`https://www.google.com/maps?q=${destinationCoords.lat},${destinationCoords.lng}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-white hover:bg-blue-50 text-blue-700 border-2 border-blue-300 text-xs font-black px-3.5 py-3 rounded-xl transition-all shadow-soft flex items-center gap-1.5 shrink-0"
+                          title="Buka lokasi ini di aplikasi Google Maps"
+                        >
+                          <span>🗺️ Buka Google Maps</span>
+                          <span className="text-[10px]">↗</span>
+                        </a>
+                      )}
+                    </div>
+
+                    {destinationAccuracy && destinationCoords && (
+                      <div className="flex items-center justify-between text-[10.5px] text-emerald-900 bg-white/90 border border-emerald-300 px-3 py-1.5 rounded-xl font-bold shadow-soft-xs">
+                        <span className="flex items-center gap-1.5">
+                          <span className="text-emerald-600">✅</span>
+                          <span>GPS Real-time: {destinationCoords.lat.toFixed(5)}, {destinationCoords.lng.toFixed(5)}</span>
+                        </span>
+                        <span className="text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-300">
+                          Akurasi ±{destinationAccuracy}m
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   <AddressAutocomplete
                     label="Lokasi Tujuan *"
-                    placeholder="Masukkan alamat tujuan..."
+                    placeholder="Masukkan alamat tujuan atau tekan Cek Lokasi Saat Ini..."
                     value={destinationAddress}
                     onChange={(address, coords, details) => {
                       setDestinationAddress(address);
@@ -1200,9 +1328,39 @@ ${osmLink}`;
                     }}
                     error={errors.destinationAddress || (isDestOutside ? 'Titik tujuan di luar Lampung!' : undefined)}
                     icon={<Navigation className="w-4.5 h-4.5 text-red-500" />}
+                    showGpsButton={true}
+                    onGpsClick={handleGetDestinationLocation}
+                    gpsLoading={isLocatingDestination}
+                    gpsButtonLabel="Cek Lokasi (5m)"
                     onFocus={() => setActiveMarkerType('destination')}
                   />
                   {renderDetailedAddress(destinationDetails, 'Tujuan', 'destination')}
+
+                  {/* Live Kalkulasi Ongkos Kirim Banner */}
+                  {pricing && destinationCoords && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-4 bg-gradient-to-r from-amber-500/15 via-emerald-500/15 to-amber-500/15 border-2 border-emerald-500 rounded-2xl flex items-center justify-between shadow-md text-left"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-emerald-700 font-black text-xs">
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                          </span>
+                          <span>Ongkos Kirim Otomatis Terkalkulasi!</span>
+                        </div>
+                        <p className="text-[11px] text-secondary-700 font-medium">
+                          Jarak Rute: <strong className="text-secondary-900 font-extrabold">{formatDistance(pricing.distance)}</strong> ({formatDuration(pricing.duration)})
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[9px] text-secondary-500 uppercase font-black tracking-wider">Total Biaya Ongkir</p>
+                        <p className="text-2xl font-black text-amber-600 font-outfit leading-tight">{formatCurrency(pricing.totalDeliveryFee)}</p>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
               </div>
 

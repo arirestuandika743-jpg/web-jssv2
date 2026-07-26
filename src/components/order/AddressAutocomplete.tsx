@@ -18,6 +18,7 @@ interface AddressAutocompleteProps {
   showGpsButton?: boolean;
   onGpsClick?: () => void;
   gpsLoading?: boolean;
+  gpsButtonLabel?: string;
   onFocus?: () => void;
 }
 
@@ -143,6 +144,7 @@ export function AddressAutocomplete({
   showGpsButton = false,
   onGpsClick,
   gpsLoading = false,
+  gpsButtonLabel,
   onFocus,
 }: AddressAutocompleteProps) {
   const [query, setQuery] = useState(value);
@@ -408,7 +410,7 @@ export function AddressAutocomplete({
             ) : (
               <span className="text-xs">📍</span>
             )}
-            Gunakan GPS
+            {gpsButtonLabel || 'Gunakan GPS'}
           </button>
         )}
       </div>
