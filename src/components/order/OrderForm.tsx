@@ -47,7 +47,7 @@ import { ORDER_CATEGORIES, PAYMENT_METHODS, BRAND, MAP_CENTER } from '@/lib/cons
 import dynamic from 'next/dynamic';
 import { formatCurrency, formatDistance, formatDuration, cn } from '@/lib/utils';
 import { usePriceCalculation } from '@/hooks/usePriceCalculation';
-import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, formatDetailedAddress, geocodeAddressText, type DetailedAddress } from '@/services/maps';
+import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, formatDetailedAddress, geocodeAddressText, parseGoogleMapsCoordinates, type DetailedAddress } from '@/services/maps';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import type { OrderCategory, PaymentMethod, LatLng, ShoppingItem } from '@/types';
 
@@ -136,7 +136,7 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   
 
 const DEFAULT_PICKUP_ADDRESS = 'Kalirejo, Lampung Tengah, Lampung';
-const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2818, lng: 104.9833 };
+const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2844, lng: 104.9868 };
 const DEFAULT_PICKUP_DETAILS: DetailedAddress = {
   displayName: 'Kalirejo, Lampung Tengah, Lampung',
   formattedAddress: 'Kalirejo, Lampung Tengah, Lampung',
@@ -203,6 +203,7 @@ export function OrderForm() {
   const [isLocating, setIsLocating] = useState(false);
   const [isLocatingDestination, setIsLocatingDestination] = useState(false);
   const [destinationAccuracy, setDestinationAccuracy] = useState<number | null>(null);
+  const [gmapsLinkInput, setGmapsLinkInput] = useState('');
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -335,6 +336,10 @@ export function OrderForm() {
   // Auto-geocode pickupAddress text when coords is null or text changes
   useEffect(() => {
     if (!pickupAddress.trim()) return;
+    if (pickupAddress === DEFAULT_PICKUP_ADDRESS) {
+      setPickupCoords(DEFAULT_PICKUP_COORDS);
+      return;
+    }
     const timer = setTimeout(async () => {
       const coords = await geocodeAddressText(
         pickupAddress,
@@ -661,6 +666,16 @@ export function OrderForm() {
     );
   };
 
+  const handleParseGmapsInput = (inputVal: string) => {
+    setGmapsLinkInput(inputVal);
+    if (!inputVal.trim()) return;
+    const coords = parseGoogleMapsCoordinates(inputVal);
+    if (coords) {
+      handleDestinationCoordsChange(coords);
+      toast.success('📍 Koordinat Google Maps berhasil diekstrak & disesuaikan!');
+    }
+  };
+
   const handleResetLocations = () => {
     setPickupAddress(DEFAULT_PICKUP_ADDRESS);
     setPickupCoords(DEFAULT_PICKUP_COORDS);
@@ -669,6 +684,7 @@ export function OrderForm() {
     setDestinationCoords(null);
     setDestinationDetails(null);
     setDestinationAccuracy(null);
+    setGmapsLinkInput('');
     setErrors({});
     toast.info('Lokasi jemput dikembalikan ke Kalirejo & lokasi tujuan direset');
   };
@@ -1310,6 +1326,20 @@ ${osmLink}`;
                         </span>
                       </div>
                     )}
+
+                    <div className="pt-2 border-t border-blue-200/60 space-y-1">
+                      <label className="block text-[10px] font-extrabold text-blue-900 uppercase tracking-wider flex items-center justify-between">
+                        <span>📌 Tempel Link / Koordinat Google Maps</span>
+                        <span className="text-blue-700 text-[9px] font-bold">100% Akurat</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={gmapsLinkInput}
+                        onChange={(e) => handleParseGmapsInput(e.target.value)}
+                        placeholder="Tempel link Google Maps (maps.app.goo.gl...) atau koordinat (-5.2951, 104.9752)"
+                        className="w-full bg-white font-semibold text-blue-950 px-3 py-2 rounded-xl border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs shadow-soft-xs placeholder:text-blue-300"
+                      />
+                    </div>
                   </div>
 
                   <AddressAutocomplete

@@ -233,6 +233,39 @@ export function formatDetailedAddress(details: Partial<DetailedAddress>): string
 }
 
 /**
+ * Parses Google Maps URL, share link, or raw coordinate string into LatLng
+ */
+export function parseGoogleMapsCoordinates(text: string): LatLng | null {
+  if (!text) return null;
+
+  // 1. Matches @lat,lng format e.g. @-5.295123,104.975234
+  const atMatch = text.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (atMatch) {
+    const lat = parseFloat(atMatch[1]);
+    const lng = parseFloat(atMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+
+  // 2. Matches q=lat,lng or ll=lat,lng format e.g. q=-5.295123,104.975234
+  const queryMatch = text.match(/(?:q|ll|query|destination|origin)=(-?\d+\.\d+),(-?\d+\.\d+)/i);
+  if (queryMatch) {
+    const lat = parseFloat(queryMatch[1]);
+    const lng = parseFloat(queryMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+
+  // 3. Matches raw coordinates format e.g. -5.295123, 104.975234
+  const rawMatch = text.match(/(-?\d{1,2}\.\d{3,7})\s*,\s*(-?\d{2,3}\.\d{3,7})/);
+  if (rawMatch) {
+    const lat = parseFloat(rawMatch[1]);
+    const lng = parseFloat(rawMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+
+  return null;
+}
+
+/**
  * Parses raw Nominatim search/reverse item into DetailedAddress format
  */
 export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null): DetailedAddress {
@@ -263,7 +296,7 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
   if (isUglyStr(name)) name = '';
 
   const road = addr.road || addr.pedestrian || addr.cycleway || addr.path || addr.footway || addr.street || '';
-  const village = addr.village || addr.hamlet || addr.neighbourhood || addr.suburb || addr.quarter || addr.residential || addr.village_district || '';
+  let village = addr.village || addr.neighbourhood || addr.suburb || addr.quarter || addr.residential || addr.village_district || addr.hamlet || '';
   let subdistrict = addr.subdistrict || addr.district || addr.city_district || addr.town || addr.county_subdistrict || '';
   let county = addr.county || addr.city || addr.regency || addr.municipality || addr.state_district || '';
   let state = addr.state || addr.province || 'Lampung';
@@ -271,9 +304,35 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
 
   const displayNameRaw = item.display_name || item.displayName || '';
 
-  // Extract lat/lng for coordinate-based Kecamatan inference
+  // Extract lat/lng for coordinate-based Kecamatan & Village inference
   const latNum = overrideCoords?.lat ?? (item.lat ? parseFloat(item.lat) : item.latitude ? parseFloat(item.latitude) : undefined);
   const lngNum = overrideCoords?.lng ?? (item.lon ? parseFloat(item.lon) : item.lng ? parseFloat(item.lng) : item.longitude ? parseFloat(item.longitude) : undefined);
+
+  // Hamlet to official Village mapping (Cimarian -> Sri Basuki)
+  const hamletLower = (addr.hamlet || village || '').toLowerCase();
+  if (hamletLower.includes('cimarian') || hamletLower.includes('cikal') || hamletLower.includes('sri basuki')) {
+    village = 'Sri Basuki';
+    subdistrict = 'Kalirejo';
+  } else if (hamletLower.includes('sri wungu') || hamletLower.includes('kaliwungu') || hamletLower.includes('kali wungu')) {
+    village = 'Kaliwungu';
+    subdistrict = 'Kalirejo';
+  } else if (hamletLower.includes('sri mulyo') || hamletLower.includes('srimulyo')) {
+    village = 'Sri Mulyo';
+    subdistrict = 'Kalirejo';
+  }
+
+  // Exact coordinate bounding box for Sri Basuki and Kalirejo town center
+  if (typeof latNum === 'number' && typeof lngNum === 'number' && !isNaN(latNum) && !isNaN(lngNum)) {
+    if (latNum >= -5.315 && latNum <= -5.285 && lngNum >= 104.955 && lngNum <= 104.982) {
+      village = 'Sri Basuki';
+      subdistrict = 'Kalirejo';
+      county = 'Lampung Tengah';
+    } else if (latNum >= -5.288 && latNum <= -5.281 && lngNum >= 104.982 && lngNum <= 104.995) {
+      village = 'Kalirejo';
+      subdistrict = 'Kalirejo';
+      county = 'Lampung Tengah';
+    }
+  }
 
   // If subdistrict or village is omitted by Nominatim, try display_name chunks first
   if (displayNameRaw && !isUglyStr(displayNameRaw)) {
@@ -408,6 +467,12 @@ export async function geocodeAddressText(
   subdistrict?: string,
   county?: string
 ): Promise<LatLng | null> {
+  // If user pasted a Google Maps URL, share link, or raw coordinates, parse directly!
+  const gmapsCoords = parseGoogleMapsCoordinates(text);
+  if (gmapsCoords) {
+    return gmapsCoords;
+  }
+
   const cleanStr = (s: string) => s.replace(/^(desa\/kel\.|desa|kelurahan|kel\.|kecamatan|kec\.|kabupaten|kab\.|provinsi|prov\.)\s*/gi, '').trim();
 
   const v = village ? cleanStr(village) : '';
