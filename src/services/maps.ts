@@ -323,12 +323,12 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
 
   // Exact coordinate bounding box for Sri Basuki and Kalirejo town center
   if (typeof latNum === 'number' && typeof lngNum === 'number' && !isNaN(latNum) && !isNaN(lngNum)) {
-    if (latNum >= -5.315 && latNum <= -5.285 && lngNum >= 104.955 && lngNum <= 104.982) {
+    if (latNum >= -5.315 && latNum <= -5.288 && lngNum >= 104.955 && lngNum <= 104.982) {
       village = 'Sri Basuki';
       subdistrict = 'Kalirejo';
       county = 'Lampung Tengah';
-    } else if (latNum >= -5.290 && latNum <= -5.281 && lngNum >= 104.982 && lngNum <= 104.995) {
-      village = 'Kali Rejo';
+    } else if (latNum >= -5.290 && latNum <= -5.275 && lngNum >= 104.980 && lngNum <= 104.995) {
+      village = 'Kalirejo';
       subdistrict = 'Kalirejo';
       county = 'Lampung Tengah';
     }
@@ -471,6 +471,31 @@ export async function geocodeAddressText(
   const gmapsCoords = parseGoogleMapsCoordinates(text);
   if (gmapsCoords) {
     return gmapsCoords;
+  }
+
+  // High-precision local coordinate dictionary for Kalirejo villages to prevent Nominatim misindexing (e.g. Keputran bug)
+  const queryLower = (text + ' ' + (village || '') + ' ' + (subdistrict || '')).toLowerCase();
+  
+  if (queryLower.includes('kali rejo') || queryLower.includes('kalirejo')) {
+    return { lat: -5.2844, lng: 104.9868 };
+  }
+  if (queryLower.includes('sri basuki') || queryLower.includes('cimarian') || queryLower.includes('cikal')) {
+    return { lat: -5.2950, lng: 104.9750 };
+  }
+  if (queryLower.includes('srimulyo') || queryLower.includes('sri mulyo')) {
+    return { lat: -5.2650, lng: 105.0100 };
+  }
+  if (queryLower.includes('kaliwungu') || queryLower.includes('sri wungu') || queryLower.includes('kali wungu')) {
+    return { lat: -5.2750, lng: 104.9810 };
+  }
+  if (queryLower.includes('sukosari')) {
+    return { lat: -5.2850, lng: 104.9600 };
+  }
+  if (queryLower.includes('watuagung') || queryLower.includes('watu agung')) {
+    return { lat: -5.3200, lng: 104.9700 };
+  }
+  if (queryLower.includes('balairejo') || queryLower.includes('balai rejo')) {
+    return { lat: -5.2800, lng: 104.9920 };
   }
 
   const cleanStr = (s: string) => s.replace(/^(desa\/kel\.|desa|kelurahan|kel\.|kecamatan|kec\.|kabupaten|kab\.|provinsi|prov\.)\s*/gi, '').trim();
