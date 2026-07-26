@@ -135,12 +135,12 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
   
 
-const DEFAULT_PICKUP_ADDRESS = 'Kalirejo, Lampung Tengah, Lampung';
-const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2844, lng: 104.9868 };
+const DEFAULT_PICKUP_ADDRESS = 'Desa/Kel. Kali Rejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung';
+const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2865, lng: 104.9860 };
 const DEFAULT_PICKUP_DETAILS: DetailedAddress = {
-  displayName: 'Kalirejo, Lampung Tengah, Lampung',
-  formattedAddress: 'Kalirejo, Lampung Tengah, Lampung',
-  village: 'Kalirejo',
+  displayName: 'Desa/Kel. Kali Rejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
+  formattedAddress: 'Desa/Kel. Kali Rejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
+  village: 'Kali Rejo',
   subdistrict: 'Kalirejo',
   county: 'Lampung Tengah',
   state: 'Lampung',

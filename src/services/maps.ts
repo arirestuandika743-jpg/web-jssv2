@@ -327,8 +327,8 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
       village = 'Sri Basuki';
       subdistrict = 'Kalirejo';
       county = 'Lampung Tengah';
-    } else if (latNum >= -5.288 && latNum <= -5.281 && lngNum >= 104.982 && lngNum <= 104.995) {
-      village = 'Kalirejo';
+    } else if (latNum >= -5.290 && latNum <= -5.281 && lngNum >= 104.982 && lngNum <= 104.995) {
+      village = 'Kali Rejo';
       subdistrict = 'Kalirejo';
       county = 'Lampung Tengah';
     }
