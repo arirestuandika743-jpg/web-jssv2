@@ -197,10 +197,10 @@ export function OrderForm() {
   // Location geofencing & detailed states
   const [pickupDetails, setPickupDetails] = useState<DetailedAddress | null>(DEFAULT_PICKUP_DETAILS);
   const [destinationDetails, setDestinationDetails] = useState<DetailedAddress | null>(null);
-  const [pickupLocationType, setPickupLocationType] = useState<string>('Rumah');
-  const [pickupLandmark, setPickupLandmark] = useState<string>('');
-  const [pickupPhotoUrl, setPickupPhotoUrl] = useState<string | null>(null);
-  const [isUploadingPickupPhoto, setIsUploadingPickupPhoto] = useState(false);
+  const [destinationLocationType, setDestinationLocationType] = useState<string>('Rumah');
+  const [destinationLandmark, setDestinationLandmark] = useState<string>('');
+  const [destinationPhotoUrl, setDestinationPhotoUrl] = useState<string | null>(null);
+  const [isUploadingDestinationPhoto, setIsUploadingDestinationPhoto] = useState(false);
 
   const [isLocating, setIsLocating] = useState(false);
   const [pickupAccuracy, setPickupAccuracy] = useState<number | null>(null);
@@ -622,12 +622,12 @@ export function OrderForm() {
   const handleLocationPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setIsUploadingPickupPhoto(true);
+    setIsUploadingDestinationPhoto(true);
     const reader = new FileReader();
     reader.onload = (ev) => {
-      setPickupPhotoUrl(ev.target?.result as string);
-      setIsUploadingPickupPhoto(false);
-      toast.success('Foto lokasi terunggah!');
+      setDestinationPhotoUrl(ev.target?.result as string);
+      setIsUploadingDestinationPhoto(false);
+      toast.success('Foto lokasi tujuan terunggah!');
     };
     reader.readAsDataURL(file);
   };
@@ -848,7 +848,7 @@ export function OrderForm() {
     let createdOrder;
     try {
       const notesToUse = category === 'ride' ? deliveryNotes : deliveryNotes;
-      const finalDeliveryNotes = `${notesToUse || ''}\n\n[Rincian Tambahan]\nJenis Lokasi: ${pickupLocationType}\nPatokan: ${pickupLandmark || '-'}\nHelm: ${ojekHelmet === 'need' ? 'Butuh' : 'Bawa Sendiri'}\nRoundTrip: ${ojekRoundTrip ? 'Ya' : 'Tidak'}`;
+      const finalDeliveryNotes = `${notesToUse || ''}\n\n[Rincian Tambahan Tujuan]\nJenis Lokasi Tujuan: ${destinationLocationType}\nPatokan Tujuan: ${destinationLandmark || '-'}\nHelm: ${ojekHelmet === 'need' ? 'Butuh' : 'Bawa Sendiri'}\nRoundTrip: ${ojekRoundTrip ? 'Ya' : 'Tidak'}`;
 
       createdOrder = await dbService.createOrder(
         {
@@ -860,7 +860,7 @@ export function OrderForm() {
           destinationCoordinates: destinationCoords || undefined,
           category: category as any,
           description: finalDescription,
-          photoUrl: photoPreview || undefined,
+          photoUrl: photoPreview || destinationPhotoUrl || undefined,
           estimatedItemPrice: category === 'ride' ? 0 : totalItemPrice,
           deliveryNotes: finalDeliveryNotes,
           paymentMethod,
@@ -930,9 +930,8 @@ export function OrderForm() {
 📞 *No. WhatsApp:* ${whatsappNumber}
 🛵 *Layanan:* ${categoryLabel}
 
-📍 *Titik Jemput (${pickupLocationType}):*
+📍 *Titik Jemput:*
 ${pickupAddress}
-${pickupLandmark ? `_Patokan: ${pickupLandmark}_` : ''}
 
 🏁 *Titik Tujuan:*
 ${destinationAddress}
@@ -943,6 +942,9 @@ ${destLatStr}, ${destLngStr}
 🗺️ *Google Maps Tujuan:*
 ${destGmapsUrl}
 
+🏠 *Detail Tujuan:*
+  - Jenis Lokasi: ${destinationLocationType}
+${destinationLandmark ? `  - Patokan: ${destinationLandmark}\n` : ''}${destinationPhotoUrl || photoPreview ? `  - Foto Tempat: Ada\n` : ''}
 
 ⚙️ *Detail Perjalanan:*
 🚗 Jarak Rute: ${distText}
@@ -1307,54 +1309,6 @@ ${osmLink}`;
                   />
                   {renderDetailedAddress(pickupDetails, 'Jemput', 'pickup')}
 
-                  {pickupCoords && (
-                    <div className="bg-secondary-50/30 p-3 border border-secondary-100 rounded-2xl space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
-                            <span>Jenis Lokasi</span>
-                            <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
-                          </label>
-                          <select
-                            value={pickupLocationType}
-                            onChange={(e) => setPickupLocationType(e.target.value)}
-                            className="input-premium py-1 px-2 text-[11px] rounded-lg bg-white border border-secondary-200 mt-1"
-                          >
-                            {LOCATION_TYPES.map(loc => (
-                              <option key={loc.value} value={loc.value}>{loc.icon} {loc.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
-                            <span>Foto Tempat</span>
-                            <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
-                          </label>
-                          <div className="flex items-center gap-1.5 mt-1.5">
-                            <label className="cursor-pointer bg-white hover:bg-secondary-50 border border-secondary-200 rounded-lg text-[9px] font-bold px-2 py-1 flex items-center gap-1">
-                              <span>📸 Upload</span>
-                              <input type="file" accept="image/*" className="hidden" onChange={handleLocationPhotoUpload} />
-                            </label>
-                            {pickupPhotoUrl && <div className="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center text-[10px]">✅</div>}
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
-                          <span>Patokan / Catatan Jemput</span>
-                          <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={pickupLandmark}
-                          onChange={(e) => setPickupLandmark(e.target.value)}
-                          placeholder="cth: Pagar hitam, dekat warung kelontong"
-                          className="input-premium py-1.5 px-2.5 text-[11px] rounded-lg mt-1 bg-white"
-                        />
-                      </div>
-                    </div>
-                  )}
-
                   {/* Menu Deteksi Lokasi Real-Time Customer via Native Device GPS */}
                   <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/10 border-2 border-blue-400 p-4 rounded-2xl space-y-3 text-left shadow-soft">
                     <div className="flex items-center justify-between">
@@ -1572,6 +1526,54 @@ ${osmLink}`;
                     onFocus={() => setActiveMarkerType('destination')}
                   />
                   {renderDetailedAddress(destinationDetails, 'Tujuan', 'destination')}
+
+                  {destinationCoords && (
+                    <div className="bg-secondary-50/30 p-3 border border-secondary-100 rounded-2xl space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                            <span>Jenis Lokasi</span>
+                            <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                          </label>
+                          <select
+                            value={destinationLocationType}
+                            onChange={(e) => setDestinationLocationType(e.target.value)}
+                            className="input-premium py-1 px-2 text-[11px] rounded-lg bg-white border border-secondary-200 mt-1"
+                          >
+                            {LOCATION_TYPES.map(loc => (
+                              <option key={loc.value} value={loc.value}>{loc.icon} {loc.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                            <span>Foto Tempat</span>
+                            <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                          </label>
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <label className="cursor-pointer bg-white hover:bg-secondary-50 border border-secondary-200 rounded-lg text-[9px] font-bold px-2 py-1 flex items-center gap-1">
+                              <span>📸 Upload</span>
+                              <input type="file" accept="image/*" className="hidden" onChange={handleLocationPhotoUpload} />
+                            </label>
+                            {destinationPhotoUrl && <div className="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center text-[10px]">✅</div>}
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                          <span>Patokan / Catatan Tujuan</span>
+                          <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={destinationLandmark}
+                          onChange={(e) => setDestinationLandmark(e.target.value)}
+                          placeholder="cth: Pagar hitam, dekat warung kelontong"
+                          className="input-premium py-1.5 px-2.5 text-[11px] rounded-lg mt-1 bg-white"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {/* Live Kalkulasi Ongkos Kirim Banner */}
                   {pricing && destinationCoords && (
@@ -2087,12 +2089,12 @@ ${osmLink}`;
                   <div className="space-y-1.5 border-b border-secondary-100 pb-2">
                     <span className="text-[9px] uppercase font-extrabold text-secondary-400">Titik Jemput</span>
                     <p className="font-bold text-secondary-800 leading-snug">{pickupAddress}</p>
-                    {pickupLandmark && <p className="text-[10px] text-amber-600 font-semibold">📍 Patokan: {pickupLandmark}</p>}
                     {renderDetailedAddress(pickupDetails, 'Jemput')}
                   </div>
                   <div className="space-y-1.5 pt-1">
                     <span className="text-[9px] uppercase font-extrabold text-secondary-400">Titik Tujuan</span>
                     <p className="font-bold text-secondary-800 leading-snug">{destinationAddress}</p>
+                    {destinationLandmark && <p className="text-[10px] text-amber-600 font-semibold">📍 Patokan Tujuan: {destinationLandmark}</p>}
                     {destinationCoords && (
                       <div className="text-[10px] text-secondary-700 space-y-1 mt-1 font-mono bg-white p-2.5 rounded-xl border border-secondary-200 shadow-soft-xs">
                         <p className="font-bold text-blue-950">📍 Koordinat Tujuan: {destinationCoords.lat.toFixed(7)}, {destinationCoords.lng.toFixed(7)}</p>
