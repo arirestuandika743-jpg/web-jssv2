@@ -136,7 +136,7 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   
 
 const DEFAULT_PICKUP_ADDRESS = 'Desa/Kel. Kalirejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung';
-const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2844, lng: 104.9868 };
+const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2760, lng: 104.9825 };
 const DEFAULT_PICKUP_DETAILS: DetailedAddress = {
   displayName: 'Desa/Kel. Kalirejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
   formattedAddress: 'Desa/Kel. Kalirejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',

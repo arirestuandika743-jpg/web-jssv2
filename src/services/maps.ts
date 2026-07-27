@@ -477,7 +477,7 @@ export async function geocodeAddressText(
   const queryLower = (text + ' ' + (village || '') + ' ' + (subdistrict || '')).toLowerCase();
   
   if (queryLower.includes('kali rejo') || queryLower.includes('kalirejo')) {
-    return { lat: -5.2844, lng: 104.9868 };
+    return { lat: -5.2760, lng: 104.9825 };
   }
   if (queryLower.includes('sri basuki') || queryLower.includes('cimarian') || queryLower.includes('cikal')) {
     return { lat: -5.2950, lng: 104.9750 };
