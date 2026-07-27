@@ -137,7 +137,7 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   
 
 const DEFAULT_PICKUP_ADDRESS = 'Perempatan Pasar Kali Rejo, Kalirejo, Lampung Tengah, Lampung';
-const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2048, lng: 104.9800 };
+const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2760, lng: 104.9825 };
 const DEFAULT_PICKUP_DETAILS: DetailedAddress = {
   displayName: 'Perempatan Pasar Kali Rejo, Kalirejo, Lampung Tengah, Lampung',
   formattedAddress: 'Perempatan Pasar Kali Rejo, Kalirejo, Lampung Tengah, Lampung',

@@ -327,7 +327,7 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
       village = 'Sri Basuki';
       subdistrict = 'Kalirejo';
       county = 'Lampung Tengah';
-    } else if (latNum >= -5.235 && latNum <= -5.195 && lngNum >= 104.955 && lngNum <= 104.995) {
+    } else if (latNum >= -5.295 && latNum <= -5.250 && lngNum >= 104.955 && lngNum <= 104.995) {
       village = 'Kali Rejo';
       subdistrict = 'Kalirejo';
       county = 'Lampung Tengah';
@@ -477,7 +477,7 @@ export async function geocodeAddressText(
   const queryLower = (text + ' ' + (village || '') + ' ' + (subdistrict || '')).toLowerCase();
   
   if (queryLower.includes('kali rejo') || queryLower.includes('kalirejo')) {
-    return { lat: -5.2048, lng: 104.9800 };
+    return { lat: -5.2760, lng: 104.9825 };
   }
   if (queryLower.includes('sri basuki') || queryLower.includes('cimarian') || queryLower.includes('cikal')) {
     return { lat: -5.2950, lng: 104.9750 };
