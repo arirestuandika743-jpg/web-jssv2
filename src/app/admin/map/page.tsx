@@ -28,8 +28,8 @@ export default function AdminMapPage() {
           ...d,
           status: s?.status || d.status || 'offline',
           currentLocation: d.currentLocation || {
-            lat: -5.2160 + (Math.random() - 0.5) * 0.01,
-            lng: 104.9750 + (Math.random() - 0.5) * 0.01,
+            lat: -5.2048 + (Math.random() - 0.5) * 0.01,
+            lng: 104.9800 + (Math.random() - 0.5) * 0.01,
           },
         };
       });

@@ -108,8 +108,8 @@ export const COVERAGE_AREAS = [
     name: 'Kalirejo',
     description: 'Pusat layanan utama',
     isMain: true,
-    lat: -5.2160,
-    lng: 104.9750,
+    lat: -5.2048,
+    lng: 104.9800,
     radius: 5,
   },
   {
@@ -156,8 +156,8 @@ export const COVERAGE_AREAS = [
 
 /** Center coordinates for map */
 export const MAP_CENTER = {
-  lat: -5.2160,
-  lng: 104.9750,
+  lat: -5.2048,
+  lng: 104.9800,
 } as const;
 
 /** Default map zoom */
