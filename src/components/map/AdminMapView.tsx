@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { MAP_CENTER } from '@/lib/constants';
 import type { Driver } from '@/types';
 import 'leaflet/dist/leaflet.css';
 
@@ -22,7 +23,7 @@ export default function AdminMapView({ drivers, selectedDriver, onSelectDriver }
 
     // Initialize map only once
     if (!mapRef.current) {
-      mapRef.current = L.map(mapContainerRef.current).setView([-5.2818, 104.9833], 14);
+      mapRef.current = L.map(mapContainerRef.current).setView([MAP_CENTER.lat, MAP_CENTER.lng], 14);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',

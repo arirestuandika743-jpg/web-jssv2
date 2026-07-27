@@ -12,6 +12,7 @@ import { courierService } from '@/services/courierService';
 import { broadcastService } from '@/services/broadcastService';
 import { notificationService } from '@/services/notificationService';
 import { formatCurrency } from '@/lib/utils';
+import { MAP_CENTER } from '@/lib/constants';
 import type { CourierStatus, Order, CourierBadge } from '@/types';
 import ShiftButton from '@/components/courier/ShiftButton';
 import OrderPopup from '@/components/courier/OrderPopup';
@@ -132,14 +133,14 @@ export default function CourierDashboard() {
           loadData();
         },
         async () => {
-          await courierService.startShift(courierId, { lat: -5.2818, lng: 104.9833 });
+          await courierService.startShift(courierId, { lat: MAP_CENTER.lat, lng: MAP_CENTER.lng });
           setIsShiftActive(true);
           setStatus('online');
           loadData();
         }
       );
     } else {
-      await courierService.startShift(courierId, { lat: -5.2818, lng: 104.9833 });
+      await courierService.startShift(courierId, { lat: MAP_CENTER.lat, lng: MAP_CENTER.lng });
       setIsShiftActive(true);
       setStatus('online');
       loadData();

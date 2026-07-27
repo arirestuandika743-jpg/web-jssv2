@@ -47,7 +47,7 @@ import { ORDER_CATEGORIES, PAYMENT_METHODS, BRAND, MAP_CENTER } from '@/lib/cons
 import dynamic from 'next/dynamic';
 import { formatCurrency, formatDistance, formatDuration, cn } from '@/lib/utils';
 import { usePriceCalculation } from '@/hooks/usePriceCalculation';
-import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, formatDetailedAddress, geocodeAddressText, parseGoogleMapsCoordinates, type DetailedAddress } from '@/services/maps';
+import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, formatDetailedAddress, geocodeAddressText, parseGoogleMapsCoordinates, getCurrentGpsLocation, type DetailedAddress } from '@/services/maps';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import type { OrderCategory, PaymentMethod, LatLng, ShoppingItem } from '@/types';
 
@@ -135,12 +135,12 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
   
 
-const DEFAULT_PICKUP_ADDRESS = 'Desa/Kel. Kalirejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung';
-const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2844, lng: 104.9868 };
+const DEFAULT_PICKUP_ADDRESS = 'Desa/Kel. Kali Rejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung';
+const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2160, lng: 104.9750 };
 const DEFAULT_PICKUP_DETAILS: DetailedAddress = {
-  displayName: 'Desa/Kel. Kalirejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
-  formattedAddress: 'Desa/Kel. Kalirejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
-  village: 'Kalirejo',
+  displayName: 'Desa/Kel. Kali Rejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
+  formattedAddress: 'Desa/Kel. Kali Rejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
+  village: 'Kali Rejo',
   subdistrict: 'Kalirejo',
   county: 'Lampung Tengah',
   state: 'Lampung',
@@ -201,6 +201,7 @@ export function OrderForm() {
   const [isUploadingPickupPhoto, setIsUploadingPickupPhoto] = useState(false);
 
   const [isLocating, setIsLocating] = useState(false);
+  const [pickupAccuracy, setPickupAccuracy] = useState<number | null>(null);
   const [isLocatingDestination, setIsLocatingDestination] = useState(false);
   const [destinationAccuracy, setDestinationAccuracy] = useState<number | null>(null);
   const [gmapsLinkInput, setGmapsLinkInput] = useState('');
@@ -558,39 +559,43 @@ export function OrderForm() {
   };
 
   // Get User Current Location
-  const handleGetLocation = () => {
+  const handleGetLocation = async () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       toast.error('Browser Anda tidak mendukung layanan lokasi GPS.');
       return;
     }
     setIsLocating(true);
-    toast.info('Mencari koordinat GPS Anda...');
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
-        setPickupCoords(coords);
-        try {
-          const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
-          if (data) {
-            const details = parseNominatimAddress(data, coords);
-            setPickupDetails(details);
-            setPickupAddress(details.formattedAddress || details.displayName);
-            toast.success('Lokasi jemput berhasil disesuaikan dengan GPS!');
-          }
-        } catch (err) {
-          console.error(err);
-          setPickupAddress(`Lokasi GPS (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`);
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      (error) => {
-        console.error('GPS error:', error);
-        toast.error('Izin lokasi ditolak atau sinyal GPS lemah.');
-        setIsLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
+    toast.info('🎯 Mendeteksi koordinat GPS jemputan Anda...');
+    try {
+      const res = await getCurrentGpsLocation(15000);
+      setPickupCoords(res.coords);
+      setPickupAccuracy(res.accuracy);
+
+      if (!res.isReliable) {
+        toast.error(
+          `⚠️ Sinyal GPS kurang akurat (±${res.accuracy}m). Silakan aktifkan GPS & Lokasi Akurasi Tinggi pada HP Anda.`,
+          { duration: 8000 }
+        );
+      } else if (res.accuracy > 100) {
+        toast.warning(`GPS kurang akurat (±${res.accuracy} m). Silakan aktifkan GPS/Lokasi Akurasi Tinggi.`);
+      } else {
+        toast.success(`📍 Lokasi jemput terdeteksi (${res.accuracyMessage})!`);
+      }
+
+      const data = await reverseGeocodeWithCache(res.coords.lat, res.coords.lng);
+      if (data) {
+        const details = parseNominatimAddress(data, res.coords);
+        setPickupDetails(details);
+        setPickupAddress(details.formattedAddress || details.displayName);
+      } else {
+        setPickupAddress(`Lokasi GPS (${res.coords.lat.toFixed(5)}, ${res.coords.lng.toFixed(5)})`);
+      }
+    } catch (err: any) {
+      console.error('GPS error:', err);
+      toast.error(err.message || 'Izin lokasi ditolak atau sinyal GPS lemah.');
+    } finally {
+      setIsLocating(false);
+    }
   };
 
   // Photo uploads
@@ -616,50 +621,45 @@ export function OrderForm() {
     }
   };
 
-  // Get User Current Real-Time Location for Destination via Google Maps GPS
-  const handleGetDestinationLocation = () => {
+  // Get User Current Real-Time Location for Destination via Device GPS
+  const handleGetDestinationLocation = async () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       toast.error('Browser Anda tidak mendukung layanan lokasi GPS.');
       return;
     }
     setIsLocatingDestination(true);
-    toast.info('🎯 Mendeteksi lokasi real-time Anda via Google Maps GPS (Akurasi ~5m)...');
+    toast.info('🎯 Mendeteksi lokasi real-time Anda via GPS...');
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
-        const accuracy = position.coords.accuracy ? Math.round(position.coords.accuracy) : 5;
+    try {
+      const res = await getCurrentGpsLocation(15000);
+      setDestinationCoords(res.coords);
+      setDestinationAccuracy(res.accuracy);
 
-        setDestinationCoords(coords);
-        setDestinationAccuracy(accuracy);
+      if (!res.isReliable) {
+        toast.error(
+          `⚠️ Sinyal GPS kurang akurat (±${res.accuracy}m). Silakan aktifkan GPS & Lokasi Akurasi Tinggi pada HP Anda.`,
+          { duration: 8000 }
+        );
+      } else if (res.accuracy > 100) {
+        toast.warning(`GPS kurang akurat (±${res.accuracy} m). Silakan aktifkan GPS/Lokasi Akurasi Tinggi.`);
+      } else {
+        toast.success(`📍 Lokasi tujuan terdeteksi (${res.accuracyMessage})!`);
+      }
 
-        try {
-          const data = await reverseGeocodeWithCache(coords.lat, coords.lng);
-          if (data) {
-            const details = parseNominatimAddress(data, coords);
-            setDestinationDetails(details);
-            setDestinationAddress(details.formattedAddress || details.displayName);
-            toast.success(`📍 Lokasi tujuan terdeteksi (Akurasi ±${accuracy}m)! Ongkos kirim langsung kalkulasi.`);
-          } else {
-            setDestinationAddress(`Lokasi GPS Real-time (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`);
-            toast.success(`📍 Koordinat lokasi tujuan disesuaikan (±${accuracy}m)!`);
-          }
-        } catch (err) {
-          console.error(err);
-          setDestinationAddress(`Lokasi GPS Real-time (${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)})`);
-          toast.success(`📍 Koordinat lokasi tujuan disesuaikan dengan GPS!`);
-        } finally {
-          setIsLocatingDestination(false);
-        }
-      },
-      (error) => {
-        console.error('GPS Destination error:', error);
-        toast.error('Izin lokasi ditolak atau sinyal GPS lemah. Membuka Google Maps...');
-        setIsLocatingDestination(false);
-        window.open('https://www.google.com/maps', '_blank');
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+      const data = await reverseGeocodeWithCache(res.coords.lat, res.coords.lng);
+      if (data) {
+        const details = parseNominatimAddress(data, res.coords);
+        setDestinationDetails(details);
+        setDestinationAddress(details.formattedAddress || details.displayName);
+      } else {
+        setDestinationAddress(`Lokasi GPS Real-time (${res.coords.lat.toFixed(5)}, ${res.coords.lng.toFixed(5)})`);
+      }
+    } catch (err: any) {
+      console.error('GPS Destination error:', err);
+      toast.error(err.message || 'Izin lokasi ditolak atau sinyal GPS lemah.');
+    } finally {
+      setIsLocatingDestination(false);
+    }
   };
 
   const handleParseGmapsInput = (inputVal: string) => {
@@ -1312,14 +1312,47 @@ ${osmLink}`;
                     </div>
 
                     {destinationAccuracy && destinationCoords && (
-                      <div className="flex items-center justify-between text-[10.5px] text-emerald-900 bg-white/90 border border-emerald-300 px-3 py-1.5 rounded-xl font-bold shadow-soft-xs">
-                        <span className="flex items-center gap-1.5">
-                          <span className="text-emerald-600">✅</span>
-                          <span>GPS Real-time: {destinationCoords.lat.toFixed(5)}, {destinationCoords.lng.toFixed(5)}</span>
-                        </span>
-                        <span className="text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-300">
-                          Akurasi ±{destinationAccuracy}m
-                        </span>
+                      <div className={`p-2.5 rounded-xl text-xs font-semibold border shadow-soft-xs ${
+                        destinationAccuracy <= 30
+                          ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                          : destinationAccuracy <= 100
+                          ? 'bg-blue-50 text-blue-900 border-blue-300'
+                          : destinationAccuracy <= 1000
+                          ? 'bg-amber-50 text-amber-900 border-amber-300'
+                          : 'bg-red-50 text-red-900 border-red-300'
+                      }`}>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1.5 font-bold text-[11px]">
+                            <span>{destinationAccuracy <= 30 ? '🎯' : destinationAccuracy <= 100 ? '📍' : destinationAccuracy <= 1000 ? '⚠️' : '🚨'}</span>
+                            <span>GPS: {destinationCoords.lat.toFixed(5)}, {destinationCoords.lng.toFixed(5)}</span>
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] border ${
+                            destinationAccuracy <= 30
+                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              : destinationAccuracy <= 100
+                              ? 'bg-blue-100 text-blue-800 border-blue-300'
+                              : destinationAccuracy <= 1000
+                              ? 'bg-amber-100 text-amber-800 border-amber-300'
+                              : 'bg-red-100 text-red-800 border-red-300'
+                          }`}>
+                            Akurasi ±{destinationAccuracy}m
+                          </span>
+                        </div>
+                        {destinationAccuracy > 100 ? (
+                          destinationAccuracy > 1000 ? (
+                            <p className="text-[10px] text-red-700 font-bold mt-1 leading-tight">
+                              🚨 GPS kurang akurat (±{destinationAccuracy} m). Silakan aktifkan GPS/Lokasi Akurasi Tinggi.
+                            </p>
+                          ) : (
+                            <p className="text-[10px] text-amber-700 font-semibold mt-1 leading-tight">
+                              ⚠️ GPS kurang akurat (±{destinationAccuracy} m). Silakan aktifkan GPS/Lokasi Akurasi Tinggi.
+                            </p>
+                          )
+                        ) : (
+                          <p className="text-[10px] text-emerald-700 font-semibold mt-1 leading-tight">
+                            ✨ Sinyal GPS presisi. Lokasi tujuan terdeteksi dengan baik.
+                          </p>
+                        )}
                       </div>
                     )}
 

@@ -101,7 +101,7 @@ export function CoveragePreview() {
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                       GPS Live Radar Kalirejo
                     </div>
-                    <span className="text-[10px] text-primary font-mono font-bold">5.2818° S, 104.9833° E</span>
+                    <span className="text-[10px] text-primary font-mono font-bold">5.2160° S, 104.9750° E</span>
                   </div>
 
                   {/* Center Visual Pins */}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { courierService } from '@/services/courierService';
+import { MAP_CENTER } from '@/lib/constants';
 import type { LatLng } from '@/types';
 
 interface UseGPSTrackingOptions {
@@ -30,6 +31,24 @@ export function useGPSTracking({ courierId, enabled, intervalMs = 5000 }: UseGPS
       accuracy: pos.coords.accuracy,
     });
   }, [courierId]);
+
+  const simulateMovement = useCallback(() => {
+    // Demo: simulate GPS movement around Kalirejo
+    let lat: number = MAP_CENTER.lat;
+    let lng: number = MAP_CENTER.lng;
+
+    intervalRef.current = setInterval(() => {
+      lat += (Math.random() - 0.5) * 0.001;
+      lng += (Math.random() - 0.5) * 0.001;
+      const loc = { lat, lng };
+      setLocation(loc);
+      courierService.updateLocation(courierId, loc, {
+        speed: Math.random() * 30,
+        accuracy: 10,
+      });
+    }, intervalMs);
+    setTracking(true);
+  }, [courierId, intervalMs]);
 
   const startTracking = useCallback(() => {
     if (!navigator.geolocation) {
@@ -61,25 +80,7 @@ export function useGPSTracking({ courierId, enabled, intervalMs = 5000 }: UseGPS
       },
       { enableHighAccuracy: true, maximumAge: 5000 }
     );
-  }, [sendLocation]);
-
-  const simulateMovement = useCallback(() => {
-    // Demo: simulate GPS movement around Kalirejo
-    let lat = -5.2818;
-    let lng = 104.9833;
-
-    intervalRef.current = setInterval(() => {
-      lat += (Math.random() - 0.5) * 0.001;
-      lng += (Math.random() - 0.5) * 0.001;
-      const loc = { lat, lng };
-      setLocation(loc);
-      courierService.updateLocation(courierId, loc, {
-        speed: Math.random() * 30,
-        accuracy: 10,
-      });
-    }, intervalMs);
-    setTracking(true);
-  }, [courierId, intervalMs]);
+  }, [sendLocation, simulateMovement]);
 
   const stopTracking = useCallback(() => {
     if (watchIdRef.current !== null) {

@@ -647,7 +647,7 @@ export default function ReusableMap({
                 </div>
               </Popup>
             </Marker>
-            {gpsAccuracy && (
+            {gpsAccuracy && gpsAccuracy <= 1000 && (
               <Circle
                 center={[gpsCoords.lat, gpsCoords.lng]}
                 radius={gpsAccuracy}

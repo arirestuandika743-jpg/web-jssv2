@@ -327,8 +327,8 @@ export function parseNominatimAddress(item: any, overrideCoords?: LatLng | null)
       village = 'Sri Basuki';
       subdistrict = 'Kalirejo';
       county = 'Lampung Tengah';
-    } else if (latNum >= -5.290 && latNum <= -5.275 && lngNum >= 104.980 && lngNum <= 104.995) {
-      village = 'Kalirejo';
+    } else if (latNum >= -5.235 && latNum <= -5.195 && lngNum >= 104.955 && lngNum <= 104.995) {
+      village = 'Kali Rejo';
       subdistrict = 'Kalirejo';
       county = 'Lampung Tengah';
     }
@@ -477,7 +477,7 @@ export async function geocodeAddressText(
   const queryLower = (text + ' ' + (village || '') + ' ' + (subdistrict || '')).toLowerCase();
   
   if (queryLower.includes('kali rejo') || queryLower.includes('kalirejo')) {
-    return { lat: -5.2760, lng: 104.9825 };
+    return { lat: -5.2160, lng: 104.9750 };
   }
   if (queryLower.includes('sri basuki') || queryLower.includes('cimarian') || queryLower.includes('cikal')) {
     return { lat: -5.2950, lng: 104.9750 };
@@ -557,4 +557,125 @@ export async function geocodeAddressText(
   }
 
   return null;
+}
+
+export interface GpsLocationResult {
+  coords: LatLng;
+  accuracy: number; // in meters
+  accuracyCategory: 'excellent' | 'good' | 'moderate' | 'poor' | 'unreliable';
+  accuracyMessage: string;
+  isReliable: boolean;
+}
+
+/**
+ * Perform high-precision native device GPS location retrieval.
+ * Configured with enableHighAccuracy: true, timeout: 15000, maximumAge: 0.
+ * Refines accuracy using watchPosition if initial fix is coarse.
+ */
+export function getCurrentGpsLocation(timeoutMs = 15000): Promise<GpsLocationResult> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      reject(new Error('Browser Anda tidak mendukung layanan lokasi GPS.'));
+      return;
+    }
+
+    const options: PositionOptions = {
+      enableHighAccuracy: true,
+      timeout: timeoutMs,
+      maximumAge: 0,
+    };
+
+    let bestPosition: GeolocationPosition | null = null;
+    let watchId: number | null = null;
+
+    const cleanup = () => {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+    };
+
+    const processPosition = (pos: GeolocationPosition): GpsLocationResult => {
+      const accuracy = Math.round(pos.coords.accuracy || 0);
+      const coords = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+      };
+
+      let accuracyCategory: GpsLocationResult['accuracyCategory'] = 'unreliable';
+      let accuracyMessage = '';
+      let isReliable = true;
+
+      if (accuracy <= 10) {
+        accuracyCategory = 'excellent';
+        accuracyMessage = `GPS Sangat Presisi (±${accuracy}m)`;
+      } else if (accuracy <= 30) {
+        accuracyCategory = 'good';
+        accuracyMessage = `GPS Bagus (±${accuracy}m)`;
+      } else if (accuracy <= 100) {
+        accuracyCategory = 'moderate';
+        accuracyMessage = `GPS Cukup Presisi (±${accuracy}m)`;
+      } else if (accuracy <= 1000) {
+        accuracyCategory = 'poor';
+        accuracyMessage = `GPS kurang akurat (±${accuracy}m). Silakan aktifkan GPS/Lokasi Akurasi Tinggi.`;
+      } else {
+        accuracyCategory = 'unreliable';
+        accuracyMessage = `Sinyal GPS kurang akurat (±${accuracy}m). Silakan aktifkan GPS Akurasi Tinggi.`;
+        isReliable = false;
+      }
+
+      return {
+        coords,
+        accuracy,
+        accuracyCategory,
+        accuracyMessage,
+        isReliable,
+      };
+    };
+
+    // First attempt: getCurrentPosition
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const initialResult = processPosition(pos);
+        if (initialResult.accuracy <= 30) {
+          cleanup();
+          resolve(initialResult);
+        } else {
+          bestPosition = pos;
+          const timer = setTimeout(() => {
+            cleanup();
+            resolve(processPosition(bestPosition || pos));
+          }, 3500);
+
+          watchId = navigator.geolocation.watchPosition(
+            (updatedPos) => {
+              if (!bestPosition || updatedPos.coords.accuracy < bestPosition.coords.accuracy) {
+                bestPosition = updatedPos;
+                if (updatedPos.coords.accuracy <= 20) {
+                  clearTimeout(timer);
+                  cleanup();
+                  resolve(processPosition(updatedPos));
+                }
+              }
+            },
+            () => {},
+            options
+          );
+        }
+      },
+      (err) => {
+        cleanup();
+        let errMsg = 'Gagal mengakses lokasi GPS perangkat Anda.';
+        if (err.code === err.PERMISSION_DENIED) {
+          errMsg = 'Izin lokasi ditolak. Mohon aktifkan izin lokasi/GPS di browser dan pengaturan perangkat Anda.';
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          errMsg = 'Lokasi GPS tidak tersedia. Silakan aktifkan Lokasi/GPS pada HP Anda.';
+        } else if (err.code === err.TIMEOUT) {
+          errMsg = 'Waktu pencarian GPS habis. Pastikan GPS HP aktif dan berada di ruangan terbuka.';
+        }
+        reject(new Error(errMsg));
+      },
+      options
+    );
+  });
 }

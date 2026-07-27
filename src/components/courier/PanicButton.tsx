@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Phone, MapPin, X } from 'lucide-react';
 import { courierService } from '@/services/courierService';
 import { notificationService } from '@/services/notificationService';
+import { MAP_CENTER } from '@/lib/constants';
 
 interface PanicButtonProps {
   courierId: string;
@@ -20,7 +21,7 @@ export default function PanicButton({ courierId, courierName, activeOrderId }: P
   const handlePanic = async () => {
     setSending(true);
     try {
-      let location = { lat: -5.2818, lng: 104.9833 };
+      let location: { lat: number; lng: number } = { lat: MAP_CENTER.lat, lng: MAP_CENTER.lng };
 
       // Try to get real location
       if (navigator.geolocation) {
