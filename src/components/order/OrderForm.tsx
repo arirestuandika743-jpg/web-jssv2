@@ -136,7 +136,7 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   
 
 const DEFAULT_PICKUP_ADDRESS = 'Desa/Kel. Kalirejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung';
-const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2760, lng: 104.9825 };
+const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2844, lng: 104.9868 };
 const DEFAULT_PICKUP_DETAILS: DetailedAddress = {
   displayName: 'Desa/Kel. Kalirejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
   formattedAddress: 'Desa/Kel. Kalirejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
@@ -189,8 +189,8 @@ export function OrderForm() {
   const [sheetExpanded, setSheetExpanded] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Active marker type for map clicks
-  const [activeMarkerType, setActiveMarkerType] = useState<'pickup' | 'destination'>('pickup');
+  // Active marker type for map clicks (default to destination so map clicks set destination instead of moving pickup pin)
+  const [activeMarkerType, setActiveMarkerType] = useState<'pickup' | 'destination'>('destination');
 
   // Location geofencing & detailed states
   const [pickupDetails, setPickupDetails] = useState<DetailedAddress | null>(DEFAULT_PICKUP_DETAILS);
@@ -336,7 +336,8 @@ export function OrderForm() {
   // Auto-geocode pickupAddress text when coords is null or text changes
   useEffect(() => {
     if (!pickupAddress.trim()) return;
-    if (pickupAddress === DEFAULT_PICKUP_ADDRESS) {
+    const lower = pickupAddress.toLowerCase();
+    if (lower.includes('kalirejo') || lower.includes('kali rejo')) {
       setPickupCoords(DEFAULT_PICKUP_COORDS);
       return;
     }
@@ -348,12 +349,7 @@ export function OrderForm() {
         pickupDetails?.county
       );
       if (coords) {
-        setPickupCoords((prev) => {
-          if (!prev || Math.abs(prev.lat - coords.lat) > 0.005 || Math.abs(prev.lng - coords.lng) > 0.005) {
-            return coords;
-          }
-          return prev;
-        });
+        setPickupCoords(coords);
       }
     }, 500);
 
