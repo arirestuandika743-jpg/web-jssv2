@@ -562,17 +562,17 @@ export async function geocodeAddressText(
 export interface GpsLocationResult {
   coords: LatLng;
   accuracy: number; // in meters
-  accuracyCategory: 'excellent' | 'good' | 'moderate' | 'poor' | 'unreliable';
+  accuracyCategory: 'excellent' | 'very_good' | 'good' | 'moderate' | 'poor' | 'very_poor' | 'unreliable';
   accuracyMessage: string;
-  isReliable: boolean;
+  isReliable: boolean; // accuracy <= 1000m
 }
 
 /**
  * Perform high-precision native device GPS location retrieval.
- * Configured with enableHighAccuracy: true, timeout: 15000, maximumAge: 0.
- * Refines accuracy using watchPosition if initial fix is coarse.
+ * Configured with enableHighAccuracy: true, timeout: 30000, maximumAge: 0.
+ * Uses continuous watchPosition sampling to get the best physical GPS fix.
  */
-export function getCurrentGpsLocation(timeoutMs = 15000): Promise<GpsLocationResult> {
+export function getCurrentGpsLocation(timeoutMs = 30000): Promise<GpsLocationResult> {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       reject(new Error('Browser Anda tidak mendukung layanan lokasi GPS.'));
@@ -587,11 +587,16 @@ export function getCurrentGpsLocation(timeoutMs = 15000): Promise<GpsLocationRes
 
     let bestPosition: GeolocationPosition | null = null;
     let watchId: number | null = null;
+    let timerId: NodeJS.Timeout | null = null;
 
     const cleanup = () => {
       if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
         watchId = null;
+      }
+      if (timerId !== null) {
+        clearTimeout(timerId);
+        timerId = null;
       }
     };
 
@@ -608,19 +613,25 @@ export function getCurrentGpsLocation(timeoutMs = 15000): Promise<GpsLocationRes
 
       if (accuracy <= 10) {
         accuracyCategory = 'excellent';
-        accuracyMessage = `GPS Sangat Presisi (±${accuracy}m)`;
-      } else if (accuracy <= 30) {
+        accuracyMessage = `🎯 GPS Presisi Tinggi (±${accuracy} m)`;
+      } else if (accuracy <= 25) {
+        accuracyCategory = 'very_good';
+        accuracyMessage = `📍 GPS Sangat Bagus (±${accuracy} m)`;
+      } else if (accuracy <= 50) {
         accuracyCategory = 'good';
-        accuracyMessage = `GPS Bagus (±${accuracy}m)`;
+        accuracyMessage = `📍 GPS Bagus (±${accuracy} m)`;
       } else if (accuracy <= 100) {
         accuracyCategory = 'moderate';
-        accuracyMessage = `GPS Cukup Presisi (±${accuracy}m)`;
-      } else if (accuracy <= 1000) {
+        accuracyMessage = `⚠️ GPS Cukup (±${accuracy} m)`;
+      } else if (accuracy <= 500) {
         accuracyCategory = 'poor';
-        accuracyMessage = `GPS kurang akurat (±${accuracy}m). Silakan aktifkan GPS/Lokasi Akurasi Tinggi.`;
+        accuracyMessage = `⚠️ GPS Kurang Akurat (±${accuracy} m)`;
+      } else if (accuracy <= 1000) {
+        accuracyCategory = 'very_poor';
+        accuracyMessage = `🚨 GPS Sangat Lemah (±${accuracy} m)`;
       } else {
         accuracyCategory = 'unreliable';
-        accuracyMessage = `Sinyal GPS kurang akurat (±${accuracy}m). Silakan aktifkan GPS Akurasi Tinggi.`;
+        accuracyMessage = `❌ GPS belum cukup akurat (±${accuracy} m). Aktifkan Lokasi Akurasi Tinggi dan coba lagi.`;
         isReliable = false;
       }
 
@@ -633,45 +644,38 @@ export function getCurrentGpsLocation(timeoutMs = 15000): Promise<GpsLocationRes
       };
     };
 
-    // First attempt: getCurrentPosition
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const initialResult = processPosition(pos);
-        if (initialResult.accuracy <= 30) {
-          cleanup();
-          resolve(initialResult);
-        } else {
-          bestPosition = pos;
-          const timer = setTimeout(() => {
-            cleanup();
-            resolve(processPosition(bestPosition || pos));
-          }, 3500);
+    // Global timeout guard
+    timerId = setTimeout(() => {
+      cleanup();
+      if (bestPosition) {
+        resolve(processPosition(bestPosition));
+      } else {
+        reject(new Error('Waktu pencarian GPS habis (30 detik). Pastikan Anda berada di area terbuka dan coba lagi.'));
+      }
+    }, timeoutMs);
 
-          watchId = navigator.geolocation.watchPosition(
-            (updatedPos) => {
-              if (!bestPosition || updatedPos.coords.accuracy < bestPosition.coords.accuracy) {
-                bestPosition = updatedPos;
-                if (updatedPos.coords.accuracy <= 20) {
-                  clearTimeout(timer);
-                  cleanup();
-                  resolve(processPosition(updatedPos));
-                }
-              }
-            },
-            () => {},
-            options
-          );
+    // Watch position continuously for best fix
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        if (!bestPosition || pos.coords.accuracy < bestPosition.coords.accuracy) {
+          bestPosition = pos;
+        }
+
+        // If excellent or very good accuracy fix arrived (<= 25m), resolve immediately!
+        if (pos.coords.accuracy <= 25) {
+          cleanup();
+          resolve(processPosition(pos));
         }
       },
       (err) => {
         cleanup();
         let errMsg = 'Gagal mengakses lokasi GPS perangkat Anda.';
         if (err.code === err.PERMISSION_DENIED) {
-          errMsg = 'Izin lokasi ditolak. Mohon aktifkan izin lokasi/GPS di browser dan pengaturan perangkat Anda.';
+          errMsg = 'Izin lokasi ditolak. Mohon aktifkan izin lokasi di browser & HP Anda.';
         } else if (err.code === err.POSITION_UNAVAILABLE) {
-          errMsg = 'Lokasi GPS tidak tersedia. Silakan aktifkan Lokasi/GPS pada HP Anda.';
+          errMsg = 'Lokasi GPS tidak tersedia. Silakan aktifkan GPS/Lokasi Presisi pada HP Anda.';
         } else if (err.code === err.TIMEOUT) {
-          errMsg = 'Waktu pencarian GPS habis. Pastikan GPS HP aktif dan berada di ruangan terbuka.';
+          errMsg = 'Waktu pencarian GPS habis (30 detik). Pastikan Anda berada di area terbuka dan coba lagi.';
         }
         reject(new Error(errMsg));
       },

@@ -41,7 +41,8 @@ import {
   Calendar,
   AlertTriangle,
   Info,
-  Download
+  Download,
+  RotateCw
 } from 'lucide-react';
 import { ORDER_CATEGORIES, PAYMENT_METHODS, BRAND, MAP_CENTER } from '@/lib/constants';
 import dynamic from 'next/dynamic';
@@ -204,6 +205,7 @@ export function OrderForm() {
   const [pickupAccuracy, setPickupAccuracy] = useState<number | null>(null);
   const [isLocatingDestination, setIsLocatingDestination] = useState(false);
   const [destinationAccuracy, setDestinationAccuracy] = useState<number | null>(null);
+  const [destinationGpsError, setDestinationGpsError] = useState<string | null>(null);
   const [gmapsLinkInput, setGmapsLinkInput] = useState('');
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
 
@@ -624,28 +626,34 @@ export function OrderForm() {
   // Get User Current Real-Time Location for Destination via Device GPS
   const handleGetDestinationLocation = async () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
-      toast.error('Browser Anda tidak mendukung layanan lokasi GPS.');
+      const errMsg = 'Browser Anda tidak mendukung layanan lokasi GPS.';
+      setDestinationGpsError(errMsg);
+      toast.error(errMsg);
       return;
     }
     setIsLocatingDestination(true);
-    toast.info('🎯 Mendeteksi lokasi real-time Anda via GPS...');
+    setDestinationGpsError(null);
+    toast.info('🔍 Mencari lokasi GPS real-time HP Anda (Akurasi Tinggi)...');
 
     try {
-      const res = await getCurrentGpsLocation(15000);
+      const res = await getCurrentGpsLocation(30000);
+
+      // Strict validation: if accuracy > 1000m (e.g. 50,000m IP location), REJECT setting destination!
+      if (!res.isReliable || res.accuracy > 1000) {
+        const errMsg = `GPS belum cukup akurat (±${res.accuracy} m). Aktifkan Lokasi Akurasi Tinggi di HP Anda dan coba lagi.`;
+        setDestinationGpsError(errMsg);
+        toast.error(`❌ ${errMsg}`, { duration: 8000 });
+        return;
+      }
+
+      // ACCEPT: location accuracy is <= 1000m
+      setDestinationGpsError(null);
       setDestinationCoords(res.coords);
       setDestinationAccuracy(res.accuracy);
 
-      if (!res.isReliable) {
-        toast.error(
-          `⚠️ Sinyal GPS kurang akurat (±${res.accuracy}m). Silakan aktifkan GPS & Lokasi Akurasi Tinggi pada HP Anda.`,
-          { duration: 8000 }
-        );
-      } else if (res.accuracy > 100) {
-        toast.warning(`GPS kurang akurat (±${res.accuracy} m). Silakan aktifkan GPS/Lokasi Akurasi Tinggi.`);
-      } else {
-        toast.success(`📍 Lokasi tujuan terdeteksi (${res.accuracyMessage})!`);
-      }
+      toast.success(res.accuracyMessage);
 
+      // Perform reverse geocoding after obtaining actual GPS coordinates
       const data = await reverseGeocodeWithCache(res.coords.lat, res.coords.lng);
       if (data) {
         const details = parseNominatimAddress(data, res.coords);
@@ -656,7 +664,9 @@ export function OrderForm() {
       }
     } catch (err: any) {
       console.error('GPS Destination error:', err);
-      toast.error(err.message || 'Izin lokasi ditolak atau sinyal GPS lemah.');
+      const errMsg = err.message || 'Izin lokasi ditolak atau sinyal GPS lemah.';
+      setDestinationGpsError(errMsg);
+      toast.error(errMsg, { duration: 8000 });
     } finally {
       setIsLocatingDestination(false);
     }
@@ -1268,13 +1278,27 @@ ${osmLink}`;
                           Deteksi Lokasi Tujuan Real-Time
                         </span>
                       </div>
-                      <span className="bg-blue-600 text-white text-[9.5px] font-black px-2.5 py-0.5 rounded-full tracking-wider uppercase shadow-xs">
-                        Google Maps GPS • 5m Akurat
+                      <span className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-full tracking-wider uppercase shadow-xs ${
+                        isLocatingDestination
+                          ? 'bg-amber-500 text-white animate-pulse'
+                          : destinationAccuracy && destinationAccuracy <= 1000
+                          ? 'bg-emerald-600 text-white'
+                          : destinationGpsError
+                          ? 'bg-red-600 text-white'
+                          : 'bg-blue-600 text-white'
+                      }`}>
+                        {isLocatingDestination
+                          ? '🔍 MENCARI LOKASI GPS...'
+                          : destinationAccuracy && destinationAccuracy <= 1000
+                          ? `GPS DEVICE • AKURASI ±${destinationAccuracy}M`
+                          : destinationGpsError
+                          ? 'GPS DEVICE • AKURASI RENDAH'
+                          : 'GPS DEVICE REAL-TIME'}
                       </span>
                     </div>
 
                     <p className="text-[11px] text-blue-900 leading-relaxed font-medium">
-                      Tekan tombol <strong className="text-blue-950 font-bold">&quot;Cek Lokasi Saat Ini&quot;</strong> untuk langsung menggunakan GPS Google Maps presisi 5m. Sistem akan otomatis menentukan lokasi tujuan Anda &amp; menghitung biaya ongkos kirim.
+                      Tekan tombol <strong className="text-blue-950 font-bold">&quot;Cek Lokasi Saat Ini&quot;</strong> untuk mendeteksi posisi presisi dari sensor GPS HP Anda secara real-time. Sistem akan otomatis menentukan lokasi tujuan Anda &amp; menghitung biaya ongkos kirim.
                     </p>
 
                     <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -1287,12 +1311,12 @@ ${osmLink}`;
                         {isLocatingDestination ? (
                           <>
                             <Loader2 className="w-4 h-4 animate-spin text-white" />
-                            <span>Mendeteksi Lokasi Real-Time...</span>
+                            <span>Mendeteksi Lokasi GPS...</span>
                           </>
                         ) : (
                           <>
                             <Navigation className="w-4.5 h-4.5 fill-white" />
-                            <span>🎯 Cek Lokasi Saat Ini (Google Maps)</span>
+                            <span>🎯 Cek Lokasi Saat Ini</span>
                           </>
                         )}
                       </button>
@@ -1311,46 +1335,75 @@ ${osmLink}`;
                       )}
                     </div>
 
-                    {destinationAccuracy && destinationCoords && (
+                    {destinationGpsError && (
+                      <div className="p-3 bg-red-50 border border-red-300 rounded-xl space-y-2 text-left shadow-soft-xs">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                          <div className="space-y-1 text-xs text-red-900">
+                            <p className="font-bold">{destinationGpsError}</p>
+                            <p className="text-[11px] text-red-700 leading-normal font-medium">
+                              Saran: Aktifkan <strong>GPS / Lokasi Akurasi Tinggi</strong> di HP Anda, izinkan lokasi browser, dan coba lagi di tempat terbuka.
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleGetDestinationLocation}
+                          disabled={isLocatingDestination}
+                          className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                        >
+                          <RotateCw className="w-3.5 h-3.5" />
+                          <span>🔄 Coba Lagi GPS</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {!destinationGpsError && destinationAccuracy && destinationCoords && destinationAccuracy <= 1000 && (
                       <div className={`p-2.5 rounded-xl text-xs font-semibold border shadow-soft-xs ${
-                        destinationAccuracy <= 30
+                        destinationAccuracy <= 25
                           ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
                           : destinationAccuracy <= 100
                           ? 'bg-blue-50 text-blue-900 border-blue-300'
-                          : destinationAccuracy <= 1000
-                          ? 'bg-amber-50 text-amber-900 border-amber-300'
-                          : 'bg-red-50 text-red-900 border-red-300'
+                          : 'bg-amber-50 text-amber-900 border-amber-300'
                       }`}>
                         <div className="flex items-center justify-between gap-2">
                           <span className="flex items-center gap-1.5 font-bold text-[11px]">
-                            <span>{destinationAccuracy <= 30 ? '🎯' : destinationAccuracy <= 100 ? '📍' : destinationAccuracy <= 1000 ? '⚠️' : '🚨'}</span>
+                            <span>{destinationAccuracy <= 25 ? '🎯' : destinationAccuracy <= 100 ? '📍' : '⚠️'}</span>
                             <span>GPS: {destinationCoords.lat.toFixed(5)}, {destinationCoords.lng.toFixed(5)}</span>
                           </span>
                           <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] border ${
-                            destinationAccuracy <= 30
+                            destinationAccuracy <= 25
                               ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                               : destinationAccuracy <= 100
                               ? 'bg-blue-100 text-blue-800 border-blue-300'
-                              : destinationAccuracy <= 1000
-                              ? 'bg-amber-100 text-amber-800 border-amber-300'
-                              : 'bg-red-100 text-red-800 border-red-300'
+                              : 'bg-amber-100 text-amber-800 border-amber-300'
                           }`}>
                             Akurasi ±{destinationAccuracy}m
                           </span>
                         </div>
-                        {destinationAccuracy > 100 ? (
-                          destinationAccuracy > 1000 ? (
-                            <p className="text-[10px] text-red-700 font-bold mt-1 leading-tight">
-                              🚨 GPS kurang akurat (±{destinationAccuracy} m). Silakan aktifkan GPS/Lokasi Akurasi Tinggi.
-                            </p>
-                          ) : (
-                            <p className="text-[10px] text-amber-700 font-semibold mt-1 leading-tight">
-                              ⚠️ GPS kurang akurat (±{destinationAccuracy} m). Silakan aktifkan GPS/Lokasi Akurasi Tinggi.
-                            </p>
-                          )
-                        ) : (
+                        {destinationAccuracy <= 10 ? (
                           <p className="text-[10px] text-emerald-700 font-semibold mt-1 leading-tight">
-                            ✨ Sinyal GPS presisi. Lokasi tujuan terdeteksi dengan baik.
+                            ✨ 🎯 GPS Presisi Tinggi (±{destinationAccuracy} m). Penanda lokasi tujuan otomatis disesuaikan.
+                          </p>
+                        ) : destinationAccuracy <= 25 ? (
+                          <p className="text-[10px] text-emerald-700 font-semibold mt-1 leading-tight">
+                            📍 GPS Sangat Bagus (±{destinationAccuracy} m). Penanda lokasi tujuan terdeteksi dengan baik.
+                          </p>
+                        ) : destinationAccuracy <= 50 ? (
+                          <p className="text-[10px] text-blue-700 font-semibold mt-1 leading-tight">
+                            📍 GPS Bagus (±{destinationAccuracy} m). Penanda lokasi tujuan terdeteksi.
+                          </p>
+                        ) : destinationAccuracy <= 100 ? (
+                          <p className="text-[10px] text-blue-700 font-semibold mt-1 leading-tight">
+                            ⚠️ GPS Cukup (±{destinationAccuracy} m). Anda dapat menggeser penanda lokasi di peta.
+                          </p>
+                        ) : destinationAccuracy <= 500 ? (
+                          <p className="text-[10px] text-amber-700 font-semibold mt-1 leading-tight">
+                            ⚠️ GPS Kurang Akurat (±{destinationAccuracy} m). Disarankan aktifkan GPS Akurasi Tinggi di HP Anda.
+                          </p>
+                        ) : (
+                          <p className="text-[10px] text-amber-800 font-semibold mt-1 leading-tight">
+                            🚨 GPS Sangat Lemah (±{destinationAccuracy} m). Disarankan menggeser penanda lokasi di peta.
                           </p>
                         )}
                       </div>
@@ -1390,7 +1443,7 @@ ${osmLink}`;
                     showGpsButton={true}
                     onGpsClick={handleGetDestinationLocation}
                     gpsLoading={isLocatingDestination}
-                    gpsButtonLabel="Cek Lokasi (5m)"
+                    gpsButtonLabel="Cek Lokasi GPS"
                     onFocus={() => setActiveMarkerType('destination')}
                   />
                   {renderDetailedAddress(destinationDetails, 'Tujuan', 'destination')}
