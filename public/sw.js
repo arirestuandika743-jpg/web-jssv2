@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jss-v1.0.1';
+const CACHE_NAME = 'jss-v1.0.2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
