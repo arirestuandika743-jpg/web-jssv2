@@ -106,7 +106,7 @@ export const PRICING = {
 export const COVERAGE_AREAS = [
   {
     name: 'Kalirejo',
-    description: 'Pusat layanan utama',
+    description: 'Perempatan Pasar Kali Rejo (Pusat Layanan)',
     isMain: true,
     lat: -5.2048,
     lng: 104.9800,

@@ -136,12 +136,12 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
   
 
-const DEFAULT_PICKUP_ADDRESS = 'Jalan Kalirejo - Bangunrejo, Desa/Kel. Kali Rejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung';
+const DEFAULT_PICKUP_ADDRESS = 'Perempatan Pasar Kali Rejo, Kalirejo, Lampung Tengah, Lampung';
 const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2048, lng: 104.9800 };
 const DEFAULT_PICKUP_DETAILS: DetailedAddress = {
-  displayName: 'Jalan Kalirejo - Bangunrejo, Desa/Kel. Kali Rejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
-  formattedAddress: 'Jalan Kalirejo - Bangunrejo, Desa/Kel. Kali Rejo, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
-  road: 'Jalan Kalirejo - Bangunrejo',
+  displayName: 'Perempatan Pasar Kali Rejo, Kalirejo, Lampung Tengah, Lampung',
+  formattedAddress: 'Perempatan Pasar Kali Rejo, Kalirejo, Lampung Tengah, Lampung',
+  road: 'Perempatan Pasar Kali Rejo (Jalan Kalirejo - Bangunrejo)',
   village: 'Kali Rejo',
   subdistrict: 'Kalirejo',
   county: 'Lampung Tengah',
