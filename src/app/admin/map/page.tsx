@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Zap, Battery, Clock, Package, Navigation } from 'lucide-react';
 import { courierService } from '@/services/courierService';
+import { MAP_CENTER } from '@/lib/constants';
 import type { Driver, CourierStatus } from '@/types';
 import { FadeIn } from '@/components/layout/PageTransition';
 
@@ -28,8 +29,8 @@ export default function AdminMapPage() {
           ...d,
           status: s?.status || d.status || 'offline',
           currentLocation: d.currentLocation || {
-            lat: -5.2760 + (Math.random() - 0.5) * 0.01,
-            lng: 104.9825 + (Math.random() - 0.5) * 0.01,
+            lat: MAP_CENTER.lat + (Math.random() - 0.5) * 0.01,
+            lng: MAP_CENTER.lng + (Math.random() - 0.5) * 0.01,
           },
         };
       });

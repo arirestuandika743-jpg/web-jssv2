@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User,
@@ -48,7 +48,7 @@ import { ORDER_CATEGORIES, PAYMENT_METHODS, BRAND, MAP_CENTER } from '@/lib/cons
 import dynamic from 'next/dynamic';
 import { formatCurrency, formatDistance, formatDuration, cn } from '@/lib/utils';
 import { usePriceCalculation } from '@/hooks/usePriceCalculation';
-import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, formatDetailedAddress, geocodeAddressText, parseGoogleMapsCoordinates, getCurrentGpsLocation, type DetailedAddress } from '@/services/maps';
+import { isWithinLampung, parseNominatimAddress, reverseGeocodeWithCache, inferKecamatan, formatDetailedAddress, geocodeAddressText, parseGoogleMapsCoordinates, getCurrentGpsLocation, watchContinuousGpsLocation, type DetailedAddress } from '@/services/maps';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import type { OrderCategory, PaymentMethod, LatLng, ShoppingItem } from '@/types';
 
@@ -207,8 +207,21 @@ export function OrderForm() {
   const [isLocatingDestination, setIsLocatingDestination] = useState(false);
   const [destinationAccuracy, setDestinationAccuracy] = useState<number | null>(null);
   const [destinationGpsError, setDestinationGpsError] = useState<string | null>(null);
+  const [destinationGpsStatus, setDestinationGpsStatus] = useState<string | null>(null);
+  const destinationCleanupRef = useRef<(() => void) | null>(null);
+  const isDestinationFromGpsRef = useRef(false);
   const [gmapsLinkInput, setGmapsLinkInput] = useState('');
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
+
+  // Clean up continuous destination GPS watching on unmount
+  useEffect(() => {
+    return () => {
+      if (destinationCleanupRef.current) {
+        destinationCleanupRef.current();
+        destinationCleanupRef.current = null;
+      }
+    };
+  }, []);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -360,17 +373,20 @@ export function OrderForm() {
     return () => clearTimeout(timer);
   }, [pickupAddress, pickupDetails]);
 
-  // Auto-geocode destinationAddress text when coords is null or text changes
+  // Auto-geocode destinationAddress text when coords is null or text changes (Bypassed if location was obtained via device GPS)
   useEffect(() => {
     if (!destinationAddress.trim()) return;
+    if (isDestinationFromGpsRef.current) return; // Prevent real device GPS coordinates from being overwritten!
+
     const timer = setTimeout(async () => {
+      if (isDestinationFromGpsRef.current) return;
       const coords = await geocodeAddressText(
         destinationAddress,
         destinationDetails?.village,
         destinationDetails?.subdistrict,
         destinationDetails?.county
       );
-      if (coords) {
+      if (coords && !isDestinationFromGpsRef.current) {
         setDestinationCoords((prev) => {
           if (!prev || Math.abs(prev.lat - coords.lat) > 0.005 || Math.abs(prev.lng - coords.lng) > 0.005) {
             return coords;
@@ -536,6 +552,7 @@ export function OrderForm() {
   };
 
   const handleDestinationCoordsChange = async (coords: LatLng) => {
+    isDestinationFromGpsRef.current = false;
     setDestinationCoords(coords);
     setIsReverseGeocoding(true);
     try {
@@ -624,53 +641,93 @@ export function OrderForm() {
     }
   };
 
-  // Get User Current Real-Time Location for Destination via Device GPS
-  const handleGetDestinationLocation = async () => {
+  // Get User Current Real-Time Location for Destination via Native Device GPS Sensor
+  const handleGetDestinationLocation = () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       const errMsg = 'Browser Anda tidak mendukung layanan lokasi GPS.';
       setDestinationGpsError(errMsg);
+      setDestinationGpsStatus('❌ GPS tidak didukung browser');
       toast.error(errMsg);
       return;
     }
+
+    // Cancel existing watch session if any
+    if (destinationCleanupRef.current) {
+      destinationCleanupRef.current();
+      destinationCleanupRef.current = null;
+    }
+
     setIsLocatingDestination(true);
     setDestinationGpsError(null);
+    setDestinationGpsStatus('🔍 Mencari lokasi GPS...');
     toast.info('🔍 Mencari lokasi GPS real-time HP Anda (Akurasi Tinggi)...');
 
-    try {
-      const res = await getCurrentGpsLocation(30000);
+    let bestAccSoFar: number | null = null;
+    let hasToastedError = false;
 
-      // Strict validation: if accuracy > 1000m (e.g. 50,000m IP location), REJECT setting destination!
-      if (!res.isReliable || res.accuracy > 1000) {
-        const errMsg = `GPS belum cukup akurat (±${res.accuracy} m). Aktifkan Lokasi Akurasi Tinggi di HP Anda dan coba lagi.`;
+    const cleanup = watchContinuousGpsLocation(
+      async (res) => {
+        // Continuous position fix received directly from position.coords
+        setDestinationGpsStatus(res.statusMessage);
+
+        // Validation: If accuracy > 1000m (e.g. 50,000m coarse IP location), REJECT setting destination!
+        if (!res.isReliable || res.accuracy > 1000) {
+          const errMsg = `GPS belum cukup akurat (±${res.accuracy} m). Aktifkan Lokasi Akurasi Tinggi dan coba lagi.`;
+          setDestinationGpsError(errMsg);
+          setDestinationGpsStatus(`❌ GPS tidak cukup akurat — ±${res.accuracy} m`);
+          if (!hasToastedError) {
+            toast.error(`❌ ${errMsg}`, { duration: 8000 });
+            hasToastedError = true;
+          }
+          // Do NOT stop watchPosition! Keep watching continuously for better GPS reading.
+          return;
+        }
+
+        // ACCEPT: position accuracy is <= 1000m!
+        // Only update if no position set yet OR new accuracy is better than previous fix
+        if (bestAccSoFar === null || res.accuracy <= bestAccSoFar) {
+          bestAccSoFar = res.accuracy;
+          isDestinationFromGpsRef.current = true;
+          setDestinationGpsError(null);
+          setDestinationCoords(res.coords);
+          setDestinationAccuracy(res.accuracy);
+          setIsLocatingDestination(false); // Found a reliable location!
+
+          console.log('GPS LATITUDE:', res.coords.lat);
+          console.log('GPS LONGITUDE:', res.coords.lng);
+          console.log('GPS ACCURACY:', res.accuracy);
+          console.log('DESTINATION LATITUDE:', res.coords.lat);
+          console.log('DESTINATION LONGITUDE:', res.coords.lng);
+          console.log('PICKUP LATITUDE:', pickupCoords?.lat);
+          console.log('PICKUP LONGITUDE:', pickupCoords?.lng);
+
+          toast.success(res.accuracyMessage);
+
+          // Reverse geocoding MUST happen AFTER receiving actual GPS coordinates!
+          try {
+            const data = await reverseGeocodeWithCache(res.coords.lat, res.coords.lng);
+            if (data) {
+              const details = parseNominatimAddress(data, res.coords);
+              setDestinationDetails(details);
+              setDestinationAddress(details.formattedAddress || details.displayName);
+            } else {
+              setDestinationAddress(`Lokasi GPS Real-time (${res.coords.lat.toFixed(5)}, ${res.coords.lng.toFixed(5)})`);
+            }
+          } catch (e) {
+            console.error('Reverse geocode error:', e);
+          }
+        }
+      },
+      (errMsg) => {
+        setIsLocatingDestination(false);
         setDestinationGpsError(errMsg);
-        toast.error(`❌ ${errMsg}`, { duration: 8000 });
-        return;
-      }
+        setDestinationGpsStatus(`❌ ${errMsg}`);
+        toast.error(errMsg, { duration: 8000 });
+      },
+      { timeoutMs: 30000 }
+    );
 
-      // ACCEPT: location accuracy is <= 1000m
-      setDestinationGpsError(null);
-      setDestinationCoords(res.coords);
-      setDestinationAccuracy(res.accuracy);
-
-      toast.success(res.accuracyMessage);
-
-      // Perform reverse geocoding after obtaining actual GPS coordinates
-      const data = await reverseGeocodeWithCache(res.coords.lat, res.coords.lng);
-      if (data) {
-        const details = parseNominatimAddress(data, res.coords);
-        setDestinationDetails(details);
-        setDestinationAddress(details.formattedAddress || details.displayName);
-      } else {
-        setDestinationAddress(`Lokasi GPS Real-time (${res.coords.lat.toFixed(5)}, ${res.coords.lng.toFixed(5)})`);
-      }
-    } catch (err: any) {
-      console.error('GPS Destination error:', err);
-      const errMsg = err.message || 'Izin lokasi ditolak atau sinyal GPS lemah.';
-      setDestinationGpsError(errMsg);
-      toast.error(errMsg, { duration: 8000 });
-    } finally {
-      setIsLocatingDestination(false);
-    }
+    destinationCleanupRef.current = cleanup;
   };
 
   const handleParseGmapsInput = (inputVal: string) => {
@@ -1267,7 +1324,7 @@ ${osmLink}`;
                     </div>
                   )}
 
-                  {/* Menu Deteksi Lokasi Real-Time Customer via Google Maps GPS */}
+                  {/* Menu Deteksi Lokasi Real-Time Customer via Native Device GPS */}
                   <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/10 border-2 border-blue-400 p-4 rounded-2xl space-y-3 text-left shadow-soft">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -1301,6 +1358,13 @@ ${osmLink}`;
                     <p className="text-[11px] text-blue-900 leading-relaxed font-medium">
                       Tekan tombol <strong className="text-blue-950 font-bold">&quot;Cek Lokasi Saat Ini&quot;</strong> untuk mendeteksi posisi presisi dari sensor GPS HP Anda secara real-time. Sistem akan otomatis menentukan lokasi tujuan Anda &amp; menghitung biaya ongkos kirim.
                     </p>
+
+                    {destinationGpsStatus && (
+                      <div className="px-3 py-1.5 bg-blue-100/70 border border-blue-300 rounded-xl text-xs font-bold text-blue-900 flex items-center gap-2">
+                        {isLocatingDestination && <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600 shrink-0" />}
+                        <span>{destinationGpsStatus}</span>
+                      </div>
+                    )}
 
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       <button
@@ -1337,21 +1401,28 @@ ${osmLink}`;
                     </div>
 
                     {destinationGpsError && (
-                      <div className="p-3 bg-red-50 border border-red-300 rounded-xl space-y-2 text-left shadow-soft-xs">
+                      <div className="p-3.5 bg-red-50 border border-red-300 rounded-xl space-y-2.5 text-left shadow-soft-xs">
                         <div className="flex items-start gap-2">
                           <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                          <div className="space-y-1 text-xs text-red-900">
+                          <div className="space-y-1.5 text-xs text-red-900">
                             <p className="font-bold">{destinationGpsError}</p>
-                            <p className="text-[11px] text-red-700 leading-normal font-medium">
-                              Saran: Aktifkan <strong>GPS / Lokasi Akurasi Tinggi</strong> di HP Anda, izinkan lokasi browser, dan coba lagi di tempat terbuka.
+                            <p className="text-[11px] font-semibold text-red-800">
+                              Langkah troubleshooting agar GPS akurat:
                             </p>
+                            <ul className="list-disc list-inside text-[11px] text-red-700 space-y-0.5 font-medium">
+                              <li>Aktifkan Layanan Lokasi / GPS pada HP Anda</li>
+                              <li>Aktifkan Mode Lokasi Presisi / Akurasi Tinggi (High Accuracy Location)</li>
+                              <li>Izinkan akses lokasi untuk browser yang Anda gunakan</li>
+                              <li>Aktifkan Wi-Fi atau jaringan seluler untuk membantu akurasi lokasi</li>
+                              <li>Coba lagi di tempat terbuka atau area dengan sinyal GPS lebih baik</li>
+                            </ul>
                           </div>
                         </div>
                         <button
                           type="button"
                           onClick={handleGetDestinationLocation}
                           disabled={isLocatingDestination}
-                          className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                          className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-xs active:scale-[0.98]"
                         >
                           <RotateCw className="w-3.5 h-3.5" />
                           <span>🔄 Coba Lagi GPS</span>
@@ -1360,7 +1431,7 @@ ${osmLink}`;
                     )}
 
                     {!destinationGpsError && destinationAccuracy && destinationCoords && destinationAccuracy <= 1000 && (
-                      <div className={`p-2.5 rounded-xl text-xs font-semibold border shadow-soft-xs ${
+                      <div className={`p-3 rounded-xl text-xs font-semibold border shadow-soft-xs ${
                         destinationAccuracy <= 25
                           ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
                           : destinationAccuracy <= 100
@@ -1399,13 +1470,35 @@ ${osmLink}`;
                             ⚠️ GPS Cukup (±{destinationAccuracy} m). Anda dapat menggeser penanda lokasi di peta.
                           </p>
                         ) : destinationAccuracy <= 500 ? (
-                          <p className="text-[10px] text-amber-700 font-semibold mt-1 leading-tight">
-                            ⚠️ GPS Kurang Akurat (±{destinationAccuracy} m). Disarankan aktifkan GPS Akurasi Tinggi di HP Anda.
-                          </p>
+                          <div className="mt-1.5 space-y-1">
+                            <p className="text-[10px] text-amber-700 font-semibold leading-tight">
+                              ⚠️ GPS Kurang Akurat (±{destinationAccuracy} m). Disarankan aktifkan GPS Akurasi Tinggi di HP Anda.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={handleGetDestinationLocation}
+                              disabled={isLocatingDestination}
+                              className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold py-1 px-2.5 rounded-lg flex items-center gap-1 transition-colors"
+                            >
+                              <RotateCw className="w-3 h-3" />
+                              <span>🔄 Coba Lagi GPS</span>
+                            </button>
+                          </div>
                         ) : (
-                          <p className="text-[10px] text-amber-800 font-semibold mt-1 leading-tight">
-                            🚨 GPS Sangat Lemah (±{destinationAccuracy} m). Disarankan menggeser penanda lokasi di peta.
-                          </p>
+                          <div className="mt-1.5 space-y-1">
+                            <p className="text-[10px] text-amber-800 font-semibold leading-tight">
+                              🚨 GPS Sangat Lemah (±{destinationAccuracy} m). Disarankan menggeser penanda lokasi di peta atau aktifkan GPS Akurasi Tinggi.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={handleGetDestinationLocation}
+                              disabled={isLocatingDestination}
+                              className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold py-1 px-2.5 rounded-lg flex items-center gap-1 transition-colors"
+                            >
+                              <RotateCw className="w-3 h-3" />
+                              <span>🔄 Coba Lagi GPS</span>
+                            </button>
+                          </div>
                         )}
                       </div>
                     )}
@@ -1413,7 +1506,7 @@ ${osmLink}`;
                     <div className="pt-2 border-t border-blue-200/60 space-y-1">
                       <label className="block text-[10px] font-extrabold text-blue-900 uppercase tracking-wider flex items-center justify-between">
                         <span>📌 Tempel Link / Koordinat Google Maps</span>
-                        <span className="text-blue-700 text-[9px] font-bold">100% Akurat</span>
+                        <span className="text-blue-700 text-[9px] font-bold">📌 Opsional</span>
                       </label>
                       <input
                         type="text"

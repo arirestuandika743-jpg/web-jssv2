@@ -477,7 +477,7 @@ export async function geocodeAddressText(
   const queryLower = (text + ' ' + (village || '') + ' ' + (subdistrict || '')).toLowerCase();
   
   if (queryLower.includes('kali rejo') || queryLower.includes('kalirejo')) {
-    return { lat: -5.2760, lng: 104.9825 };
+    return { lat: -5.2275, lng: 104.9601 };
   }
   if (queryLower.includes('sri basuki') || queryLower.includes('cimarian') || queryLower.includes('cikal')) {
     return { lat: -5.2950, lng: 104.9750 };
@@ -564,7 +564,64 @@ export interface GpsLocationResult {
   accuracy: number; // in meters
   accuracyCategory: 'excellent' | 'very_good' | 'good' | 'moderate' | 'poor' | 'very_poor' | 'unreliable';
   accuracyMessage: string;
+  statusMessage: string;
   isReliable: boolean; // accuracy <= 1000m
+}
+
+/**
+ * Converts GeolocationPosition to GpsLocationResult with accuracy validation & Indonesian messaging.
+ */
+export function formatGpsResult(pos: GeolocationPosition): GpsLocationResult {
+  const accuracy = Math.round(pos.coords.accuracy || 0);
+  const coords = {
+    lat: pos.coords.latitude,
+    lng: pos.coords.longitude,
+  };
+
+  let accuracyCategory: GpsLocationResult['accuracyCategory'] = 'unreliable';
+  let accuracyMessage = '';
+  let statusMessage = '';
+  let isReliable = true;
+
+  if (accuracy <= 10) {
+    accuracyCategory = 'excellent';
+    accuracyMessage = `🎯 GPS Presisi Tinggi (±${accuracy} m)`;
+    statusMessage = `🎯 Lokasi ditemukan — Akurasi ±${accuracy} m`;
+  } else if (accuracy <= 25) {
+    accuracyCategory = 'very_good';
+    accuracyMessage = `📍 GPS Sangat Bagus (±${accuracy} m)`;
+    statusMessage = `🎯 Lokasi ditemukan — Akurasi ±${accuracy} m`;
+  } else if (accuracy <= 50) {
+    accuracyCategory = 'good';
+    accuracyMessage = `📍 GPS Bagus (±${accuracy} m)`;
+    statusMessage = `🎯 Lokasi ditemukan — Akurasi ±${accuracy} m`;
+  } else if (accuracy <= 100) {
+    accuracyCategory = 'moderate';
+    accuracyMessage = `⚠️ GPS Cukup (±${accuracy} m)`;
+    statusMessage = `⚠️ GPS kurang akurat — ±${accuracy} m`;
+  } else if (accuracy <= 500) {
+    accuracyCategory = 'poor';
+    accuracyMessage = `⚠️ GPS Kurang Akurat (±${accuracy} m)`;
+    statusMessage = `⚠️ GPS kurang akurat — ±${accuracy} m`;
+  } else if (accuracy <= 1000) {
+    accuracyCategory = 'very_poor';
+    accuracyMessage = `🚨 GPS Sangat Lemah (±${accuracy} m)`;
+    statusMessage = `⚠️ GPS kurang akurat — ±${accuracy} m`;
+  } else {
+    accuracyCategory = 'unreliable';
+    accuracyMessage = `GPS belum cukup akurat (±${accuracy} m). Aktifkan Lokasi Akurasi Tinggi dan coba lagi.`;
+    statusMessage = `❌ GPS tidak cukup akurat — ±${accuracy} m`;
+    isReliable = false;
+  }
+
+  return {
+    coords,
+    accuracy,
+    accuracyCategory,
+    accuracyMessage,
+    statusMessage,
+    isReliable,
+  };
 }
 
 /**
@@ -600,55 +657,11 @@ export function getCurrentGpsLocation(timeoutMs = 30000): Promise<GpsLocationRes
       }
     };
 
-    const processPosition = (pos: GeolocationPosition): GpsLocationResult => {
-      const accuracy = Math.round(pos.coords.accuracy || 0);
-      const coords = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-      };
-
-      let accuracyCategory: GpsLocationResult['accuracyCategory'] = 'unreliable';
-      let accuracyMessage = '';
-      let isReliable = true;
-
-      if (accuracy <= 10) {
-        accuracyCategory = 'excellent';
-        accuracyMessage = `🎯 GPS Presisi Tinggi (±${accuracy} m)`;
-      } else if (accuracy <= 25) {
-        accuracyCategory = 'very_good';
-        accuracyMessage = `📍 GPS Sangat Bagus (±${accuracy} m)`;
-      } else if (accuracy <= 50) {
-        accuracyCategory = 'good';
-        accuracyMessage = `📍 GPS Bagus (±${accuracy} m)`;
-      } else if (accuracy <= 100) {
-        accuracyCategory = 'moderate';
-        accuracyMessage = `⚠️ GPS Cukup (±${accuracy} m)`;
-      } else if (accuracy <= 500) {
-        accuracyCategory = 'poor';
-        accuracyMessage = `⚠️ GPS Kurang Akurat (±${accuracy} m)`;
-      } else if (accuracy <= 1000) {
-        accuracyCategory = 'very_poor';
-        accuracyMessage = `🚨 GPS Sangat Lemah (±${accuracy} m)`;
-      } else {
-        accuracyCategory = 'unreliable';
-        accuracyMessage = `❌ GPS belum cukup akurat (±${accuracy} m). Aktifkan Lokasi Akurasi Tinggi dan coba lagi.`;
-        isReliable = false;
-      }
-
-      return {
-        coords,
-        accuracy,
-        accuracyCategory,
-        accuracyMessage,
-        isReliable,
-      };
-    };
-
     // Global timeout guard
     timerId = setTimeout(() => {
       cleanup();
       if (bestPosition) {
-        resolve(processPosition(bestPosition));
+        resolve(formatGpsResult(bestPosition));
       } else {
         reject(new Error('Waktu pencarian GPS habis (30 detik). Pastikan Anda berada di area terbuka dan coba lagi.'));
       }
@@ -664,7 +677,7 @@ export function getCurrentGpsLocation(timeoutMs = 30000): Promise<GpsLocationRes
         // If excellent or very good accuracy fix arrived (<= 25m), resolve immediately!
         if (pos.coords.accuracy <= 25) {
           cleanup();
-          resolve(processPosition(pos));
+          resolve(formatGpsResult(pos));
         }
       },
       (err) => {
@@ -682,4 +695,79 @@ export function getCurrentGpsLocation(timeoutMs = 30000): Promise<GpsLocationRes
       options
     );
   });
+}
+
+/**
+ * Continuously watch device GPS position using navigator.geolocation.watchPosition
+ * with high accuracy settings { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }.
+ *
+ * Calls `onPositionUpdate` whenever a new position fix arrives.
+ * Returns a cleanup function to clear the watch.
+ */
+export function watchContinuousGpsLocation(
+  onPositionUpdate: (result: GpsLocationResult) => void,
+  onError: (errorMessage: string, code?: number) => void,
+  options: { timeoutMs?: number } = {}
+): () => void {
+  if (typeof window === 'undefined' || !navigator.geolocation) {
+    onError('Browser Anda tidak mendukung layanan lokasi GPS.');
+    return () => {};
+  }
+
+  const timeoutMs = options.timeoutMs || 30000;
+  const positionOptions: PositionOptions = {
+    enableHighAccuracy: true,
+    timeout: timeoutMs,
+    maximumAge: 0,
+  };
+
+  let watchId: number | null = null;
+  let timerId: NodeJS.Timeout | null = null;
+  let hasReceivedAnyPosition = false;
+
+  const cleanup = () => {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+    if (timerId !== null) {
+      clearTimeout(timerId);
+      timerId = null;
+    }
+  };
+
+  timerId = setTimeout(() => {
+    if (!hasReceivedAnyPosition) {
+      cleanup();
+      onError('Waktu pencarian GPS habis (30 detik). Pastikan Anda berada di area terbuka dan coba lagi.');
+    }
+  }, timeoutMs);
+
+  const handleSuccess = (pos: GeolocationPosition) => {
+    hasReceivedAnyPosition = true;
+    const result = formatGpsResult(pos);
+    onPositionUpdate(result);
+  };
+
+  const handleError = (err: GeolocationPositionError) => {
+    cleanup();
+    let errMsg = 'Gagal mengakses lokasi GPS perangkat Anda.';
+    if (err.code === err.PERMISSION_DENIED) {
+      errMsg = 'Izin lokasi ditolak. Mohon aktifkan izin lokasi di browser & HP Anda.';
+    } else if (err.code === err.POSITION_UNAVAILABLE) {
+      errMsg = 'Lokasi GPS tidak tersedia. Silakan aktifkan GPS/Lokasi Presisi pada HP Anda.';
+    } else if (err.code === err.TIMEOUT) {
+      errMsg = 'Waktu pencarian GPS habis (30 detik). Pastikan Anda berada di area terbuka dan coba lagi.';
+    }
+    onError(errMsg, err.code);
+  };
+
+  // Kicks off immediate initial position check along with watchPosition
+  try {
+    navigator.geolocation.getCurrentPosition(handleSuccess, () => {}, positionOptions);
+  } catch (e) {}
+
+  watchId = navigator.geolocation.watchPosition(handleSuccess, handleError, positionOptions);
+
+  return cleanup;
 }
