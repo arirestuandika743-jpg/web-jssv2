@@ -136,13 +136,13 @@ const PAYMENT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 
   
 
-const DEFAULT_PICKUP_ADDRESS = 'Perempatan Pasar Kali Rejo, Kalirejo, Lampung Tengah, Lampung';
-const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2760, lng: 104.9825 };
+const DEFAULT_PICKUP_ADDRESS = 'Perempatan Pasar Kalirejo, Desa/Kel. Wayakroy, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung';
+const DEFAULT_PICKUP_COORDS: LatLng = { lat: -5.2275, lng: 104.9601 };
 const DEFAULT_PICKUP_DETAILS: DetailedAddress = {
-  displayName: 'Perempatan Pasar Kali Rejo, Kalirejo, Lampung Tengah, Lampung',
-  formattedAddress: 'Perempatan Pasar Kali Rejo, Kalirejo, Lampung Tengah, Lampung',
-  road: 'Perempatan Pasar Kali Rejo (Jalan Kalirejo - Bangunrejo)',
-  village: 'Kali Rejo',
+  displayName: 'Perempatan Pasar Kalirejo, Desa/Kel. Wayakroy, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
+  formattedAddress: 'Perempatan Pasar Kalirejo, Desa/Kel. Wayakroy, Kec. Kalirejo, Kab. Lampung Tengah, Prov. Lampung',
+  road: 'Perempatan Pasar Kalirejo (Jalan Kalirejo - Pringsewu)',
+  village: 'Wayakroy',
   subdistrict: 'Kalirejo',
   county: 'Lampung Tengah',
   state: 'Lampung',

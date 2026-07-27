@@ -105,11 +105,11 @@ export const PRICING = {
 /** Coverage area coordinates (Kalirejo and surrounding areas) */
 export const COVERAGE_AREAS = [
   {
-    name: 'Kalirejo',
-    description: 'Perempatan Pasar Kali Rejo (Pusat Layanan)',
+    name: 'Kalirejo (Wayakroy)',
+    description: 'Perempatan Pasar Kalirejo (Pusat Layanan)',
     isMain: true,
-    lat: -5.2760,
-    lng: 104.9825,
+    lat: -5.2275,
+    lng: 104.9601,
     radius: 5,
   },
   {
@@ -156,8 +156,8 @@ export const COVERAGE_AREAS = [
 
 /** Center coordinates for map */
 export const MAP_CENTER = {
-  lat: -5.2760,
-  lng: 104.9825,
+  lat: -5.2275,
+  lng: 104.9601,
 } as const;
 
 /** Default map zoom */
