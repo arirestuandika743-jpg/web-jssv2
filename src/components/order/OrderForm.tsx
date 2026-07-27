@@ -552,7 +552,7 @@ export function OrderForm() {
   };
 
   const handleDestinationCoordsChange = async (coords: LatLng) => {
-    isDestinationFromGpsRef.current = false;
+    isDestinationFromGpsRef.current = true; // Lock exact map pin coordinates, block reverse-geocoded text from triggering text re-geocoding!
     setDestinationCoords(coords);
     setIsReverseGeocoding(true);
     try {
@@ -827,8 +827,8 @@ export function OrderForm() {
 
   // Booking submit WhatsApp dispatch
   const handleConfirmSubmit = async () => {
-    if (!pickupCoords || !destinationCoords) {
-      toast.error('Koordinat lokasi belum tersedia. Silakan tentukan titik jemput dan tujuan di peta terlebih dahulu.');
+    if (!destinationCoords || typeof destinationCoords.lat !== 'number' || typeof destinationCoords.lng !== 'number') {
+      toast.error('Koordinat tujuan belum tersedia. Silakan tentukan titik tujuan di peta.');
       return;
     }
 
@@ -883,26 +883,21 @@ export function OrderForm() {
       return;
     }
 
-    // Single source of truth for GPS coordinates (exact map state)
-    const pickupLatStr = pickupCoords.lat.toFixed(6);
-    const pickupLngStr = pickupCoords.lng.toFixed(6);
-    const pickupGmapsUrl = `https://www.google.com/maps?q=${pickupLatStr},${pickupLngStr}`;
-
-    const destLatStr = destinationCoords.lat.toFixed(6);
-    const destLngStr = destinationCoords.lng.toFixed(6);
+    // Single source of truth for DESTINATION GPS coordinates (exact map state, 7 decimal places)
+    const destLatStr = destinationCoords.lat.toFixed(7);
+    const destLngStr = destinationCoords.lng.toFixed(7);
     const destGmapsUrl = `https://www.google.com/maps?q=${destLatStr},${destLngStr}`;
 
-    // Debugging trace to confirm coordinates match map state exactly
-    console.log('WHATSAPP RECEIPT GENERATOR:');
-    console.log('PICKUP COORDS:', pickupLatStr, pickupLngStr);
-    console.log('PICKUP GMAPS:', pickupGmapsUrl);
-    console.log('DESTINATION COORDS:', destLatStr, destLngStr);
-    console.log('DESTINATION GMAPS:', destGmapsUrl);
+    // Debugging trace to confirm destination coordinates match map state exactly
+    console.log('DESTINATION MAP / STREET VIEW COORDINATE TRANSFER:');
+    console.log('DESTINATION LATITUDE:', destLatStr);
+    console.log('DESTINATION LONGITUDE:', destLngStr);
+    console.log('GOOGLE MAPS LINK:', destGmapsUrl);
 
     // Build Whatsapp message
     const distText = pricing ? formatDistance(pricing.distance) : 'Belum dihitung';
     const durationText = pricing ? formatDuration(pricing.duration) : 'Belum dihitung';
-    const driverPickupEta = Math.round(5 + (pricing?.distance || 1000) / 1500); // Simulated driver arrival ETA based on pickup coords
+    const driverPickupEta = Math.round(5 + (pricing?.distance || 1000) / 1500);
     const routeOptionLabel = routeOption === 'fastest' ? 'Rute Tercepat' : routeOption === 'shortest' ? 'Rute Terpendek' : 'Rute Motor';
     const categoryLabel = ORDER_CATEGORIES.find(c => c.id === category)?.label || category;
     const paymentMethodLabel = PAYMENT_METHODS.find(p => p.id === paymentMethod)?.label || paymentMethod;
@@ -937,21 +932,15 @@ export function OrderForm() {
 
 📍 *Titik Jemput (${pickupLocationType}):*
 ${pickupAddress}
-${pickupLandmark ? `_Patokan: ${pickupLandmark}_\n` : ''}
-🧭 *Koordinat Jemput:*
-${pickupLatStr}, ${pickupLngStr}
-
-🗺️ *Google Maps Titik Jemput:*
-${pickupGmapsUrl}
-
+${pickupLandmark ? `_Patokan: ${pickupLandmark}_` : ''}
 
 🏁 *Titik Tujuan:*
 ${destinationAddress}
 
-🧭 *Koordinat Tujuan:*
+📍 *Koordinat Tujuan:*
 ${destLatStr}, ${destLngStr}
 
-🗺️ *Google Maps Titik Tujuan:*
+🗺️ *Google Maps Tujuan:*
 ${destGmapsUrl}
 
 
@@ -2095,24 +2084,10 @@ ${osmLink}`;
                 
                 {/* Rute preview */}
                 <div className="space-y-3 bg-secondary-50/50 p-4 border border-secondary-100 rounded-2xl">
-                  <div className="space-y-1.5 border-b border-secondary-100 pb-2.5">
+                  <div className="space-y-1.5 border-b border-secondary-100 pb-2">
                     <span className="text-[9px] uppercase font-extrabold text-secondary-400">Titik Jemput</span>
                     <p className="font-bold text-secondary-800 leading-snug">{pickupAddress}</p>
                     {pickupLandmark && <p className="text-[10px] text-amber-600 font-semibold">📍 Patokan: {pickupLandmark}</p>}
-                    {pickupCoords && (
-                      <div className="text-[10px] text-secondary-700 space-y-1 mt-1 font-mono bg-white p-2.5 rounded-xl border border-secondary-200 shadow-soft-xs">
-                        <p className="font-bold text-blue-950">🧭 Koordinat: {pickupCoords.lat.toFixed(6)}, {pickupCoords.lng.toFixed(6)}</p>
-                        <a
-                          href={`https://www.google.com/maps?q=${pickupCoords.lat.toFixed(6)},${pickupCoords.lng.toFixed(6)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700 font-extrabold flex items-center gap-1 text-[10px] underline"
-                        >
-                          <span>🗺️ Buka Google Maps Titik Jemput</span>
-                          <span className="text-[9px]">↗</span>
-                        </a>
-                      </div>
-                    )}
                     {renderDetailedAddress(pickupDetails, 'Jemput')}
                   </div>
                   <div className="space-y-1.5 pt-1">
@@ -2120,14 +2095,14 @@ ${osmLink}`;
                     <p className="font-bold text-secondary-800 leading-snug">{destinationAddress}</p>
                     {destinationCoords && (
                       <div className="text-[10px] text-secondary-700 space-y-1 mt-1 font-mono bg-white p-2.5 rounded-xl border border-secondary-200 shadow-soft-xs">
-                        <p className="font-bold text-blue-950">🧭 Koordinat: {destinationCoords.lat.toFixed(6)}, {destinationCoords.lng.toFixed(6)}</p>
+                        <p className="font-bold text-blue-950">📍 Koordinat Tujuan: {destinationCoords.lat.toFixed(7)}, {destinationCoords.lng.toFixed(7)}</p>
                         <a
-                          href={`https://www.google.com/maps?q=${destinationCoords.lat.toFixed(6)},${destinationCoords.lng.toFixed(6)}`}
+                          href={`https://www.google.com/maps?q=${destinationCoords.lat.toFixed(7)},${destinationCoords.lng.toFixed(7)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-700 font-extrabold flex items-center gap-1 text-[10px] underline"
                         >
-                          <span>🗺️ Buka Google Maps Titik Tujuan</span>
+                          <span>🗺️ Google Maps Tujuan</span>
                           <span className="text-[9px]">↗</span>
                         </a>
                       </div>
