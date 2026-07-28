@@ -96,7 +96,7 @@ export const ORDER_CATEGORIES = [
 /** Pricing configuration */
 export const PRICING = {
   baseFee: 5000,         // Base service fee in IDR
-  perKmRate: 3000,       // Price per kilometer (Rp3.000/km)
+  perKmRate: 3000,       // Price per kilometer
   minFee: 5000,          // Minimum delivery fee
   maxFee: 50000,         // Maximum delivery fee
   currency: 'IDR',

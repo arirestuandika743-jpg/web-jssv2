@@ -1,9 +1,8 @@
 import type { DeliveryPricing } from '@/types';
-import { PRICING } from '@/lib/constants';
 
 /**
  * Advanced delivery pricing calculator based on OpenStreetMap routing details.
- * Pricing formula: Base Fee + Distance Fee (Rp3.000 / km) + Shopping/Category Fee + Weight Surcharge
+ * Pricing formula: Base Fee (Rp5.000) + Distance Fee (Rp3.000 / km) + Shopping/Category Fee + Weight Surcharge
  */
 export function calculateDeliveryPrice(
   distanceInMeters: number,
@@ -32,7 +31,7 @@ export function calculateDeliveryPrice(
   const baseFee = isRide ? 10000 : 5000;
 
   // 2. Distance Fee (Rp3.000/km)
-  const perKmRate = PRICING.perKmRate;
+  const perKmRate = 3000;
   const distanceFee = Math.round(distanceInKm * perKmRate);
 
   // 3. Weight Surcharge (Handles Ojek weight limits and standard logistics weights)
