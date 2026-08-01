@@ -1,13 +1,63 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { globalApiRateLimiter, authRateLimiter } from '@/lib/rateLimiter';
+import { verifySessionToken, ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
-  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+    request.headers.get('x-real-ip') ||
+    '127.0.0.1';
 
-  // 1. Rate Limiting for API routes
+  // 1. Admin Route Protection
+  const isAdminRoute = pathname.startsWith('/admin');
+  const isAdminApiRoute = pathname.startsWith('/api/admin');
+  const isAdminLoginPage = pathname === '/admin/login';
+  const isAdminLoginApi = pathname === '/api/admin/login' || pathname === '/api/admin/logout';
+
+  if (isAdminRoute || isAdminApiRoute) {
+    const sessionCookie = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+    let isAuthenticated = false;
+
+    if (sessionCookie) {
+      const authResult = await verifySessionToken(sessionCookie);
+      isAuthenticated = authResult.valid;
+    }
+
+    // If accessing admin login page while already authenticated -> redirect to /admin
+    if (isAdminLoginPage) {
+      if (isAuthenticated) {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      }
+      return NextResponse.next();
+    }
+
+    // Allow public access to admin login/logout APIs
+    if (isAdminLoginApi) {
+      return NextResponse.next();
+    }
+
+    // Block unauthenticated access to any protected admin page/API
+    if (!isAuthenticated) {
+      if (isAdminApiRoute) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      const loginUrl = new URL('/admin/login', request.url);
+      const redirectResponse = NextResponse.redirect(loginUrl);
+      if (sessionCookie) {
+        redirectResponse.cookies.set({
+          name: ADMIN_COOKIE_NAME,
+          value: '',
+          path: '/',
+          maxAge: 0,
+        });
+      }
+      return redirectResponse;
+    }
+  }
+
+  // 2. Rate Limiting for API routes
   if (pathname.startsWith('/api')) {
     const isAuthRoute = pathname.includes('/auth') || pathname.includes('/login');
     const limiter = isAuthRoute ? authRateLimiter : globalApiRateLimiter;
@@ -32,11 +82,10 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 2. CORS Handling
+  // 3. CORS Handling
   const origin = request.headers.get('origin');
   const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || '*';
 
-  // Create base response
   const response = NextResponse.next();
 
   if (origin) {
@@ -49,12 +98,11 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Handle preflight OPTIONS request
   if (method === 'OPTIONS') {
     return new NextResponse(null, { status: 204, headers: response.headers });
   }
 
-  // 3. Security HTTP Headers (Helmet equivalent)
+  // 4. Security HTTP Headers
   response.headers.set('X-DNS-Prefetch-Control', 'off');
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   response.headers.set('X-Frame-Options', 'DENY');
@@ -68,5 +116,5 @@ export function middleware(request: NextRequest) {
 
 // Config matcher
 export const config = {
-  matcher: ['/api/:path*', '/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/admin/:path*', '/api/:path*', '/((?!_next/static|_next/image|favicon.ico).*)'],
 };

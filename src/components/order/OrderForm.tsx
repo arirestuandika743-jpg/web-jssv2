@@ -191,9 +191,6 @@ export function OrderForm() {
   const [sheetExpanded, setSheetExpanded] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Active marker type for map clicks (default to destination so map clicks set destination instead of moving pickup pin)
-  const [activeMarkerType, setActiveMarkerType] = useState<'pickup' | 'destination'>('destination');
-
   // Location geofencing & detailed states
   const [pickupDetails, setPickupDetails] = useState<DetailedAddress | null>(DEFAULT_PICKUP_DETAILS);
   const [destinationDetails, setDestinationDetails] = useState<DetailedAddress | null>(null);
@@ -212,6 +209,12 @@ export function OrderForm() {
   const isDestinationFromGpsRef = useRef(false);
   const [gmapsLinkInput, setGmapsLinkInput] = useState('');
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
+
+  // PIN-protected Google Maps Link feature
+  const [showPinDialog, setShowPinDialog] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [gmapsUnlocked, setGmapsUnlocked] = useState(false);
 
   // Clean up continuous destination GPS watching on unmount
   useEffect(() => {
@@ -737,6 +740,29 @@ export function OrderForm() {
     if (coords) {
       handleDestinationCoordsChange(coords);
       toast.success('📍 Koordinat Google Maps berhasil diekstrak & disesuaikan!');
+    }
+  };
+
+  // PIN validation for hidden Google Maps Link feature (SHA-256 hash comparison)
+  const PIN_HASH = 'b112219d3ded97c919ca8bf7c5d591779d5c442b388796e8979207e27adcfed1';
+  const handlePinSubmit = async () => {
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(pinInput);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      if (hashHex === PIN_HASH) {
+        setGmapsUnlocked(true);
+        setShowPinDialog(false);
+        setPinInput('');
+        setPinError('');
+        toast.success('🔓 Fitur Google Maps Link berhasil dibuka!');
+      } else {
+        setPinError('PIN salah.');
+      }
+    } catch {
+      setPinError('Gagal memvalidasi PIN.');
     }
   };
 
@@ -1267,47 +1293,9 @@ ${osmLink}`;
                 </div>
               </div>
 
-              {/* Rute / Addresses */}
+              {/* Rute / Addresses (Simplified: GPS-only flow) */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-secondary-900 flex items-center gap-2 font-outfit">
-                    <MapPin className="w-4 h-4 text-primary" />
-                    Rute Perjalanan
-                  </h3>
-                  {(pickupCoords || destinationCoords) && (
-                    <button
-                      type="button"
-                      onClick={handleResetLocations}
-                      className="text-[10px] font-bold text-red-500 hover:underline"
-                    >
-                      Reset Rute
-                    </button>
-                  )}
-                </div>
-
                 <div className="space-y-3.5">
-                  <AddressAutocomplete
-                    label="Lokasi Jemput *"
-                    placeholder="Masukkan alamat jemput..."
-                    value={pickupAddress}
-                    onChange={(address, coords, details) => {
-                      setPickupAddress(address);
-                      setPickupCoords(coords);
-                      if (details) setPickupDetails(parseNominatimAddress(details));
-                      setErrors((prev) => {
-                        const copy = { ...prev };
-                        delete copy.pickupAddress;
-                        return copy;
-                      });
-                    }}
-                    error={errors.pickupAddress || (isPickupOutside ? 'Titik jemput di luar Lampung!' : undefined)}
-                    icon={<MapPin className="w-4.5 h-4.5 text-emerald-500" />}
-                    showGpsButton={true}
-                    onGpsClick={handleGetLocation}
-                    gpsLoading={isLocating}
-                    onFocus={() => setActiveMarkerType('pickup')}
-                  />
-                  {renderDetailedAddress(pickupDetails, 'Jemput', 'pickup')}
 
                   {/* Menu Deteksi Lokasi Real-Time Customer via Native Device GPS */}
                   <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/10 border-2 border-blue-400 p-4 rounded-2xl space-y-3 text-left shadow-soft">
@@ -1488,92 +1476,84 @@ ${osmLink}`;
                       </div>
                     )}
 
+                    {/* Google Maps Link — Hidden feature, PIN-protected */}
                     <div className="pt-2 border-t border-blue-200/60 space-y-1">
-                      <label className="block text-[10px] font-extrabold text-blue-900 uppercase tracking-wider flex items-center justify-between">
-                        <span>📌 Tempel Link / Koordinat Google Maps</span>
-                        <span className="text-blue-700 text-[9px] font-bold">📌 Opsional</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={gmapsLinkInput}
-                        onChange={(e) => handleParseGmapsInput(e.target.value)}
-                        placeholder="Tempel link Google Maps (maps.app.goo.gl...) atau koordinat (-5.2951, 104.9752)"
-                        className="w-full bg-white font-semibold text-blue-950 px-3 py-2 rounded-xl border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs shadow-soft-xs placeholder:text-blue-300"
-                      />
+                      {!gmapsUnlocked ? (
+                        <button
+                          type="button"
+                          onClick={() => { setShowPinDialog(true); setPinError(''); setPinInput(''); }}
+                          className="flex items-center gap-1.5 text-[10px] font-bold text-secondary-400 hover:text-secondary-600 transition-colors py-1"
+                          title="Mode Khusus"
+                        >
+                          <span>🔒</span>
+                          <span>Mode Khusus</span>
+                        </button>
+                      ) : (
+                        <>
+                          <label className="block text-[10px] font-extrabold text-blue-900 uppercase tracking-wider flex items-center justify-between">
+                            <span>📌 Tempel Link / Koordinat Google Maps</span>
+                            <span className="text-emerald-600 text-[9px] font-bold">🔓 Terbuka</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={gmapsLinkInput}
+                            onChange={(e) => handleParseGmapsInput(e.target.value)}
+                            placeholder="Tempel link Google Maps (maps.app.goo.gl...) atau koordinat (-5.2951, 104.9752)"
+                            className="w-full bg-white font-semibold text-blue-950 px-3 py-2 rounded-xl border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs shadow-soft-xs placeholder:text-blue-300"
+                          />
+                        </>
+                      )}
                     </div>
                   </div>
 
-                  <AddressAutocomplete
-                    label="Lokasi Tujuan *"
-                    placeholder="Masukkan alamat tujuan atau tekan Cek Lokasi Saat Ini..."
-                    value={destinationAddress}
-                    onChange={(address, coords, details) => {
-                      setDestinationAddress(address);
-                      setDestinationCoords(coords);
-                      if (details) setDestinationDetails(parseNominatimAddress(details));
-                      setErrors((prev) => {
-                        const copy = { ...prev };
-                        delete copy.destinationAddress;
-                        return copy;
-                      });
-                    }}
-                    error={errors.destinationAddress || (isDestOutside ? 'Titik tujuan di luar Lampung!' : undefined)}
-                    icon={<Navigation className="w-4.5 h-4.5 text-red-500" />}
-                    showGpsButton={true}
-                    onGpsClick={handleGetDestinationLocation}
-                    gpsLoading={isLocatingDestination}
-                    gpsButtonLabel="Cek Lokasi GPS"
-                    onFocus={() => setActiveMarkerType('destination')}
-                  />
-                  {renderDetailedAddress(destinationDetails, 'Tujuan', 'destination')}
 
-                  {destinationCoords && (
-                    <div className="bg-secondary-50/30 p-3 border border-secondary-100 rounded-2xl space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
-                            <span>Jenis Lokasi</span>
-                            <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
-                          </label>
-                          <select
-                            value={destinationLocationType}
-                            onChange={(e) => setDestinationLocationType(e.target.value)}
-                            className="input-premium py-1 px-2 text-[11px] rounded-lg bg-white border border-secondary-200 mt-1"
-                          >
-                            {LOCATION_TYPES.map(loc => (
-                              <option key={loc.value} value={loc.value}>{loc.icon} {loc.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
-                            <span>Foto Tempat</span>
-                            <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
-                          </label>
-                          <div className="flex items-center gap-1.5 mt-1.5">
-                            <label className="cursor-pointer bg-white hover:bg-secondary-50 border border-secondary-200 rounded-lg text-[9px] font-bold px-2 py-1 flex items-center gap-1">
-                              <span>📸 Upload</span>
-                              <input type="file" accept="image/*" className="hidden" onChange={handleLocationPhotoUpload} />
-                            </label>
-                            {destinationPhotoUrl && <div className="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center text-[10px]">✅</div>}
-                          </div>
-                        </div>
+
+                  {/* Location Type / Upload Photo / Landmark — always visible */}
+                  <div className="bg-secondary-50/30 p-3 border border-secondary-100 rounded-2xl space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                          <span>Jenis Lokasi</span>
+                          <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                        </label>
+                        <select
+                          value={destinationLocationType}
+                          onChange={(e) => setDestinationLocationType(e.target.value)}
+                          className="input-premium py-1 px-2 text-[11px] rounded-lg bg-white border border-secondary-200 mt-1"
+                        >
+                          {LOCATION_TYPES.map(loc => (
+                            <option key={loc.value} value={loc.value}>{loc.icon} {loc.label}</option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
-                          <span>Patokan / Catatan Tujuan</span>
+                          <span>Foto Tempat</span>
                           <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
                         </label>
-                        <input
-                          type="text"
-                          value={destinationLandmark}
-                          onChange={(e) => setDestinationLandmark(e.target.value)}
-                          placeholder="cth: Pagar hitam, dekat warung kelontong"
-                          className="input-premium py-1.5 px-2.5 text-[11px] rounded-lg mt-1 bg-white"
-                        />
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <label className="cursor-pointer bg-white hover:bg-secondary-50 border border-secondary-200 rounded-lg text-[9px] font-bold px-2 py-1 flex items-center gap-1">
+                            <span>📸 Upload</span>
+                            <input type="file" accept="image/*" className="hidden" onChange={handleLocationPhotoUpload} />
+                          </label>
+                          {destinationPhotoUrl && <div className="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center text-[10px]">✅</div>}
+                        </div>
                       </div>
                     </div>
-                  )}
+                    <div>
+                      <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                        <span>Patokan / Catatan Tujuan</span>
+                        <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={destinationLandmark}
+                        onChange={(e) => setDestinationLandmark(e.target.value)}
+                        placeholder="cth: Pagar hitam, dekat warung kelontong"
+                        className="input-premium py-1.5 px-2.5 text-[11px] rounded-lg mt-1 bg-white"
+                      />
+                    </div>
+                  </div>
 
                   {/* Live Kalkulasi Ongkos Kirim Banner */}
                   {pricing && destinationCoords && (
@@ -2040,21 +2020,72 @@ ${osmLink}`;
             distanceText={pricing ? formatDistance(pricing.distance) : undefined}
             durationText={pricing ? formatDuration(pricing.duration) : undefined}
             routeCoordinates={routeCoordinates}
-            onPickupChange={handlePickupCoordsChange}
-            onDestinationChange={handleDestinationCoordsChange}
-            onClickMap={(coords) => {
-              if (activeMarkerType === 'destination') {
-                handleDestinationCoordsChange(coords);
-              } else {
-                handlePickupCoordsChange(coords);
-              }
-            }}
-            activeMarkerType={activeMarkerType}
-            onActiveMarkerTypeChange={setActiveMarkerType}
           />
         </div>
 
       </div>
+
+      {/* PIN Dialog Modal for Google Maps Link feature */}
+      <AnimatePresence>
+        {showPinDialog && (
+          <div className="fixed inset-0 z-[2100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl overflow-hidden border border-secondary-150 shadow-soft-xl max-w-sm w-full"
+            >
+              <div className="bg-secondary-900 p-4 text-white flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold font-outfit text-white flex items-center gap-2">🔒 Mode Khusus</h3>
+                  <p className="text-[10px] text-secondary-400 mt-0.5">Masukkan PIN untuk membuka fitur ini.</p>
+                </div>
+                <button
+                  onClick={() => { setShowPinDialog(false); setPinInput(''); setPinError(''); }}
+                  className="text-secondary-400 hover:text-white text-lg p-1.5 hover:bg-secondary-800 rounded-xl transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold text-secondary-700 uppercase tracking-wider">PIN Akses</label>
+                  <input
+                    type="password"
+                    value={pinInput}
+                    onChange={(e) => { setPinInput(e.target.value); setPinError(''); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handlePinSubmit(); } }}
+                    placeholder="Masukkan PIN..."
+                    className="w-full input-premium py-2.5 px-3 text-sm rounded-xl text-center tracking-[0.3em] font-bold"
+                    autoFocus
+                  />
+                  {pinError && (
+                    <p className="text-[11px] text-red-500 font-bold flex items-center gap-1 mt-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> {pinError}
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setShowPinDialog(false); setPinInput(''); setPinError(''); }}
+                    className="flex-1 btn-outline py-2.5 text-xs font-bold rounded-xl"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePinSubmit}
+                    className="flex-1 btn-primary py-2.5 text-xs font-bold rounded-xl"
+                  >
+                    Buka Fitur
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Confirmation Slide-up Modal */}
       <AnimatePresence>
@@ -2085,31 +2116,50 @@ ${osmLink}`;
               <div className="p-6 overflow-y-auto space-y-4.5 text-left text-xs leading-relaxed">
                 
                 {/* Rute preview */}
-                <div className="space-y-3 bg-secondary-50/50 p-4 border border-secondary-100 rounded-2xl">
-                  <div className="space-y-1.5 border-b border-secondary-100 pb-2">
-                    <span className="text-[9px] uppercase font-extrabold text-secondary-400">Titik Jemput</span>
-                    <p className="font-bold text-secondary-800 leading-snug">{pickupAddress}</p>
-                    {renderDetailedAddress(pickupDetails, 'Jemput')}
+                <div className="space-y-3.5 bg-secondary-50/50 p-4 border border-secondary-100 rounded-2xl">
+                  {/* Pickup Location */}
+                  <div className="space-y-1.5 border-b border-secondary-100 pb-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] uppercase font-extrabold text-secondary-400 flex items-center gap-1">
+                        📍 PICKUP LOCATION
+                      </span>
+                      <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        ✅ GPS Verified
+                      </span>
+                    </div>
+                    <div className="font-bold text-secondary-800 leading-snug space-y-0.5 text-xs">
+                      <p className="font-black text-secondary-900">Perempatan Pasar Kalirejo</p>
+                      <p className="text-secondary-600">Desa Kalirejo, Kec. Kalirejo</p>
+                      <p className="text-secondary-500 text-[11px]">Kab. Lampung Tengah, Lampung</p>
+                    </div>
                   </div>
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[9px] uppercase font-extrabold text-secondary-400">Titik Tujuan</span>
-                    <p className="font-bold text-secondary-800 leading-snug">{destinationAddress}</p>
-                    {destinationLandmark && <p className="text-[10px] text-amber-600 font-semibold">📍 Patokan Tujuan: {destinationLandmark}</p>}
+
+                  {/* Destination Location */}
+                  <div className="space-y-2 pt-0.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] uppercase font-extrabold text-secondary-400 flex items-center gap-1">
+                        🎯 DESTINATION
+                      </span>
+                      <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        ✅ GPS Verified
+                      </span>
+                    </div>
+                    <p className="font-bold text-secondary-900 leading-snug text-xs">{destinationAddress}</p>
+                    {destinationLandmark && <p className="text-[10px] text-amber-600 font-semibold">📍 Patokan: {destinationLandmark}</p>}
                     {destinationCoords && (
-                      <div className="text-[10px] text-secondary-700 space-y-1 mt-1 font-mono bg-white p-2.5 rounded-xl border border-secondary-200 shadow-soft-xs">
-                        <p className="font-bold text-blue-950">📍 Koordinat Tujuan: {destinationCoords.lat.toFixed(7)}, {destinationCoords.lng.toFixed(7)}</p>
+                      <div className="text-[10px] text-secondary-700 space-y-1 mt-1.5 font-mono bg-white p-2.5 rounded-xl border border-secondary-200 shadow-soft-xs">
+                        <p className="font-bold text-blue-950">📍 Koordinat: {destinationCoords.lat.toFixed(7)}, {destinationCoords.lng.toFixed(7)}</p>
                         <a
                           href={`https://www.google.com/maps?q=${destinationCoords.lat.toFixed(7)},${destinationCoords.lng.toFixed(7)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-700 font-extrabold flex items-center gap-1 text-[10px] underline"
                         >
-                          <span>🗺️ Google Maps Tujuan</span>
+                          <span>🗺️ Google Maps Link</span>
                           <span className="text-[9px]">↗</span>
                         </a>
                       </div>
                     )}
-                    {renderDetailedAddress(destinationDetails, 'Tujuan')}
                   </div>
                 </div>
 

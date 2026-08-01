@@ -24,12 +24,7 @@ export default function LoginPage() {
     setIsLoading(false);
     
     if (success) {
-      const user = await authService.getCurrentUser();
-      if (user?.role === 'admin') {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
-      }
+      router.push('/dashboard');
     }
   };
 

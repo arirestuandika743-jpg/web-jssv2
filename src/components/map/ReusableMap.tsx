@@ -430,8 +430,6 @@ export default function ReusableMap({
   const handleMapClickInternal = (coords: LatLng) => {
     if (rulerActive) {
       setRulerPoints((prev) => [...prev, coords]);
-    } else if (onClickMap) {
-      onClickMap(coords);
     }
   };
 
@@ -588,39 +586,6 @@ export default function ReusableMap({
         </div>
       )}
 
-      {/* Floating Click Target Selector */}
-      {!rulerActive && onPickupChange && onDestinationChange && activeMarkerType && (
-        <div className="absolute bottom-4 left-4 z-[1000] flex items-center bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-soft border border-secondary-150 space-x-1">
-          <span className="text-[9px] font-bold text-secondary-500 px-2 uppercase tracking-wider">Set Peta:</span>
-          <button
-            type="button"
-            onClick={() => onActiveMarkerTypeChange?.('pickup')}
-            className={cn(
-              'px-3 py-1.5 text-[10px] font-extrabold rounded-xl transition-all flex items-center gap-1.5',
-              activeMarkerType === 'pickup'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
-            )}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Jemput
-          </button>
-          <button
-            type="button"
-            onClick={() => onActiveMarkerTypeChange?.('destination')}
-            className={cn(
-              'px-3 py-1.5 text-[10px] font-extrabold rounded-xl transition-all flex items-center gap-1.5',
-              activeMarkerType === 'destination'
-                ? 'bg-red-600 text-white shadow-sm'
-                : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
-            )}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-            Tujuan
-          </button>
-        </div>
-      )}
-
       {/* Map Main */}
       <MapContainer
         center={[center.lat, center.lng]}
@@ -662,47 +627,33 @@ export default function ReusableMap({
           </>
         )}
 
-        {/* Render Pickup Marker */}
+        {/* Render Pickup Marker (Read-only fixed point) */}
         {pickupCoords && pickupIcon && (
           <Marker
             position={[pickupCoords.lat, pickupCoords.lng]}
             icon={pickupIcon}
-            draggable={!rulerActive}
-            eventHandlers={{
-              dragend: (e) => {
-                const marker = e.target;
-                const pos = marker.getLatLng();
-                if (onPickupChange) onPickupChange({ lat: pos.lat, lng: pos.lng });
-              },
-            }}
+            draggable={false}
           >
             <Popup>
               <div className="font-sans text-xs">
-                <p className="font-bold text-emerald-600">📍 Titik Penjemputan</p>
-                <p className="text-[9px] text-secondary-400 mt-0.5">Geser untuk mengubah titik</p>
+                <p className="font-bold text-emerald-600">📍 Titik Jemput Operasional</p>
+                <p className="text-[9px] text-secondary-400 mt-0.5">Perempatan Pasar Kalirejo</p>
               </div>
             </Popup>
           </Marker>
         )}
 
-        {/* Render Destination Marker */}
+        {/* Render Destination Marker (Read-only GPS point) */}
         {destinationCoords && destIcon && (
           <Marker
             position={[destinationCoords.lat, destinationCoords.lng]}
             icon={destIcon}
-            draggable={!rulerActive}
-            eventHandlers={{
-              dragend: (e) => {
-                const marker = e.target;
-                const pos = marker.getLatLng();
-                if (onDestinationChange) onDestinationChange({ lat: pos.lat, lng: pos.lng });
-              },
-            }}
+            draggable={false}
           >
             <Popup>
               <div className="font-sans text-xs">
-                <p className="font-bold text-red-600">🏁 Titik Tujuan</p>
-                <p className="text-[9px] text-secondary-400 mt-0.5">Geser untuk mengubah titik</p>
+                <p className="font-bold text-red-600">🏁 Titik Tujuan Pelanggan</p>
+                <p className="text-[9px] text-secondary-400 mt-0.5">Terdeteksi via GPS Real-Time</p>
               </div>
             </Popup>
           </Marker>

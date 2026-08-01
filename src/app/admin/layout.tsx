@@ -50,6 +50,21 @@ export default function AdminLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      window.location.href = '/admin/login';
+    }
+  };
+
+  // Skip admin sidebar and header layout for the dedicated admin login page
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
@@ -117,19 +132,33 @@ export default function AdminLayout({
           })}
         </nav>
 
-        {/* Collapse toggle */}
-        <div className="p-3 border-t border-white/10">
+        {/* Collapse toggle & Logout */}
+        <div className="p-3 border-t border-white/10 space-y-1">
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-button text-white/40 hover:text-white hover:bg-white/10 transition-all"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-button text-white/40 hover:text-white hover:bg-white/10 transition-all text-xs"
           >
             <motion.div animate={{ rotate: sidebarCollapsed ? 180 : 0 }}>
               <ChevronLeft className="w-5 h-5" />
             </motion.div>
             <AnimatePresence>
               {!sidebarCollapsed && (
-                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs">
+                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   Tutup
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-button text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all font-medium text-xs"
+          >
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            <AnimatePresence>
+              {!sidebarCollapsed && (
+                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  Logout
                 </motion.span>
               )}
             </AnimatePresence>
@@ -188,10 +217,16 @@ export default function AdminLayout({
                 })}
               </nav>
               <div className="p-4 border-t border-white/10">
-                <Link href="/" className="flex items-center gap-2 px-3 py-2 text-white/40 hover:text-white text-sm">
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-red-400 hover:text-red-300 text-sm rounded-button hover:bg-red-500/10 transition-colors"
+                >
                   <LogOut className="w-4 h-4" />
-                  Keluar
-                </Link>
+                  Logout
+                </button>
               </div>
             </motion.aside>
           </>
@@ -228,9 +263,18 @@ export default function AdminLayout({
               <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
             </button>
 
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-600 flex items-center justify-center shadow-soft">
               <span className="text-xs font-bold text-secondary-900">A</span>
             </div>
+
+            <button
+              onClick={handleLogout}
+              title="Logout"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-button bg-red-50 hover:bg-red-100 text-red-600 font-medium text-xs transition-colors border border-red-200/50 ml-1"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
           </div>
         </header>
 

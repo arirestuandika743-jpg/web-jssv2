@@ -24,11 +24,6 @@ interface OrderMapPreviewProps {
   distanceText?: string;
   durationText?: string;
   routeCoordinates?: [number, number][];
-  onPickupChange?: (coords: LatLng) => void;
-  onDestinationChange?: (coords: LatLng) => void;
-  onClickMap?: (coords: LatLng) => void;
-  activeMarkerType?: 'pickup' | 'destination';
-  onActiveMarkerTypeChange?: (type: 'pickup' | 'destination') => void;
 }
 
 export function OrderMapPreview({
@@ -37,14 +32,9 @@ export function OrderMapPreview({
   distanceText,
   durationText,
   routeCoordinates = [],
-  onPickupChange,
-  onDestinationChange,
-  onClickMap,
-  activeMarkerType,
-  onActiveMarkerTypeChange,
 }: OrderMapPreviewProps) {
   return (
-    <div className="relative rounded-card shadow-soft overflow-hidden border border-secondary-100">
+    <div className="relative rounded-card shadow-soft overflow-hidden border border-secondary-100 h-full">
       {/* Reusable Leaflet Map */}
       <ReusableMap
         center={MAP_CENTER}
@@ -52,12 +42,7 @@ export function OrderMapPreview({
         pickupCoords={pickupCoords}
         destinationCoords={destinationCoords}
         routeCoordinates={routeCoordinates}
-        height="300px"
-        onPickupChange={onPickupChange}
-        onDestinationChange={onDestinationChange}
-        onClickMap={onClickMap}
-        activeMarkerType={activeMarkerType}
-        onActiveMarkerTypeChange={onActiveMarkerTypeChange}
+        height="100%"
       />
 
       {/* Stats Overlay */}
