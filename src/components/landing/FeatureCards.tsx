@@ -14,137 +14,159 @@ import {
   ArrowRight,
   Sparkles,
 } from 'lucide-react';
-import { StaggerContainer, StaggerItem } from '@/components/layout/PageTransition';
 
 export const SERVICES_LIST = [
   {
     id: 'ride',
-    title: 'Ojek Online (Antar Orang)',
-    description: 'Antar jemput penumpang cepat dan aman dengan helm bersih & driver ramah.',
+    title: 'Ojek Online',
+    subtitle: 'Antar Jemput Penumpang',
+    description: 'Antar jemput cepat dan nyaman di Kalirejo dengan helm bersih & driver ramah.',
     icon: Bike,
-    color: 'from-emerald-500 to-teal-600',
     badge: 'Populer',
-    tag: 'Ojek Cepat',
   },
   {
     id: 'shopping',
-    title: 'Titip Belanja Pasar & Toko',
-    description: 'Bisa titip belanja kebutuhan pokok di Pasar Kalirejo atau minimarket terdekat.',
+    title: 'Titip Belanja Pasar',
+    subtitle: 'Pasar & Minimarket',
+    description: 'Bisa titip beli sayur, sembako, atau kebutuhan harian di Pasar Kalirejo.',
     icon: ShoppingBag,
-    color: 'from-amber-500 to-orange-600',
-    badge: 'Favorit Ibu',
-    tag: 'Jasa Titip',
+    badge: 'Favorit',
   },
   {
     id: 'food',
-    title: 'Antar Makanan & Kuliner',
-    description: 'Pesan makanan dari warung, kedai, atau resto kesukaan Anda di Kalirejo.',
+    title: 'Antar Makanan',
+    subtitle: 'Kuliner & Warung',
+    description: 'Pesan makanan dari resto atau kedai favoritmu di Kalirejo langsung ke rumah.',
     icon: UtensilsCrossed,
-    color: 'from-orange-500 to-red-600',
     badge: 'Kuliner',
-    tag: 'Cepat Saji',
   },
   {
     id: 'medicine',
-    title: 'Beli Obat & Apotek',
-    description: 'Titip belikan obat reseptur atau vitamin dari apotek terdekat tanpa keluar rumah.',
+    title: 'Titip Beli Obat',
+    subtitle: 'Apotek & Kesehatan',
+    description: 'Beli obat resep atau vitamin dari apotek terdekat tanpa harus keluar.',
     icon: Pill,
-    color: 'from-emerald-600 to-green-700',
-    tag: 'Apotek 24/7',
+    badge: 'Express',
   },
   {
     id: 'packages',
-    title: 'Kirim Paket & Barang',
-    description: 'Antar paket atau titipan barang antar desa di Kalirejo dengan aman.',
+    title: 'Kirim Paket',
+    subtitle: 'Barang Antar Desa',
+    description: 'Antar jemput barang atau titipan kilat antar desa se-Kecamatan Kalirejo.',
     icon: Package,
-    color: 'from-purple-500 to-indigo-600',
-    tag: 'Kurir Lokal',
+    badge: 'Kurir',
   },
   {
     id: 'documents',
-    title: 'Kirim Dokumen Penting',
-    description: 'Pengiriman surat, berkas, atau dokumen penting dengan jaminan kerahasiaan.',
+    title: 'Kirim Dokumen',
+    subtitle: 'Berkas Important',
+    description: 'Pengiriman surat dan berkas sekolah/kantor dengan jaminan kerahasiaan.',
     icon: FileText,
-    color: 'from-blue-500 to-cyan-600',
-    tag: 'Express',
+    badge: 'Aman',
   },
   {
     id: 'large_cargo',
-    title: 'Pengiriman Barang Besar',
-    description: 'Layanan pengangkutan barang kapasitas berat atau muatan besar di Kalirejo.',
+    title: 'Pengiriman Besar',
+    subtitle: 'Kargo & Muatan',
+    description: 'Layanan angkut barang berat atau muatan besar dengan armada terpercaya.',
     icon: Truck,
-    color: 'from-rose-500 to-red-700',
-    tag: 'Kargo',
+    badge: 'Kargo',
   },
   {
     id: 'carter',
-    title: 'Carter Mobil & Driver',
-    description: 'Sewa mobil lengkap dengan driver profesional untuk perjalanan luar desa/kota.',
+    title: 'Carter Mobil',
+    subtitle: 'Luar Kota / Desa',
+    description: 'Sewa mobil lengkap dengan driver profesional untuk perjalanan pribadi/keluarga.',
     icon: Car,
-    color: 'from-indigo-600 to-slate-800',
-    tag: 'Sewa Mobil',
+    badge: 'Carter',
   },
 ];
 
 export function FeatureCards() {
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 30, scale: 0.96 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.5,
+        ease: [0.16, 1, 0.3, 1] as const,
+      },
+    },
+  };
+
   return (
-    <section id="layanan" className="section-padding bg-gradient-to-b from-white via-background to-white relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] bg-primary/5 rounded-full blur-[140px] pointer-events-none" />
+    <section id="layanan" className="section-padding bg-gradient-to-b from-white via-background to-white relative overflow-hidden transform-gpu">
+      {/* Background Ambient Blur */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-primary/8 rounded-full blur-[160px] pointer-events-none" />
 
       <div className="container-padding relative z-10">
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 25 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary-700 text-xs font-bold uppercase tracking-wider mb-4">
-            <Sparkles className="w-4 h-4" />
-            Layanan Unggulan
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/15 border border-primary/30 text-secondary-900 text-xs font-bold uppercase tracking-wider mb-4">
+            <Sparkles className="w-3.5 h-3.5 text-secondary-900" />
+            Layanan Ekosistem JSS
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-secondary-900 mb-5">
-            Layanan Lengkap untuk{' '}
-            <span className="gradient-text">Segala Kebutuhan</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-secondary-900 mb-5 tracking-tight text-balance">
+            Satu Aplikasi untuk{' '}
+            <span className="gradient-text">Semua Kebutuhan Harian</span>
           </h2>
           <p className="text-base md:text-lg text-secondary-600 leading-relaxed font-medium">
-            Pilih jenis layanan yang Anda butuhkan. Driver kami siap melayani pesanan Anda dengan respon cepat dan tarif transparan.
+            Pilih jenis layanan yang kamu perlukan. Driver profesional kami di Kalirejo siap memproses pesananmu secara cepat dan efisien.
           </p>
         </motion.div>
 
         {/* Services Grid */}
-        <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {SERVICES_LIST.map((service, index) => {
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: '-50px' }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          {SERVICES_LIST.map((service) => {
             const IconComponent = service.icon;
             return (
-              <StaggerItem key={service.id}>
-                <motion.div
-                  whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                  className="group relative bg-white rounded-[24px] p-6 shadow-soft hover:shadow-2xl transition-all duration-300 border border-secondary-100 flex flex-col justify-between h-full overflow-hidden"
+              <motion.div key={service.id} variants={item}>
+                <Link
+                  href={`/order?category=${service.id}`}
+                  className="group relative bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-soft hover:shadow-soft-xl transition-all duration-500 border border-secondary-200/60 flex flex-col justify-between h-full overflow-hidden hover:-translate-y-1.5"
                 >
-                  {/* Hover Top Accent Bar */}
-                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-primary-500 to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  {/* Top Glowing Gradient Accent */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary-500 to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                   <div>
                     {/* Icon & Badge Header */}
                     <div className="flex items-center justify-between mb-5">
-                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${service.color} flex items-center justify-center text-white shadow-md transition-transform duration-300 group-hover:scale-110`}>
-                        <IconComponent className="w-7 h-7" />
+                      <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-primary to-accent p-3.5 flex items-center justify-center text-secondary-900 shadow-golden transition-transform duration-300 group-hover:scale-110">
+                        <IconComponent className="w-6 h-6 stroke-[2.2]" />
                       </div>
-                      {service.badge ? (
-                        <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-primary/15 text-secondary-900 border border-primary/20">
-                          {service.badge}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-secondary-100 text-secondary-500">
-                          {service.tag}
-                        </span>
-                      )}
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-secondary-900/5 text-secondary-900 border border-secondary-900/10">
+                        {service.badge}
+                      </span>
                     </div>
 
                     {/* Content */}
+                    <span className="text-[11px] font-bold text-secondary-400 block uppercase tracking-wider mb-1">
+                      {service.subtitle}
+                    </span>
                     <h3 className="text-lg font-extrabold text-secondary-900 mb-2 group-hover:text-primary-600 transition-colors">
                       {service.title}
                     </h3>
@@ -153,21 +175,18 @@ export function FeatureCards() {
                     </p>
                   </div>
 
-                  {/* CTA Link */}
-                  <Link
-                    href={`/order?category=${service.id}`}
-                    className="inline-flex items-center justify-between w-full pt-4 border-t border-secondary-100 text-xs font-bold text-secondary-900 group-hover:text-primary-600 transition-colors"
-                  >
+                  {/* CTA Footer */}
+                  <div className="inline-flex items-center justify-between w-full pt-4 border-t border-secondary-100/80 text-xs font-bold text-secondary-900 group-hover:text-primary-600 transition-colors">
                     <span>Pesan Layanan Ini</span>
-                    <div className="w-7 h-7 rounded-full bg-secondary-50 group-hover:bg-primary group-hover:text-secondary-900 flex items-center justify-center transition-colors">
+                    <div className="w-7 h-7 rounded-full bg-secondary-900/5 group-hover:bg-primary group-hover:text-secondary-900 flex items-center justify-center transition-colors">
                       <ArrowRight className="w-3.5 h-3.5" />
                     </div>
-                  </Link>
-                </motion.div>
-              </StaggerItem>
+                  </div>
+                </Link>
+              </motion.div>
             );
           })}
-        </StaggerContainer>
+        </motion.div>
       </div>
     </section>
   );

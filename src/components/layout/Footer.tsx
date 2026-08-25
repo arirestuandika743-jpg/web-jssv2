@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   MapPin,
@@ -9,38 +10,35 @@ import {
   Mail,
   Instagram,
   MessageCircle,
-  ArrowUpRight,
   Heart,
-  Sparkles,
   Clock,
+  ArrowRight,
 } from 'lucide-react';
 import { BRAND } from '@/lib/constants';
 
 const footerLinks = {
   layanan: [
-    { label: 'Ojek (Antar Orang)', href: '/order?category=ride' },
+    { label: 'Ojek Online', href: '/order?category=ride' },
     { label: 'Titip Belanja Pasar', href: '/order?category=shopping' },
     { label: 'Antar Makanan', href: '/order?category=food' },
-    { label: 'Beli Obat Apotek', href: '/order?category=medicine' },
+    { label: 'Titip Beli Obat', href: '/order?category=medicine' },
     { label: 'Kirim Dokumen', href: '/order?category=documents' },
     { label: 'Antar Paket Barang', href: '/order?category=packages' },
   ],
   perusahaan: [
     { label: 'Beranda', href: '/' },
-    { label: 'Tentang Kami', href: '/#about' },
-    { label: 'Area Layanan', href: '/coverage' },
+    { label: 'Layanan', href: '/#layanan' },
+    { label: 'Keunggulan', href: '/#keunggulan' },
     { label: 'Cara Kerja', href: '/#cara-kerja' },
-    { label: 'Kontak', href: '/contact' },
+    { label: 'Area Coverage', href: '/coverage' },
   ],
   bantuan: [
-    { label: 'FAQ', href: '/#faq' },
     { label: 'Testimoni', href: '/#testimoni' },
+    { label: 'Kontak Admin', href: '/contact' },
     { label: 'Syarat & Ketentuan', href: '/contact' },
     { label: 'Kebijakan Privasi', href: '/contact' },
   ],
 };
-
-import { usePathname } from 'next/navigation';
 
 export function Footer() {
   const pathname = usePathname();
@@ -51,7 +49,7 @@ export function Footer() {
   if (isAdminPage || isDashboardPage || isCourierPage) return null;
 
   return (
-    <footer className="relative bg-secondary-900 text-white overflow-hidden pt-12">
+    <footer className="relative bg-secondary-900 text-white overflow-hidden pt-16 transform-gpu">
       {/* Ambient Glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/10 blur-3xl" />
@@ -59,46 +57,6 @@ export function Footer() {
       </div>
 
       <div className="relative container-padding z-10">
-        {/* Top CTA Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="relative mb-16"
-        >
-          <div className="bg-gradient-to-r from-primary via-primary-500 to-accent rounded-[32px] p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-golden-lg">
-            <div className="max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-secondary-900/10 text-secondary-900 text-xs font-extrabold uppercase tracking-wider mb-3">
-                <Sparkles className="w-3.5 h-3.5" />
-                Respon Super Cepat
-              </div>
-              <h3 className="text-2xl md:text-4xl font-black text-secondary-900 mb-2 leading-tight">
-                Siap Pesan Driver JSS Hari Ini?
-              </h3>
-              <p className="text-secondary-900/80 font-medium text-sm md:text-base">
-                Isi form booking instan online atau tanyakan langsung pada WhatsApp admin kami.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <Link
-                href="/order"
-                className="btn-secondary text-sm font-bold whitespace-nowrap flex items-center justify-center gap-2 py-4 px-8 rounded-2xl shadow-xl"
-              >
-                Pesan Sekarang
-                <ArrowUpRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href={`https://wa.me/${BRAND.phone}`}
-                target="_blank"
-                className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-secondary-900 font-bold text-sm rounded-2xl py-4 px-7 transition-all whitespace-nowrap flex items-center justify-center gap-2 border border-white/20"
-              >
-                <MessageCircle className="w-4 h-4" />
-                WhatsApp Admin
-              </Link>
-            </div>
-          </div>
-        </motion.div>
-
         {/* Footer Grid Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/10">
           {/* Brand Column (2 Cols) */}
@@ -108,7 +66,9 @@ export function Footer() {
                 <Image src="/logo-jss.png" alt="JSS Logo" width={44} height={44} className="w-full h-full object-cover" />
               </div>
               <div>
-                <span className="font-extrabold text-xl text-white block leading-none">{BRAND.shortName} Kalirejo</span>
+                <span className="font-extrabold text-xl text-white block leading-none tracking-tight">
+                  {BRAND.shortName} Kalirejo
+                </span>
                 <span className="text-[11px] text-white/50 font-medium">Jasa Suruh & Ojek Terpercaya</span>
               </div>
             </Link>
@@ -145,7 +105,7 @@ export function Footer() {
 
           {/* Layanan */}
           <div>
-            <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-5 text-primary">Layanan JSS</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-5 text-primary">Layanan JSS</h4>
             <ul className="space-y-3">
               {footerLinks.layanan.map((link) => (
                 <li key={link.label}>
@@ -162,7 +122,7 @@ export function Footer() {
 
           {/* Navigasi */}
           <div>
-            <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-5 text-primary">Navigasi</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-5 text-primary">Navigasi</h4>
             <ul className="space-y-3">
               {footerLinks.perusahaan.map((link) => (
                 <li key={link.label}>
@@ -179,7 +139,7 @@ export function Footer() {
 
           {/* Bantuan */}
           <div>
-            <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-5 text-primary">Bantuan & Info</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-5 text-primary">Bantuan & Info</h4>
             <ul className="space-y-3 mb-6">
               {footerLinks.bantuan.map((link) => (
                 <li key={link.label}>

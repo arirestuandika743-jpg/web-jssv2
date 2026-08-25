@@ -225,4 +225,18 @@
   .custom-leaflet-icon svg {
     animation: marker-drop 0.4s ease-out forwards;
   }
+
+  /* GPU performance optimization */
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+
+  .mesh-gradient-bg {
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(253, 184, 19, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(255, 107, 53, 0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(253, 184, 19, 0.06) 0px, transparent 50%);
+  }
 }
+

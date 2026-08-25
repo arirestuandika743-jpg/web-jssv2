@@ -88,6 +88,7 @@ const OrderMapPreview = dynamic(
     ),
   }
 );
+import { useSearchParams } from 'next/navigation';
 import { PageTransition, FadeIn } from '@/components/layout/PageTransition';
 import { useAuth } from '@/context/AuthContext';
 import { dbService } from '@/services/db';
@@ -161,7 +162,28 @@ export function OrderForm() {
   const [destinationAddress, setDestinationAddress] = useState('');
   const [destinationCoords, setDestinationCoords] = useState<LatLng | null>(null);
 
-  const [category, setCategory] = useState<OrderCategory | ''>('ride'); // Default Ojek
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams?.get('category') as OrderCategory | null;
+
+  const [category, setCategory] = useState<OrderCategory | ''>(() => {
+    if (categoryParam && ORDER_CATEGORIES.some((c) => c.id === categoryParam)) {
+      return categoryParam;
+    }
+    return 'food'; // Default to Makanan (Food) for a cheaper initial price display
+  });
+
+  useEffect(() => {
+    const catParam = searchParams?.get('category') as OrderCategory | null;
+    if (catParam && ORDER_CATEGORIES.some((c) => c.id === catParam)) {
+      setCategory(catParam);
+      if (catParam === 'ride') {
+        setWeightRange('<80');
+      } else {
+        setWeightRange('0-2');
+      }
+    }
+  }, [searchParams]);
+
   const [description, setDescription] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
