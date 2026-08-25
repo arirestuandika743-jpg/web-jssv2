@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -14,6 +15,27 @@ import {
   ArrowRight,
   Sparkles,
 } from 'lucide-react';
+import {
+  MotorcycleTaxiScene,
+  FoodDeliveryScene,
+  ShoppingServiceScene,
+  MedicineDeliveryScene,
+  ParcelDeliveryScene,
+  GroceryShoppingScene,
+  DocumentDeliveryScene,
+} from './services/ServiceAnimatedScenes';
+
+// Map service ID to animated scene component
+const SERVICE_SCENES: Record<string, React.ComponentType<{ className?: string }>> = {
+  ride: MotorcycleTaxiScene,
+  food: FoodDeliveryScene,
+  shopping: ShoppingServiceScene,
+  medicine: MedicineDeliveryScene,
+  packages: ParcelDeliveryScene,
+  documents: DocumentDeliveryScene,
+  large_cargo: GroceryShoppingScene,
+  carter: GroceryShoppingScene,
+};
 
 export const SERVICES_LIST = [
   {
@@ -153,6 +175,16 @@ export function FeatureCards() {
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary-500 to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                   <div>
+                    {/* Animated Scene Illustration */}
+                    {(() => {
+                      const SceneComponent = SERVICE_SCENES[service.id];
+                      return SceneComponent ? (
+                        <div className="w-full flex items-center justify-center mb-3 -mt-2 overflow-hidden rounded-2xl bg-gradient-to-b from-secondary-50/80 to-white/40">
+                          <SceneComponent className="scale-75" />
+                        </div>
+                      ) : null;
+                    })()}
+
                     {/* Icon & Badge Header */}
                     <div className="flex items-center justify-between mb-5">
                       <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-primary to-accent p-3.5 flex items-center justify-center text-secondary-900 shadow-golden transition-transform duration-300 group-hover:scale-110">
