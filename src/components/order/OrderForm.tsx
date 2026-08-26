@@ -1616,6 +1616,32 @@ ${osmLink}`;
                     </div>
                   </div>
 
+                  {/* Live Kalkulasi Ongkos Kirim Banner (Step 1 Instant Feedback) */}
+                  {pricing && destinationCoords && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-4 bg-gradient-to-r from-primary/[0.05] via-emerald-500/[0.05] to-primary/[0.05] border border-emerald-500/30 rounded-2xl flex items-center justify-between shadow-md text-left"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-emerald-400 font-black text-xs">
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                          </span>
+                          <span>Ongkos Kirim Otomatis Terkalkulasi!</span>
+                        </div>
+                        <p className="text-[11px] text-white/60 font-medium">
+                          Jarak Rute: <strong className="text-white font-extrabold">{formatDistance(pricing.distance)}</strong> ({formatDuration(pricing.duration)})
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[9px] text-white/40 uppercase font-black tracking-wider">Total Biaya Ongkir</p>
+                        <p className="text-2xl font-black text-primary font-outfit leading-tight">{formatCurrency(pricing.totalDeliveryFee)}</p>
+                      </div>
+                    </motion.div>
+                  )}
+
 
 
                   
