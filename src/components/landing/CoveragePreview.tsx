@@ -29,19 +29,10 @@ export function CoveragePreview() {
   };
 
   return (
-    <section id="area-layanan" className="section-padding bg-secondary-900 text-white relative overflow-hidden transform-gpu">
+    <section id="area-layanan" className="section-padding relative overflow-hidden transform-gpu">
       {/* Background Ambient Glows */}
-      <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[140px] pointer-events-none" />
-      
-      {/* Subtle Grid overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: `radial-gradient(circle at 1.5px 1.5px, #FDB813 1.5px, transparent 0)`,
-          backgroundSize: '36px 36px',
-        }}
-      />
+      <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-primary/[0.025] rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/[0.02] rounded-full blur-[140px] pointer-events-none" />
 
       <div className="container-padding relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -53,15 +44,15 @@ export function CoveragePreview() {
             viewport={{ once: true, margin: '-50px' }}
           >
             <motion.div variants={itemVariants}>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-primary text-xs font-bold uppercase tracking-wider mb-6 border border-white/10">
-                <Compass className="w-3.5 h-3.5 text-primary" />
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-primary text-xs font-bold uppercase tracking-wider mb-6">
+                <Compass className="w-3.5 h-3.5" />
                 Area Operasional JSS
               </div>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-6 leading-tight tracking-tight text-balance">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-6 leading-tight tracking-tight text-balance">
                 Jangkauan Antar Jemput di <br />
                 <span className="gradient-text">Kecamatan Kalirejo</span>
               </h2>
-              <p className="text-base md:text-lg text-white/70 mb-8 leading-relaxed font-medium">
+              <p className="text-sm md:text-base text-white/40 mb-8 leading-relaxed font-medium">
                 Driver JSS siap melayani pengantaran penumpang, paket, dan titip beli di seluruh desa se-Kecamatan Kalirejo dan wilayah perbatasan sekitarnya.
               </p>
             </motion.div>
@@ -70,10 +61,10 @@ export function CoveragePreview() {
             <motion.div variants={containerVariants} className="grid grid-cols-2 gap-3 mb-10">
               {COVERAGE_AREAS.map((area, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary/40 transition-all">
+                  <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-primary/30 transition-all">
                     <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${area.isMain ? 'text-primary' : 'text-emerald-400'}`} />
                     <div className="flex items-center justify-between w-full pr-1">
-                      <span className="text-xs sm:text-sm font-bold text-white">{area.name}</span>
+                      <span className="text-xs sm:text-sm font-bold text-white/80">{area.name}</span>
                       {area.isMain && (
                         <span className="text-[9px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold uppercase">
                           Pusat
@@ -95,7 +86,7 @@ export function CoveragePreview() {
               </Link>
               <Link
                 href="/order"
-                className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-6 py-4 rounded-2xl border border-white/15 transition-all"
+                className="bg-white/[0.04] hover:bg-white/[0.08] text-white text-xs font-bold px-6 py-4 rounded-2xl border border-white/[0.08] transition-all"
               >
                 Pesan Driver Ke Lokasi
               </Link>
@@ -111,14 +102,14 @@ export function CoveragePreview() {
             className="relative"
           >
             <div className="relative aspect-square max-w-md mx-auto">
-              <div className="absolute inset-0 rounded-[36px] bg-gradient-to-br from-secondary-800 via-secondary-900 to-black border border-white/15 overflow-hidden shadow-2xl p-6 flex flex-col justify-between">
+              <div className="absolute inset-0 rounded-[36px] bg-gradient-to-br from-[#11161C] via-[#0B0F14] to-[#07090C] border border-white/[0.08] overflow-hidden shadow-cinema-xl p-6 flex flex-col justify-between">
                 {/* Map Grid Radar Background */}
                 <div
-                  className="absolute inset-0 opacity-15"
+                  className="absolute inset-0 opacity-10 pointer-events-none"
                   style={{
                     backgroundImage: `
-                      linear-gradient(rgba(253,184,19,0.3) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(253,184,19,0.3) 1px, transparent 1px)
+                      linear-gradient(rgba(255,201,40,0.2) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,201,40,0.2) 1px, transparent 1px)
                     `,
                     backgroundSize: '28px 28px',
                   }}
@@ -126,7 +117,7 @@ export function CoveragePreview() {
 
                 {/* Top Radar Status Bar */}
                 <div className="relative z-10 flex items-center justify-between">
-                  <div className="flex items-center gap-2 bg-secondary-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-xs text-white/80 font-bold">
+                  <div className="flex items-center gap-2 bg-[#07090C]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/[0.08] text-[10px] sm:text-xs text-white/80 font-bold">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     GPS Radar Active
                   </div>
@@ -139,9 +130,9 @@ export function CoveragePreview() {
                     <motion.div
                       animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0.2, 0.6] }}
                       transition={{ duration: 3, repeat: Infinity }}
-                      className="absolute inset-0 bg-primary/40 rounded-full blur-xl"
+                      className="absolute inset-0 bg-primary/30 rounded-full blur-xl"
                     />
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-600 flex items-center justify-center shadow-golden border-4 border-secondary-900 mx-auto">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-600 flex items-center justify-center shadow-golden border-4 border-[#07090C] mx-auto">
                       <Navigation2 className="w-9 h-9 text-secondary-900 animate-bounce" />
                     </div>
                   </div>
@@ -150,7 +141,7 @@ export function CoveragePreview() {
                 </div>
 
                 {/* Bottom Radius Card */}
-                <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 flex items-center justify-between text-xs text-white/80">
+                <div className="relative z-10 bg-white/[0.04] backdrop-blur-md rounded-2xl p-3.5 border border-white/[0.06] flex items-center justify-between text-xs text-white/80">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-primary" />
                     <span>Jangkauan ~20 KM</span>

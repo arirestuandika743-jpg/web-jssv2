@@ -449,7 +449,7 @@ export function OrderForm() {
         <div className="grid grid-cols-2 gap-2 text-[11px]">
           {/* Desa / Kelurahan */}
           <div className="space-y-1">
-            <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center gap-1">
+            <label className="block text-[9px] font-extrabold text-white/70 uppercase tracking-wider flex items-center gap-1">
               <span>🏡</span>
               <span>Desa / Kelurahan</span>
             </label>
@@ -509,7 +509,7 @@ export function OrderForm() {
                 value={county}
                 onChange={(e) => handleUpdateDetailField(type, 'county', e.target.value)}
                 placeholder="cth: Lampung Tengah"
-                className="w-full bg-white font-semibold text-secondary-800 px-2.5 py-1.5 rounded-xl border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-400 text-xs shadow-soft-xs"
+                className="w-full bg-white font-semibold text-white px-2.5 py-1.5 rounded-xl border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-400 text-xs shadow-soft-xs"
               />
             ) : (
               <div className="bg-white/90 font-semibold text-secondary-800 px-2.5 py-1.5 rounded-xl border border-amber-150">
@@ -1152,13 +1152,13 @@ ${osmLink}`;
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-white rounded-card p-8 border border-secondary-100 shadow-soft-xl"
+          className="bg-[#0B0F14] rounded-card p-8 border border-white/[0.08] shadow-cinema-xl"
         >
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Check className="w-8 h-8 text-emerald-600 stroke-[3]" />
           </div>
           <h2 className="text-2xl font-extrabold text-secondary-900 mb-2 font-outfit">Pemesanan Terkirim! 🚀</h2>
-          <p className="text-xs text-secondary-500 mb-6 leading-relaxed">
+          <p className="text-xs text-white/40 mb-6 leading-relaxed">
             Pesanan Anda (No: <strong className="text-secondary-900">{createdOrderNumber}</strong>) sedang dialihkan ke WhatsApp untuk alokasi driver logistik terdekat.
           </p>
           <div className="space-y-2">
@@ -1173,7 +1173,7 @@ ${osmLink}`;
             </a>
             <button
               onClick={() => setIsSubmitted(false)}
-              className="w-full text-xs font-bold text-secondary-500 hover:text-secondary-800 py-2.5 transition-colors"
+              className="w-full text-xs font-bold text-white/40 hover:text-white/70 py-2.5 transition-colors"
             >
               Pesan Layanan Lain
             </button>
@@ -1196,20 +1196,20 @@ ${osmLink}`;
         
         {/* LEFT PANEL: Booking Controls & Inputs */}
         <div className={cn(
-          "w-full lg:w-[480px] lg:flex-shrink-0 bg-white border-r border-secondary-150 flex flex-col z-10 shadow-soft-lg transition-all",
+          "w-full lg:w-[480px] lg:flex-shrink-0 bg-[#0B0F14]/90 backdrop-blur-2xl border-r border-white/[0.08] flex flex-col z-10 shadow-cinema transition-all",
           isMobile ? "relative overflow-y-auto" : "h-[calc(100vh-80px)] overflow-y-auto"
         )}>
           <div className="p-6 md:p-8 space-y-6">
             
             {/* Header info */}
             <div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary-700 text-[10px] font-extrabold uppercase rounded-full mb-3 tracking-wider">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-extrabold uppercase rounded-full mb-3 tracking-wider border border-primary/20">
                 <Truck className="w-3.5 h-3.5" /> Platform Premium JSS
               </span>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-secondary-900 tracking-tight font-outfit">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight font-outfit">
                 Pesan <span className="gradient-text font-black">Layanan JSS</span>
               </h1>
-              <p className="text-xs text-secondary-400 mt-1">
+              <p className="text-xs text-white/40 mt-1">
                 Layanan antar-jemput dan logistik kurir terpercaya Provinsi Lampung.
               </p>
             </div>
@@ -1218,16 +1218,16 @@ ${osmLink}`;
             <div className={cn(
               "p-3.5 rounded-2xl border text-xs space-y-1 transition-all flex items-start gap-3 shadow-sm",
               hasRain 
-                ? "bg-blue-50/50 border-blue-200 text-blue-900 animate-pulse" 
-                : "bg-amber-50/20 border-amber-200/50 text-secondary-800"
+                ? "bg-blue-500/10 border-blue-500/30 text-blue-200 animate-pulse" 
+                : "bg-white/[0.02] border-white/[0.06] text-white/80"
             )}>
-              <CloudRain className={cn("w-5 h-5 mt-0.5", hasRain ? "text-blue-500 animate-bounce" : "text-amber-500")} />
+              <CloudRain className={cn("w-5 h-5 mt-0.5", hasRain ? "text-blue-400 animate-bounce" : "text-primary")} />
               <div>
                 <p className="font-extrabold tracking-tight font-outfit">Kondisi Cuaca Kalirejo</p>
-                <p className="text-[11px] text-secondary-500 leading-relaxed mt-0.5">{localWeatherText}</p>
+                <p className="text-[11px] text-white/50 leading-relaxed mt-0.5">{localWeatherText}</p>
                 {weatherAlertVisible && (
-                  <div className="mt-1.5 p-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-[10px] text-blue-700 flex items-center gap-1.5 font-semibold">
-                    <AlertTriangle className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
+                  <div className="mt-1.5 p-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-[10px] text-blue-300 flex items-center gap-1.5 font-semibold">
+                    <AlertTriangle className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
                     Warning: Tambahan Surcharge Hujan Aktif (+Rp3.000)
                   </div>
                 )}
@@ -1238,32 +1238,32 @@ ${osmLink}`;
             <form id="order-form-container" onSubmit={handleOpenConfirm} className="space-y-5">
               
               {/* Top Help Guide Banner */}
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 flex items-start gap-3 text-xs leading-relaxed text-amber-950 shadow-sm">
+              <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-3.5 flex items-start gap-3 text-xs leading-relaxed text-amber-200 shadow-sm">
                 <Info className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
                   <p className="font-bold text-xs font-outfit">📌 Petunjuk Pengisian Form:</p>
-                  <p className="text-[11px] text-secondary-700">
+                  <p className="text-[11px] text-white/50">
                     Kolom bertanda <span className="text-red-600 font-extrabold px-1.5 py-0.5 bg-red-100/90 rounded border border-red-200 text-[10px]">* WAJIB</span> harus diisi. Kolom bertanda <span className="text-secondary-600 font-semibold px-1.5 py-0.5 bg-secondary-150 rounded border border-secondary-250 text-[10px]">(OPSIONAL)</span> boleh dikosongkan jika tidak ada catatan.
                   </p>
                 </div>
               </div>
 
               {/* Profile/Customer name */}
-              <div className="space-y-4 bg-secondary-50/40 p-4 border border-secondary-100 rounded-2xl">
-                <h3 className="text-sm font-bold text-secondary-900 flex items-center justify-between font-outfit">
+              <div className="space-y-4 bg-white/[0.02] border border-white/[0.06] p-4 rounded-2xl">
+                <h3 className="text-sm font-bold text-white flex items-center justify-between font-outfit">
                   <span className="flex items-center gap-2">
                     <User className="w-4 h-4 text-primary" />
                     Pemesanan Akun
                   </span>
-                  <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-lg border border-amber-200">
+                  <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/25">
                     Data Pelanggan
                   </span>
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-[11px] font-bold text-secondary-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                    <label className="block text-[11px] font-bold text-white/70 uppercase tracking-wider mb-1 flex items-center justify-between">
                       <span>Nama Lengkap</span>
-                      <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
+                      <span className="text-red-400 font-extrabold text-[10px] bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20 tracking-wider">* WAJIB</span>
                     </label>
                     <input
                       type="text"
@@ -1277,17 +1277,17 @@ ${osmLink}`;
                       placeholder="Contoh: Budi Santoso"
                       className={cn(
                         "input-premium py-2.5 text-xs rounded-xl transition-all",
-                        errors.customerName ? "bg-red-50/50 border-red-500 focus:ring-red-200" : customerName ? "bg-emerald-50/30 border-emerald-300" : "bg-white border-secondary-200"
+                        errors.customerName ? "bg-red-500/10 border-red-500 focus:ring-red-500/20" : customerName ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/[0.04] border-white/[0.08]"
                       )}
                     />
                     {errors.customerName ? (
                       <p className="text-[10px] text-red-500 mt-1 font-semibold flex items-center gap-1">⚠️ {errors.customerName}</p>
                     ) : (
-                      <p className="text-[9.5px] text-secondary-400 mt-1">Nama pemesan atau panggilan untuk konfirmasi</p>
+                      <p className="text-[9.5px] text-white/30 mt-1">Nama pemesan atau panggilan untuk konfirmasi</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-secondary-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                    <label className="block text-[11px] font-bold text-primary uppercase tracking-wider mb-1 flex items-center justify-between">
                       <span>No. WhatsApp</span>
                       <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
                     </label>
@@ -1303,7 +1303,7 @@ ${osmLink}`;
                       placeholder="08xxxxxxxxxx"
                       className={cn(
                         "input-premium py-2.5 text-xs rounded-xl transition-all",
-                        errors.whatsappNumber ? "bg-red-50/50 border-red-500 focus:ring-red-200" : whatsappNumber ? "bg-emerald-50/30 border-emerald-300" : "bg-white border-secondary-200"
+                        errors.whatsappNumber ? "bg-red-500/10 border-red-500 focus:ring-red-500/20" : whatsappNumber ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/[0.04] border-white/[0.08]"
                       )}
                     />
                     {errors.whatsappNumber ? (
@@ -1320,14 +1320,14 @@ ${osmLink}`;
                 <div className="space-y-3.5">
 
                   {/* Menu Deteksi Lokasi Real-Time Customer via Native Device GPS */}
-                  <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/10 border-2 border-blue-400 p-4 rounded-2xl space-y-3 text-left shadow-soft">
+                  <div className="bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-blue-500/5 border border-blue-500/30 p-4 rounded-2xl space-y-3 text-left shadow-cinema">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="relative flex h-3 w-3">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                         </span>
-                        <span className="text-xs font-black text-blue-950 font-outfit uppercase tracking-wide">
+                        <span className="text-xs font-black text-blue-200 font-outfit uppercase tracking-wide">
                           Deteksi Lokasi Tujuan Real-Time
                         </span>
                       </div>
@@ -1350,12 +1350,12 @@ ${osmLink}`;
                       </span>
                     </div>
 
-                    <p className="text-[11px] text-blue-900 leading-relaxed font-medium">
+                    <p className="text-[11px] text-white/50 leading-relaxed font-medium">
                       Tekan tombol <strong className="text-blue-950 font-bold">&quot;Cek Lokasi Saat Ini&quot;</strong> untuk mendeteksi posisi presisi dari sensor GPS HP Anda secara real-time. Sistem akan otomatis menentukan lokasi tujuan Anda &amp; menghitung biaya ongkos kirim.
                     </p>
 
                     {destinationGpsStatus && (
-                      <div className="px-3 py-1.5 bg-blue-100/70 border border-blue-300 rounded-xl text-xs font-bold text-blue-900 flex items-center gap-2">
+                      <div className="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs font-bold text-blue-300 flex items-center gap-2">
                         {isLocatingDestination && <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600 shrink-0" />}
                         <span>{destinationGpsStatus}</span>
                       </div>
@@ -1386,7 +1386,7 @@ ${osmLink}`;
                           href={`https://www.google.com/maps?q=${destinationCoords.lat},${destinationCoords.lng}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-white hover:bg-blue-50 text-blue-700 border-2 border-blue-300 text-xs font-black px-3.5 py-3 rounded-xl transition-all shadow-soft flex items-center gap-1.5 shrink-0"
+                          className="bg-white/[0.04] hover:bg-white/[0.08] text-blue-400 border border-blue-500/30 text-xs font-black px-3.5 py-3 rounded-xl transition-all shadow-soft flex items-center gap-1.5 shrink-0"
                           title="Buka lokasi ini di aplikasi Google Maps"
                         >
                           <span>🗺️ Buka Google Maps</span>
@@ -1396,12 +1396,12 @@ ${osmLink}`;
                     </div>
 
                     {destinationGpsError && (
-                      <div className="p-3.5 bg-red-50 border border-red-300 rounded-xl space-y-2.5 text-left shadow-soft-xs">
+                      <div className="p-3.5 bg-red-500/5 border border-red-500/20 rounded-xl space-y-2.5 text-left shadow-soft-xs">
                         <div className="flex items-start gap-2">
                           <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                          <div className="space-y-1.5 text-xs text-red-900">
+                          <div className="space-y-1.5 text-xs text-red-200">
                             <p className="font-bold">{destinationGpsError}</p>
-                            <p className="text-[11px] font-semibold text-red-800">
+                            <p className="text-[11px] font-semibold text-red-300">
                               Langkah troubleshooting agar GPS akurat:
                             </p>
                             <ul className="list-disc list-inside text-[11px] text-red-700 space-y-0.5 font-medium">
@@ -1428,10 +1428,10 @@ ${osmLink}`;
                     {!destinationGpsError && destinationAccuracy && destinationCoords && destinationAccuracy <= 1000 && (
                       <div className={`p-3 rounded-xl text-xs font-semibold border shadow-soft-xs ${
                         destinationAccuracy <= 25
-                          ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                          ? 'bg-emerald-500/10 text-emerald-200 border-emerald-500/20'
                           : destinationAccuracy <= 100
-                          ? 'bg-blue-50 text-blue-900 border-blue-300'
-                          : 'bg-amber-50 text-amber-900 border-amber-300'
+                          ? 'bg-blue-500/10 text-blue-200 border-blue-500/20'
+                          : 'bg-amber-500/10 text-amber-200 border-amber-500/20'
                       }`}>
                         <div className="flex items-center justify-between gap-2">
                           <span className="flex items-center gap-1.5 font-bold text-[11px]">
@@ -1440,16 +1440,16 @@ ${osmLink}`;
                           </span>
                           <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] border ${
                             destinationAccuracy <= 25
-                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                               : destinationAccuracy <= 100
-                              ? 'bg-blue-100 text-blue-800 border-blue-300'
-                              : 'bg-amber-100 text-amber-800 border-amber-300'
+                              ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                              : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
                           }`}>
                             Akurasi ±{destinationAccuracy}m
                           </span>
                         </div>
                         {destinationAccuracy <= 10 ? (
-                          <p className="text-[10px] text-emerald-700 font-semibold mt-1 leading-tight">
+                          <p className="text-[10px] text-emerald-300 font-semibold mt-1 leading-tight">
                             ✨ 🎯 GPS Presisi Tinggi (±{destinationAccuracy} m). Penanda lokasi tujuan otomatis disesuaikan.
                           </p>
                         ) : destinationAccuracy <= 25 ? (
@@ -1457,7 +1457,7 @@ ${osmLink}`;
                             📍 GPS Sangat Bagus (±{destinationAccuracy} m). Penanda lokasi tujuan terdeteksi dengan baik.
                           </p>
                         ) : destinationAccuracy <= 50 ? (
-                          <p className="text-[10px] text-blue-700 font-semibold mt-1 leading-tight">
+                          <p className="text-[10px] text-blue-300 font-semibold mt-1 leading-tight">
                             📍 GPS Bagus (±{destinationAccuracy} m). Penanda lokasi tujuan terdeteksi.
                           </p>
                         ) : destinationAccuracy <= 100 ? (
@@ -1466,7 +1466,7 @@ ${osmLink}`;
                           </p>
                         ) : destinationAccuracy <= 500 ? (
                           <div className="mt-1.5 space-y-1">
-                            <p className="text-[10px] text-amber-700 font-semibold leading-tight">
+                            <p className="text-[10px] text-amber-300 font-semibold leading-tight">
                               ⚠️ GPS Kurang Akurat (±{destinationAccuracy} m). Disarankan aktifkan GPS Akurasi Tinggi di HP Anda.
                             </p>
                             <button
@@ -1481,7 +1481,7 @@ ${osmLink}`;
                           </div>
                         ) : (
                           <div className="mt-1.5 space-y-1">
-                            <p className="text-[10px] text-amber-800 font-semibold leading-tight">
+                            <p className="text-[10px] text-amber-400 font-semibold leading-tight">
                               🚨 GPS Sangat Lemah (±{destinationAccuracy} m). Disarankan menggeser penanda lokasi di peta atau aktifkan GPS Akurasi Tinggi.
                             </p>
                             <button
@@ -1504,7 +1504,7 @@ ${osmLink}`;
                         <button
                           type="button"
                           onClick={() => { setShowPinDialog(true); setPinError(''); setPinInput(''); }}
-                          className="flex items-center gap-1.5 text-[10px] font-bold text-secondary-400 hover:text-secondary-600 transition-colors py-1"
+                          className="flex items-center gap-1.5 text-[10px] font-bold text-white/30 hover:text-white/60 transition-colors py-1"
                           title="Mode Khusus"
                         >
                           <span>🔒</span>
@@ -1512,7 +1512,7 @@ ${osmLink}`;
                         </button>
                       ) : (
                         <>
-                          <label className="block text-[10px] font-extrabold text-blue-900 uppercase tracking-wider flex items-center justify-between">
+                          <label className="block text-[10px] font-extrabold text-blue-200 uppercase tracking-wider flex items-center justify-between">
                             <span>📌 Tempel Link / Koordinat Google Maps</span>
                             <span className="text-emerald-600 text-[9px] font-bold">🔓 Terbuka</span>
                           </label>
@@ -1521,7 +1521,7 @@ ${osmLink}`;
                             value={gmapsLinkInput}
                             onChange={(e) => handleParseGmapsInput(e.target.value)}
                             placeholder="Tempel link Google Maps (maps.app.goo.gl...) atau koordinat (-5.2951, 104.9752)"
-                            className="w-full bg-white font-semibold text-blue-950 px-3 py-2 rounded-xl border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs shadow-soft-xs placeholder:text-blue-300"
+                            className="w-full bg-[#07090C] font-semibold text-white px-3 py-2 rounded-xl border border-white/[0.08] focus:outline-none focus:ring-2 focus:ring-primary/40 text-xs shadow-soft-xs placeholder:text-white/20"
                           />
                         </>
                       )}
@@ -1531,17 +1531,17 @@ ${osmLink}`;
 
 
                   {/* Location Type / Upload Photo / Landmark — always visible */}
-                  <div className="bg-secondary-50/30 p-3 border border-secondary-100 rounded-2xl space-y-2">
+                  <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-2xl space-y-2">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                        <label className="block text-[9px] font-extrabold text-white/70 uppercase tracking-wider flex items-center justify-between">
                           <span>Jenis Lokasi</span>
-                          <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                          <span className="text-white/30 font-semibold text-[8px]">(OPSIONAL)</span>
                         </label>
                         <select
                           value={destinationLocationType}
                           onChange={(e) => setDestinationLocationType(e.target.value)}
-                          className="input-premium py-1 px-2 text-[11px] rounded-lg bg-white border border-secondary-200 mt-1"
+                          className="input-premium py-1 px-2 text-[11px] rounded-lg bg-[#07090C] border border-white/[0.08] mt-1 text-white"
                         >
                           {LOCATION_TYPES.map(loc => (
                             <option key={loc.value} value={loc.value}>{loc.icon} {loc.label}</option>
@@ -1554,11 +1554,11 @@ ${osmLink}`;
                           <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
                         </label>
                         <div className="flex items-center gap-1.5 mt-1.5">
-                          <label className="cursor-pointer bg-white hover:bg-secondary-50 border border-secondary-200 rounded-lg text-[9px] font-bold px-2 py-1 flex items-center gap-1">
+                          <label className="cursor-pointer bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-[9px] font-bold px-2 py-1 flex items-center gap-1 text-white/70">
                             <span>📸 Upload</span>
                             <input type="file" accept="image/*" className="hidden" onChange={handleLocationPhotoUpload} />
                           </label>
-                          {destinationPhotoUrl && <div className="w-5 h-5 rounded bg-emerald-100 flex items-center justify-center text-[10px]">✅</div>}
+                          {destinationPhotoUrl && <div className="w-5 h-5 rounded bg-emerald-500/10 flex items-center justify-center text-[10px]">✅</div>}
                         </div>
                       </div>
                     </div>
@@ -1572,7 +1572,7 @@ ${osmLink}`;
                         value={destinationLandmark}
                         onChange={(e) => setDestinationLandmark(e.target.value)}
                         placeholder="cth: Pagar hitam, dekat warung kelontong"
-                        className="input-premium py-1.5 px-2.5 text-[11px] rounded-lg mt-1 bg-white"
+                        className="input-premium py-1.5 px-2.5 text-[11px] rounded-lg mt-1 bg-[#07090C] border border-white/[0.08] text-white"
                       />
                     </div>
                   </div>
@@ -1582,23 +1582,23 @@ ${osmLink}`;
                     <motion.div
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="p-4 bg-gradient-to-r from-amber-500/15 via-emerald-500/15 to-amber-500/15 border-2 border-emerald-500 rounded-2xl flex items-center justify-between shadow-md text-left"
+                      className="p-4 bg-gradient-to-r from-primary/[0.05] via-emerald-500/[0.05] to-primary/[0.05] border border-emerald-500/30 rounded-2xl flex items-center justify-between shadow-md text-left"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-emerald-700 font-black text-xs">
+                        <div className="flex items-center gap-1.5 text-emerald-400 font-black text-xs">
                           <span className="relative flex h-2.5 w-2.5">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                           </span>
                           <span>Ongkos Kirim Otomatis Terkalkulasi!</span>
                         </div>
-                        <p className="text-[11px] text-secondary-700 font-medium">
-                          Jarak Rute: <strong className="text-secondary-900 font-extrabold">{formatDistance(pricing.distance)}</strong> ({formatDuration(pricing.duration)})
+                        <p className="text-[11px] text-white/60 font-medium">
+                          Jarak Rute: <strong className="text-white font-extrabold">{formatDistance(pricing.distance)}</strong> ({formatDuration(pricing.duration)})
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[9px] text-secondary-500 uppercase font-black tracking-wider">Total Biaya Ongkir</p>
-                        <p className="text-2xl font-black text-amber-600 font-outfit leading-tight">{formatCurrency(pricing.totalDeliveryFee)}</p>
+                        <p className="text-[9px] text-white/40 uppercase font-black tracking-wider">Total Biaya Ongkir</p>
+                        <p className="text-2xl font-black text-primary font-outfit leading-tight">{formatCurrency(pricing.totalDeliveryFee)}</p>
                       </div>
                     </motion.div>
                   )}
@@ -1607,7 +1607,7 @@ ${osmLink}`;
 
               {/* Service Categories */}
               <div className="space-y-3">
-                <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider flex items-center justify-between">
+                <label className="block text-xs font-bold text-white/70 font-outfit uppercase tracking-wider flex items-center justify-between">
                   <span>Kategori Layanan</span>
                   <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
                 </label>
@@ -1631,11 +1631,11 @@ ${osmLink}`;
                         className={cn(
                           'p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 shadow-sm',
                           isSelected
-                            ? 'border-amber-500 bg-amber-500/10 text-amber-900 font-bold scale-[1.02]'
-                            : 'border-secondary-100 hover:border-amber-300 hover:bg-secondary-50 text-secondary-600'
+                            ? 'border-primary bg-primary/10 text-primary font-bold scale-[1.02]'
+                            : 'border-white/[0.06] hover:border-primary/45 hover:bg-white/[0.04] text-white/60'
                         )}
                       >
-                        {Icon && <Icon className={cn('w-5 h-5', isSelected ? 'text-amber-600' : 'text-secondary-400')} />}
+                        {Icon && <Icon className={cn('w-5 h-5', isSelected ? 'text-primary' : 'text-white/30')} />}
                         <span className="text-[10px] leading-tight font-bold">{cat.label.split(' ')[0]}</span>
                       </button>
                     );
@@ -1644,8 +1644,8 @@ ${osmLink}`;
               </div>
 
               {/* Route Options and Rules */}
-              <div className="bg-secondary-50/50 p-4 border border-secondary-150 rounded-2xl space-y-3">
-                <label className="block text-[10px] font-bold text-secondary-500 uppercase tracking-wider">Profil Pencarian Rute</label>
+              <div className="bg-white/[0.02] p-4 border border-white/[0.06] rounded-2xl space-y-3">
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider">Profil Pencarian Rute</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(['fastest', 'shortest', 'motorcycle'] as const).map((opt) => (
                     <button
@@ -1655,8 +1655,8 @@ ${osmLink}`;
                       className={cn(
                         'py-1.5 px-2 rounded-xl text-[10px] font-bold border transition-all text-center',
                         routeOption === opt
-                          ? 'bg-secondary-900 border-secondary-900 text-white shadow'
-                          : 'bg-white border-secondary-200 text-secondary-600'
+                          ? 'bg-primary border-primary text-secondary-900 font-bold shadow-golden'
+                          : 'bg-white/[0.04] border border-white/[0.08] text-white/50 hover:bg-white/[0.06]'
                       )}
                     >
                       {opt === 'fastest' ? '⚡ Tercepat' : opt === 'shortest' ? '📏 Terpendek' : '🛵 Rute Motor'}
@@ -1673,18 +1673,18 @@ ${osmLink}`;
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="space-y-4 bg-amber-50/10 border border-amber-200/50 rounded-2xl p-4"
+                    className="space-y-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4"
                   >
-                    <h4 className="text-xs font-extrabold text-secondary-800 uppercase tracking-wider font-outfit border-b border-secondary-100 pb-2">Spesifikasi Ojek</h4>
+                    <h4 className="text-xs font-extrabold text-white uppercase tracking-wider font-outfit border-b border-white/[0.06] pb-2">Spesifikasi Ojek</h4>
                     
                     {/* Passenger count */}
                     <div className="grid grid-cols-2 gap-3.5">
                       <div>
-                        <label className="block text-[10px] font-bold text-secondary-500 mb-1">Jumlah Penumpang</label>
+                        <label className="block text-[10px] font-bold text-white/40 mb-1">Jumlah Penumpang</label>
                         <select
                           value={passengerCount}
                           onChange={(e) => setPassengerCount(parseInt(e.target.value))}
-                          className="input-premium py-2 px-2 text-xs rounded-xl bg-white"
+                          className="input-premium py-2 px-2 text-xs rounded-xl bg-[#07090C] border border-white/[0.08] text-white"
                         >
                           <option value="1">1 Orang</option>
                           <option value="2">2 Orang</option>
@@ -1716,7 +1716,7 @@ ${osmLink}`;
                           className={cn(
                             "py-2 px-2 border rounded-xl text-xs font-bold transition-all",
                             ojekHelmet === 'need' 
-                              ? "bg-amber-500 border-amber-500 text-white shadow-sm" 
+                              ? "bg-primary border-primary text-secondary-900 font-bold shadow-golden" 
                               : "bg-white border-secondary-200 text-secondary-600"
                           )}
                         >
@@ -1747,7 +1747,7 @@ ${osmLink}`;
                           onChange={(e) => setOjekRoundTrip(e.target.checked)}
                           className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500"
                         />
-                        <label htmlFor="roundtrip" className="text-xs font-bold text-secondary-700 cursor-pointer">Perjalanan Pulang Pergi (PP)</label>
+                        <label htmlFor="roundtrip" className="text-xs font-bold text-white/70 cursor-pointer">Perjalanan Pulang Pergi (PP)</label>
                       </div>
                     </div>
                   </motion.div>
@@ -1758,7 +1758,7 @@ ${osmLink}`;
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="space-y-4 bg-secondary-50/30 border border-secondary-150 rounded-2xl p-4"
+                    className="space-y-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4"
                   >
                     <h4 className="text-xs font-extrabold text-secondary-800 uppercase tracking-wider font-outfit border-b border-secondary-100 pb-2">Spesifikasi Paket & Titipan</h4>
                     
@@ -1781,7 +1781,7 @@ ${osmLink}`;
                               "py-2 border rounded-xl text-[9px] font-bold text-center transition-all",
                               weightRange === w.val 
                                 ? "bg-amber-500 border-amber-500 text-white shadow-sm" 
-                                : "bg-white border-secondary-200 text-secondary-500"
+                                : "bg-white/[0.04] border border-white/[0.08] text-white/50 hover:bg-white/[0.06]"
                             )}
                           >
                             {w.lbl}
@@ -1806,7 +1806,7 @@ ${osmLink}`;
 
                         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                           {shoppingItems.map((item, idx) => (
-                            <div key={item.id} className="flex gap-2 items-center bg-white p-2 rounded-xl border border-secondary-200">
+                            <div key={item.id} className="flex gap-2 items-center bg-[#07090C] p-2 rounded-xl border border-white/[0.08]">
                               <input
                                 type="text"
                                 value={item.name}
@@ -1819,7 +1819,7 @@ ${osmLink}`;
                                 value={item.quantity}
                                 min={1}
                                 onChange={(e) => updateShoppingItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
-                                className="w-10 text-center text-[11px] font-bold border-0 p-0 focus:ring-0 bg-secondary-50 rounded"
+                                className="w-10 text-center text-[11px] font-bold border-0 p-0 focus:ring-0 bg-white/[0.04] text-white rounded"
                               />
                               <input
                                 type="number"
@@ -1940,8 +1940,8 @@ ${osmLink}`;
               </div>
 
               {/* Promo Code Discount */}
-              <div className="bg-amber-500/5 p-4 border border-amber-500/10 rounded-2xl space-y-2">
-                <label className="block text-[10px] font-bold text-amber-800 uppercase tracking-wider">Gunakan Kode Promo</label>
+              <div className="bg-primary/5 p-4 border border-primary/20 rounded-2xl space-y-2">
+                <label className="block text-[10px] font-bold text-primary uppercase tracking-wider">Gunakan Kode Promo</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -1953,13 +1953,13 @@ ${osmLink}`;
                   <button
                     type="button"
                     onClick={handleApplyPromo}
-                    className="bg-amber-500 text-secondary-900 font-bold px-4 py-2 rounded-xl text-xs hover:bg-amber-600 transition-colors shadow-sm"
+                    className="bg-primary text-secondary-900 font-bold px-4 py-2 rounded-xl text-xs hover:bg-primary-600 transition-colors shadow-golden"
                   >
                     Terapkan
                   </button>
                 </div>
                 {appliedPromo && (
-                  <p className="text-[10px] text-emerald-600 font-extrabold flex items-center gap-1.5">
+                  <p className="text-[10px] text-emerald-400 font-extrabold flex items-center gap-1.5">
                     <Check className="w-3.5 h-3.5 stroke-[3]" /> Kode promo &quot;{appliedPromo}&quot; aktif.
                   </p>
                 )}
@@ -1983,8 +1983,8 @@ ${osmLink}`;
                         className={cn(
                           'p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 shadow-sm',
                           isSelected
-                            ? 'border-secondary-900 bg-secondary-50 text-secondary-900 font-bold'
-                            : 'border-secondary-100 hover:border-secondary-300 text-secondary-500 bg-white'
+                            ? 'border-primary bg-primary/10 text-primary font-bold'
+                            : 'border-white/[0.06] hover:border-white/[0.12] text-white/50 bg-[#07090C]'
                         )}
                       >
                         {Icon && <Icon className="w-4 h-4 text-secondary-700" />}
@@ -2018,7 +2018,7 @@ ${osmLink}`;
                     type="button"
                     onClick={handleDownloadReceipt}
                     disabled={isDownloadingReceipt}
-                    className="bg-secondary-900 hover:bg-secondary-800 text-amber-400 font-bold px-4 py-3.5 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-md disabled:opacity-50 border border-amber-500/30 shrink-0"
+                    className="bg-white/[0.04] hover:bg-white/[0.08] text-primary font-bold px-4 py-3.5 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-md disabled:opacity-50 border border-white/[0.08] shrink-0"
                     title="Download Struk Konfirmasi (PNG)"
                   >
                     {isDownloadingReceipt ? (
@@ -2055,30 +2055,30 @@ ${osmLink}`;
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl overflow-hidden border border-secondary-150 shadow-soft-xl max-w-sm w-full"
+              className="bg-[#0B0F14] rounded-2xl overflow-hidden border border-white/[0.08] shadow-cinema-xl max-w-sm w-full"
             >
-              <div className="bg-secondary-900 p-4 text-white flex items-center justify-between">
+              <div className="bg-[#11161C] p-4 text-white flex items-center justify-between border-b border-white/[0.06]">
                 <div>
                   <h3 className="text-sm font-bold font-outfit text-white flex items-center gap-2">🔒 Mode Khusus</h3>
-                  <p className="text-[10px] text-secondary-400 mt-0.5">Masukkan PIN untuk membuka fitur ini.</p>
+                  <p className="text-[10px] text-white/30 mt-0.5">Masukkan PIN untuk membuka fitur ini.</p>
                 </div>
                 <button
                   onClick={() => { setShowPinDialog(false); setPinInput(''); setPinError(''); }}
-                  className="text-secondary-400 hover:text-white text-lg p-1.5 hover:bg-secondary-800 rounded-xl transition-all"
+                  className="text-white/40 hover:text-white text-lg p-1.5 hover:bg-white/[0.04] rounded-xl transition-all"
                 >
                   ✕
                 </button>
               </div>
               <div className="p-5 space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-secondary-700 uppercase tracking-wider">PIN Akses</label>
+                  <label className="block text-[11px] font-bold text-white/70 uppercase tracking-wider">PIN Akses</label>
                   <input
                     type="password"
                     value={pinInput}
                     onChange={(e) => { setPinInput(e.target.value); setPinError(''); }}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handlePinSubmit(); } }}
                     placeholder="Masukkan PIN..."
-                    className="w-full input-premium py-2.5 px-3 text-sm rounded-xl text-center tracking-[0.3em] font-bold"
+                    className="w-full input-premium py-2.5 px-3 text-sm rounded-xl text-center tracking-[0.3em] font-bold bg-[#07090C] border border-white/[0.08]"
                     autoFocus
                   />
                   {pinError && (
@@ -2118,13 +2118,13 @@ ${osmLink}`;
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 30 }}
               id="jss-confirm-modal-card"
-              className="bg-white rounded-card overflow-hidden border border-secondary-150 shadow-soft-xl max-w-lg w-full flex flex-col max-h-[90vh]"
+              className="bg-[#0B0F14] rounded-card overflow-hidden border border-white/[0.08] shadow-cinema-xl max-w-lg w-full flex flex-col max-h-[90vh]"
             >
               {/* Header */}
-              <div className="bg-secondary-900 p-5 text-white flex items-center justify-between">
+              <div className="bg-[#11161C] p-5 text-white flex items-center justify-between border-b border-white/[0.06]">
                 <div>
                   <h3 className="text-lg font-bold font-outfit text-white">Konfirmasi Pemesanan JSS</h3>
-                  <p className="text-[10px] text-secondary-300">Harap tinjau rincian biaya dan rute sebelum mengirim ke WhatsApp</p>
+                  <p className="text-[10px] text-white/30">Harap tinjau rincian biaya dan rute sebelum mengirim ke WhatsApp</p>
                 </div>
                 <button
                   onClick={() => setShowConfirmModal(false)}
@@ -2138,21 +2138,21 @@ ${osmLink}`;
               <div className="p-6 overflow-y-auto space-y-4.5 text-left text-xs leading-relaxed">
                 
                 {/* Rute preview */}
-                <div className="space-y-3.5 bg-secondary-50/50 p-4 border border-secondary-100 rounded-2xl">
+                <div className="space-y-3.5 bg-white/[0.02] p-4 border border-white/[0.06] rounded-2xl">
                   {/* Pickup Location */}
-                  <div className="space-y-1.5 border-b border-secondary-100 pb-3">
+                  <div className="space-y-1.5 border-b border-white/[0.06] pb-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[9px] uppercase font-extrabold text-secondary-400 flex items-center gap-1">
+                      <span className="text-[9px] uppercase font-extrabold text-white/40 flex items-center gap-1">
                         📍 PICKUP LOCATION
                       </span>
-                      <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                         ✅ GPS Verified
                       </span>
                     </div>
-                    <div className="font-bold text-secondary-800 leading-snug space-y-0.5 text-xs">
-                      <p className="font-black text-secondary-900">Perempatan Pasar Kalirejo</p>
+                    <div className="font-bold text-white/80 leading-snug space-y-0.5 text-xs">
+                      <p className="font-black text-white">Perempatan Pasar Kalirejo</p>
                       <p className="text-secondary-600">Desa Kalirejo, Kec. Kalirejo</p>
-                      <p className="text-secondary-500 text-[11px]">Kab. Lampung Tengah, Lampung</p>
+                      <p className="text-white/50 text-[11px]">Kab. Lampung Tengah, Lampung</p>
                     </div>
                   </div>
 
@@ -2166,16 +2166,16 @@ ${osmLink}`;
                         ✅ GPS Verified
                       </span>
                     </div>
-                    <p className="font-bold text-secondary-900 leading-snug text-xs">{destinationAddress}</p>
-                    {destinationLandmark && <p className="text-[10px] text-amber-600 font-semibold">📍 Patokan: {destinationLandmark}</p>}
+                    <p className="font-bold text-white leading-snug text-xs">{destinationAddress}</p>
+                    {destinationLandmark && <p className="text-[10px] text-primary font-semibold">📍 Patokan: {destinationLandmark}</p>}
                     {destinationCoords && (
-                      <div className="text-[10px] text-secondary-700 space-y-1 mt-1.5 font-mono bg-white p-2.5 rounded-xl border border-secondary-200 shadow-soft-xs">
-                        <p className="font-bold text-blue-950">📍 Koordinat: {destinationCoords.lat.toFixed(7)}, {destinationCoords.lng.toFixed(7)}</p>
+                      <div className="text-[10px] text-white/60 space-y-1 mt-1.5 font-mono bg-[#07090C] p-2.5 rounded-xl border border-white/[0.08] shadow-soft-xs">
+                        <p className="font-bold text-blue-200">📍 Koordinat: {destinationCoords.lat.toFixed(7)}, {destinationCoords.lng.toFixed(7)}</p>
                         <a
                           href={`https://www.google.com/maps?q=${destinationCoords.lat.toFixed(7)},${destinationCoords.lng.toFixed(7)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700 font-extrabold flex items-center gap-1 text-[10px] underline"
+                          className="text-primary hover:underline font-extrabold flex items-center gap-1 text-[10px]"
                         >
                           <span>🗺️ Google Maps Link</span>
                           <span className="text-[9px]">↗</span>
@@ -2186,12 +2186,12 @@ ${osmLink}`;
                 </div>
 
                 {/* Travel stats */}
-                <div className="grid grid-cols-3 gap-2 bg-secondary-900/5 border border-secondary-150 p-3 rounded-2xl text-center">
+                <div className="grid grid-cols-3 gap-2 bg-white/[0.01] border border-white/[0.06] p-3 rounded-2xl text-center">
                   <div>
                     <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">Jarak Rute</span>
                     <span className="text-xs font-extrabold text-secondary-800">{formatDistance(pricing.distance)}</span>
                   </div>
-                  <div className="border-x border-secondary-200">
+                  <div className="border-x border-white/[0.06]">
                     <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">Estimasi Perjalanan</span>
                     <span className="text-xs font-extrabold text-secondary-800">{formatDuration(pricing.duration)}</span>
                   </div>
@@ -2202,16 +2202,16 @@ ${osmLink}`;
                 </div>
 
                 {/* Fees Itemization Breakdown */}
-                <div className="space-y-2 bg-white border border-secondary-150 p-4 rounded-2xl shadow-sm">
-                  <h4 className="text-[10px] font-extrabold text-secondary-450 uppercase tracking-wider border-b border-secondary-100 pb-1.5 mb-2">Rincian Ongkos Kirim</h4>
+                <div className="space-y-2 bg-white/[0.02] border border-white/[0.06] p-4 rounded-2xl shadow-sm">
+                  <h4 className="text-[10px] font-extrabold text-white/40 uppercase tracking-wider border-b border-white/[0.06] pb-1.5 mb-2">Rincian Ongkos Kirim</h4>
                   
                   <div className="flex justify-between items-center gap-2">
-                    <span className="text-secondary-500 shrink-0">Tarif Dasar ({category === 'ride' ? 'Ojek' : 'Logistik'})</span>
-                    <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.baseFee)}</span>
+                    <span className="text-white/50 shrink-0">Tarif Dasar ({category === 'ride' ? 'Ojek' : 'Logistik'})</span>
+                    <span className="font-bold text-white/80 text-right whitespace-nowrap">{formatCurrency(pricing.baseFee)}</span>
                   </div>
 
                   <div className="flex justify-between items-center gap-2">
-                    <span className="text-secondary-500 shrink-0">Tarif Jarak Tempuh</span>
+                    <span className="text-white/50 shrink-0">Tarif Jarak Tempuh</span>
                     <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.distanceFee)}</span>
                   </div>
 
@@ -2228,7 +2228,7 @@ ${osmLink}`;
                       {pricing.shoppingFee > 0 ? (
                         <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.shoppingFee)}</span>
                       ) : (
-                        <span className="font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full text-xs tracking-wide uppercase whitespace-nowrap">
+                        <span className="font-bold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-xs tracking-wide uppercase whitespace-nowrap">
                           GRATIS
                         </span>
                       )}
@@ -2278,43 +2278,43 @@ ${osmLink}`;
                   )}
 
                   {pricing.isRoundTrip && pricing.roundTripFee && pricing.roundTripFee > 0 && (
-                    <div className="flex justify-between items-center gap-2 text-amber-700 font-semibold bg-amber-50 p-1.5 rounded-lg border border-amber-200 mt-1">
+                    <div className="flex justify-between items-center gap-2 text-primary font-semibold bg-primary/5 p-1.5 rounded-lg border border-primary/20 mt-1">
                       <span>Perjalanan Pulang Pergi (PP 2x)</span>
                       <span className="whitespace-nowrap">+{formatCurrency(pricing.roundTripFee)}</span>
                     </div>
                   )}
 
                   {pricing.promoDiscount && pricing.promoDiscount > 0 && (
-                    <div className="flex justify-between items-center gap-2 text-emerald-600 font-semibold bg-emerald-50 p-1.5 rounded-lg border border-emerald-100 mt-1">
+                    <div className="flex justify-between items-center gap-2 text-emerald-400 font-semibold bg-emerald-500/10 p-1.5 rounded-lg border border-emerald-500/20 mt-1">
                       <span>Promo Discount ({appliedPromo})</span>
                       <span className="whitespace-nowrap">-{formatCurrency(pricing.promoDiscount)}</span>
                     </div>
                   )}
 
                   {category !== 'ride' && totalItemPrice > 0 && (
-                    <div className="flex justify-between items-center gap-2 text-secondary-500 border-t border-dashed pt-2 mt-2">
+                    <div className="flex justify-between items-center gap-2 text-white/50 border-t border-dashed border-white/[0.08] pt-2 mt-2">
                       <span>Estimasi Budget Belanja</span>
                       <span className="whitespace-nowrap">{formatCurrency(totalItemPrice)}</span>
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center pt-3 border-t border-secondary-100 font-extrabold text-sm text-secondary-900">
+                  <div className="flex justify-between items-center pt-3 border-t border-white/[0.08] font-extrabold text-sm text-white">
                     <span>Grand Total Tagihan</span>
-                    <span className="text-lg text-primary-700 font-outfit whitespace-nowrap">{formatCurrency(pricing.grandTotal)}</span>
+                    <span className="text-lg text-primary font-outfit whitespace-nowrap">{formatCurrency(pricing.grandTotal)}</span>
                   </div>
                 </div>
 
                 {/* Payment & disclaimer */}
-                <div className="flex justify-between items-center p-3 border border-secondary-150 rounded-2xl bg-secondary-50/50">
+                <div className="flex justify-between items-center p-3 border border-white/[0.08] rounded-2xl bg-white/[0.02]">
                   <span className="font-bold text-secondary-700">Metode Pembayaran:</span>
-                  <span className="font-extrabold text-secondary-900 bg-white border border-secondary-200 px-3 py-1 rounded-xl shadow-sm uppercase tracking-wide">
+                  <span className="font-extrabold text-white bg-white/[0.04] border border-white/[0.08] px-3 py-1 rounded-xl shadow-sm uppercase tracking-wide">
                     {paymentMethod === 'cash' ? '💵 Tunai (COD)' : paymentMethod === 'qris' ? '📱 QRIS' : '🏦 Transfer'}
                   </span>
                 </div>
               </div>
 
               {/* Action buttons */}
-              <div className="p-5 bg-secondary-50 border-t border-secondary-150 flex flex-col sm:flex-row gap-2.5">
+              <div className="p-5 bg-[#11161C] border-t border-white/[0.06] flex flex-col sm:flex-row gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowConfirmModal(false)}
@@ -2326,7 +2326,7 @@ ${osmLink}`;
                   type="button"
                   onClick={handleDownloadReceipt}
                   disabled={isDownloadingReceipt}
-                  className="bg-secondary-800 hover:bg-secondary-900 text-white font-bold py-3 px-4 rounded-button text-xs flex items-center justify-center gap-2 transition-all shadow-sm flex-1 disabled:opacity-50"
+                  className="bg-white/[0.04] hover:bg-white/[0.08] text-white font-bold py-3 px-4 rounded-button text-xs flex items-center justify-center gap-2 transition-all shadow-sm flex-1 disabled:opacity-50 border border-white/[0.08]"
                 >
                   {isDownloadingReceipt ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
