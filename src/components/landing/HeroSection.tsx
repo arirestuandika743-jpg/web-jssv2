@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Sparkles, ShieldCheck, MapPin, Zap, UtensilsCrossed, Package, ShoppingBag, Pill } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -160,12 +161,21 @@ export function HeroSection() {
                 <div className="w-[80%] h-[80%] bg-primary/[0.06] rounded-full blur-[100px] animate-glow-pulse" />
               </div>
 
-              {/* 3D Motorcycle SVG Scene */}
+              {/* Realistic JSS Courier Image */}
               <motion.div
                 style={isMobile ? {} : { x: motoX, y: motoY }}
-                className="relative z-10"
+                className="relative z-10 flex items-center justify-center"
               >
-                <MotorcycleScene />
+                <div className="relative w-full aspect-[360/220] rounded-2xl overflow-hidden border border-white/[0.08] shadow-cinema-xl bg-[#0B0F14]/40 backdrop-blur-md">
+                  <Image
+                    src="/hero-courier.png"
+                    alt="JSS Delivery Courier"
+                    fill
+                    sizes="(max-width: 1024px) 100%, 500px"
+                    className="object-cover transition-transform duration-700 hover:scale-105"
+                    priority
+                  />
+                </div>
               </motion.div>
 
               {/* Floating Service Cards (different Z-depths) */}
@@ -228,106 +238,5 @@ export function HeroSection() {
         </motion.div>
       </div>
     </section>
-  );
-}
-
-/* ── Premium SVG Motorcycle Scene ── */
-function MotorcycleScene() {
-  return (
-    <div className="relative w-full aspect-square max-w-md mx-auto">
-      <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-2xl">
-        {/* Ground shadow */}
-        <ellipse cx="200" cy="340" rx="140" ry="18" fill="url(#groundShadow)" opacity="0.4" />
-
-        {/* Delivery Box */}
-        <g transform="translate(155, 120)">
-          {/* Box body */}
-          <rect x="0" y="0" width="90" height="70" rx="8" fill="#171D24" stroke="rgba(255,201,40,0.3)" strokeWidth="1.5" />
-          <rect x="0" y="0" width="90" height="20" rx="8" fill="#1D232D" />
-          <rect x="0" y="12" width="90" height="8" fill="#1D232D" />
-          {/* JSS Label */}
-          <text x="45" y="50" textAnchor="middle" fill="#FFC928" fontSize="16" fontWeight="800" fontFamily="Inter, sans-serif">JSS</text>
-          {/* Strap */}
-          <rect x="35" y="-8" width="20" height="8" rx="4" fill="#FFC928" opacity="0.8" />
-        </g>
-
-        {/* Motorcycle Body */}
-        <g transform="translate(100, 200)">
-          {/* Frame */}
-          <path d="M40 80 L80 30 L160 30 L180 60 L160 80 Z" fill="#171D24" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          {/* Tank */}
-          <path d="M80 30 L120 20 L160 30 L140 45 L100 45 Z" fill="#1D232D" />
-          {/* Engine block */}
-          <rect x="90" y="50" width="50" height="30" rx="6" fill="#11161C" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-          {/* Exhaust */}
-          <path d="M150 70 L190 75 L195 72 L190 68 L150 65 Z" fill="#2A3240" />
-          <circle cx="195" cy="71" r="3" fill="#FFC928" opacity="0.3" />
-
-          {/* Seat */}
-          <path d="M85 25 Q100 10 140 12 Q160 14 170 25 L150 30 L90 30 Z" fill="#232A36" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
-
-          {/* Headlight - JSS warm yellow */}
-          <circle cx="180" cy="45" r="8" fill="#FFC928" opacity="0.15" />
-          <circle cx="180" cy="45" r="5" fill="#FFC928" opacity="0.4" />
-          <circle cx="180" cy="45" r="3" fill="#FFC928" opacity="0.8" />
-          {/* Headlight beam */}
-          <path d="M188 42 L230 30 L230 60 L188 48 Z" fill="url(#headlightBeam)" opacity="0.12" />
-
-          {/* Tail light */}
-          <circle cx="35" cy="75" r="4" fill="#EF4444" opacity="0.6" />
-          <circle cx="35" cy="75" r="2" fill="#EF4444" opacity="0.9" />
-
-          {/* Front Wheel */}
-          <circle cx="175" cy="95" r="30" fill="none" stroke="#2A3240" strokeWidth="8" />
-          <circle cx="175" cy="95" r="30" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-          <circle cx="175" cy="95" r="8" fill="#1D232D" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-          {/* Spokes */}
-          <line x1="175" y1="67" x2="175" y2="73" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <line x1="175" y1="117" x2="175" y2="123" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <line x1="147" y1="95" x2="153" y2="95" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <line x1="197" y1="95" x2="203" y2="95" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-
-          {/* Rear Wheel */}
-          <circle cx="40" cy="95" r="30" fill="none" stroke="#2A3240" strokeWidth="8" />
-          <circle cx="40" cy="95" r="30" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-          <circle cx="40" cy="95" r="8" fill="#1D232D" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-          {/* Spokes */}
-          <line x1="40" y1="67" x2="40" y2="73" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <line x1="40" y1="117" x2="40" y2="123" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <line x1="12" y1="95" x2="18" y2="95" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <line x1="62" y1="95" x2="68" y2="95" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-
-          {/* Front Fork */}
-          <line x1="165" y1="35" x2="175" y2="65" stroke="#2A3240" strokeWidth="4" strokeLinecap="round" />
-          {/* Handlebar */}
-          <line x1="155" y1="28" x2="178" y2="28" stroke="#2A3240" strokeWidth="3" strokeLinecap="round" />
-          {/* Mirror */}
-          <circle cx="180" cy="25" r="4" fill="#11161C" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-
-          {/* Chain */}
-          <line x1="50" y1="92" x2="100" y2="72" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
-
-          {/* Kickstand shadow */}
-          <line x1="100" y1="95" x2="85" y2="125" stroke="rgba(255,255,255,0.03)" strokeWidth="2" strokeLinecap="round" />
-        </g>
-
-        {/* Route line decoration */}
-        <path d="M50 350 Q120 320 200 330 Q280 340 350 310" stroke="#FFC928" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.2" fill="none" />
-        <circle cx="50" cy="350" r="4" fill="#FFC928" opacity="0.3" />
-        <circle cx="350" cy="310" r="4" fill="#FFC928" opacity="0.3" />
-
-        {/* Gradients */}
-        <defs>
-          <radialGradient id="groundShadow" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0%" stopColor="#000" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#000" stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="headlightBeam" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#FFC928" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#FFC928" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
   );
 }
