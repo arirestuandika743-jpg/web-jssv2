@@ -1842,7 +1842,7 @@ ${osmLink}`;
 
                       {/* Weight Category */}
                       <div>
-                        <label className="block text-[10px] font-bold text-secondary-500 mb-1">Rentang Berat Penumpang</label>
+                        <label className="block text-[10px] font-bold text-white/40 mb-1">Rentang Berat Penumpang</label>
                         <select
                           value={weightRange}
                           onChange={(e) => setWeightRange(e.target.value)}
@@ -1857,7 +1857,7 @@ ${osmLink}`;
 
                     {/* Helm selection */}
                     <div>
-                      <label className="block text-[10px] font-bold text-secondary-500 mb-1.5">Ketersediaan Helm</label>
+                      <label className="block text-[10px] font-bold text-white/40 mb-1.5">Ketersediaan Helm</label>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
@@ -1909,11 +1909,11 @@ ${osmLink}`;
                     exit={{ height: 0, opacity: 0 }}
                     className="space-y-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4"
                   >
-                    <h4 className="text-xs font-extrabold text-secondary-800 uppercase tracking-wider font-outfit border-b border-secondary-100 pb-2">Spesifikasi Paket & Titipan</h4>
+                    <h4 className="text-xs font-extrabold text-white/80 uppercase tracking-wider font-outfit border-b border-white/[0.08] pb-2">Spesifikasi Paket & Titipan</h4>
                     
                     {/* Weight options */}
                     <div>
-                      <label className="block text-[10px] font-bold text-secondary-500 mb-1.5">Estimasi Berat Paket</label>
+                      <label className="block text-[10px] font-bold text-white/40 mb-1.5">Estimasi Berat Paket</label>
                       <div className="grid grid-cols-5 gap-1.5">
                         {[
                           { val: '0-2', lbl: '0-2kg' },
@@ -1943,7 +1943,7 @@ ${osmLink}`;
                     {['shopping', 'food', 'medicine'].includes(category) && (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="block text-[10px] font-bold text-secondary-500 uppercase tracking-wider">Daftar Belanjaan *</label>
+                          <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider">Daftar Belanjaan *</label>
                           <button
                             type="button"
                             onClick={addShoppingItem}
@@ -2001,7 +2001,7 @@ ${osmLink}`;
                           onChange={(e) => setDescription(e.target.value)}
                           placeholder="Tulis jenis paket, alamat tujuan spesifik, cth: Titipan Surat Kematian dari Kantor Desa"
                           rows={2}
-                          className="input-premium py-2 px-3 text-xs resize-none bg-white rounded-xl"
+                          className="input-premium py-2 px-3 text-xs resize-none bg-white/[0.04] text-white border-white/[0.08] focus:border-primary/50 rounded-xl"
                         />
                         {errors.description && <p className="text-[10px] text-red-500 mt-0.5">{errors.description}</p>}
                       </div>
@@ -2013,7 +2013,7 @@ ${osmLink}`;
               
 {/* Waiting Surcharge option */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider">Antrean Waktu Tunggu Driver</label>
+                <label className="block text-xs font-bold text-white/60 font-outfit uppercase tracking-wider">Antrean Waktu Tunggu Driver</label>
                 <select
                   value={waitingMinutes}
                   onChange={(e) => setWaitingMinutes(parseInt(e.target.value) || 0)}
@@ -2030,8 +2030,8 @@ ${osmLink}`;
 
               
 {/* Pricing Custom Toggles: Holiday, Peak, Rain, Insurance */}
-              <div className="bg-secondary-50/40 p-4 border border-secondary-100 rounded-2xl space-y-3 text-xs">
-                <h4 className="text-xs font-bold text-secondary-800 uppercase tracking-wider font-outfit border-b border-secondary-100 pb-2">Opsi & Surcharge Tambahan</h4>
+              <div className="bg-white/[0.02] p-4 border border-white/[0.06] rounded-2xl space-y-3 text-xs text-white/90">
+                <h4 className="text-xs font-bold text-white/80 uppercase tracking-wider font-outfit border-b border-white/[0.08] pb-2">Opsi & Surcharge Tambahan</h4>
                 
                 {/* Rain/Weather Toggle */}
                 <div className="flex items-center justify-between">
