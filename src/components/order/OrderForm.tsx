@@ -1237,7 +1237,7 @@ ${osmLink}`;
         
         {/* LEFT PANEL: Booking Controls & Inputs */}
         <div className={cn(
-          "w-full lg:w-[480px] lg:flex-shrink-0 bg-[#0B0F14]/90 backdrop-blur-2xl border-r border-white/[0.08] flex flex-col z-10 shadow-cinema transition-all",
+          "w-full lg:w-[480px] lg:flex-shrink-0 bg-[#11151A] border-r border-white/[0.08] flex flex-col z-10 shadow-cinema transition-all",
           isMobile ? "relative overflow-y-auto" : "h-[calc(100vh-80px)] overflow-y-auto"
         )}>
           <div className="p-6 md:p-8 space-y-6">
@@ -1336,7 +1336,7 @@ ${osmLink}`;
 
               
 {/* Profile/Customer name */}
-              <div className="space-y-4 bg-white/[0.02] border border-white/[0.06] p-4 rounded-2xl">
+              <div className="space-y-4 bg-[#11151A] border border-white/[0.08] p-5 rounded-[20px] shadow-cinema">
                 <h3 className="text-sm font-bold text-white flex items-center justify-between font-outfit">
                   <span className="flex items-center gap-2">
                     <User className="w-4 h-4 text-primary" />
@@ -1364,7 +1364,7 @@ ${osmLink}`;
                       placeholder="Contoh: Budi Santoso"
                       className={cn(
                         "input-premium py-2.5 text-xs rounded-xl transition-all",
-                        errors.customerName ? "bg-red-500/10 border-red-500 focus:ring-red-500/20" : customerName ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/[0.04] border-white/[0.08]"
+                        errors.customerName ? "bg-red-500/10 border-red-500 focus:ring-red-500/20 text-white" : customerName ? "bg-[#0D1116] border-emerald-500/30 text-white" : "bg-[#0D1116] border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10"
                       )}
                     />
                     {errors.customerName ? (
@@ -1390,7 +1390,7 @@ ${osmLink}`;
                       placeholder="08xxxxxxxxxx"
                       className={cn(
                         "input-premium py-2.5 text-xs rounded-xl transition-all",
-                        errors.whatsappNumber ? "bg-red-500/10 border-red-500 focus:ring-red-500/20" : whatsappNumber ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/[0.04] border-white/[0.08]"
+                        errors.whatsappNumber ? "bg-red-500/10 border-red-500 focus:ring-red-500/20 text-white" : whatsappNumber ? "bg-[#0D1116] border-emerald-500/30 text-white" : "bg-[#0D1116] border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10"
                       )}
                     />
                     {errors.whatsappNumber ? (
@@ -1408,7 +1408,7 @@ ${osmLink}`;
                 <div className="space-y-3.5">
 
                   {/* Menu Deteksi Lokasi Real-Time Customer via Native Device GPS */}
-                  <div className="bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-blue-500/5 border border-blue-500/30 p-4 rounded-2xl space-y-3 text-left shadow-cinema">
+                  <div className="bg-[#11151A] border border-white/[0.08] p-5 rounded-[20px] space-y-3 text-left shadow-cinema">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="relative flex h-3 w-3">
@@ -1454,7 +1454,7 @@ ${osmLink}`;
                         type="button"
                         onClick={handleGetDestinationLocation}
                         disabled={isLocatingDestination}
-                        className="flex-1 min-w-[200px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white text-xs font-black px-4 py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="flex-1 min-w-[200px] bg-primary text-secondary-900 font-extrabold text-xs px-5 py-3.5 rounded-xl hover:bg-[#FFD64D] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all shadow-golden disabled:opacity-50"
                       >
                         {isLocatingDestination ? (
                           <>
@@ -1646,7 +1646,7 @@ ${osmLink}`;
 
                   
 {/* Location Type / Upload Photo / Landmark — always visible */}
-                  <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-2xl space-y-2">
+                  <div className="bg-[#11151A] border border-white/[0.08] p-5 rounded-[20px] space-y-3 shadow-cinema">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-[9px] font-extrabold text-white/70 uppercase tracking-wider flex items-center justify-between">
@@ -1656,7 +1656,7 @@ ${osmLink}`;
                         <select
                           value={destinationLocationType}
                           onChange={(e) => setDestinationLocationType(e.target.value)}
-                          className="input-premium py-1 px-2 text-[11px] rounded-lg bg-[#07090C] border border-white/[0.08] mt-1 text-white"
+                          className="input-premium py-2 px-3 text-xs rounded-xl bg-[#0D1116] border border-white/[0.10] mt-1 text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10"
                         >
                           {LOCATION_TYPES.map(loc => (
                             <option key={loc.value} value={loc.value}>{loc.icon} {loc.label}</option>
@@ -1664,7 +1664,7 @@ ${osmLink}`;
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                        <label className="block text-[9px] font-extrabold text-white/40 uppercase tracking-wider flex items-center justify-between">
                           <span>Foto Tempat</span>
                           <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
                         </label>
@@ -1678,7 +1678,7 @@ ${osmLink}`;
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-extrabold text-secondary-600 uppercase tracking-wider flex items-center justify-between">
+                      <label className="block text-[9px] font-extrabold text-white/40 uppercase tracking-wider flex items-center justify-between">
                         <span>Patokan / Catatan Tujuan</span>
                         <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
                       </label>
@@ -1687,7 +1687,7 @@ ${osmLink}`;
                         value={destinationLandmark}
                         onChange={(e) => setDestinationLandmark(e.target.value)}
                         placeholder="cth: Pagar hitam, dekat warung kelontong"
-                        className="input-premium py-1.5 px-2.5 text-[11px] rounded-lg mt-1 bg-[#07090C] border border-white/[0.08] text-white"
+                        className="input-premium py-2 px-3 text-xs rounded-xl mt-1 bg-[#0D1116] border border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10"
                       />
                     </div>
                   </div>
@@ -1859,7 +1859,7 @@ ${osmLink}`;
                         <select
                           value={passengerCount}
                           onChange={(e) => setPassengerCount(parseInt(e.target.value))}
-                          className="input-premium py-2 px-2 text-xs rounded-xl bg-[#07090C] border border-white/[0.08] text-white"
+                          className="input-premium py-2 px-3 text-xs rounded-xl bg-[#0D1116] border border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10"
                         >
                           <option value="1">1 Orang</option>
                           <option value="2">2 Orang</option>
@@ -1973,7 +1973,7 @@ ${osmLink}`;
                           <button
                             type="button"
                             onClick={addShoppingItem}
-                            className="text-[10px] text-amber-500 font-extrabold flex items-center gap-0.5 hover:underline"
+                            className="text-[10px] text-primary font-extrabold flex items-center gap-0.5 px-2 py-1 rounded-md hover:bg-primary/10 active:bg-primary/15 transition-all"
                           >
                             <Plus className="w-3.5 h-3.5" /> Tambah Barang
                           </button>
@@ -1981,7 +1981,7 @@ ${osmLink}`;
 
                         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                           {shoppingItems.map((item, idx) => (
-                            <div key={item.id} className="flex gap-2 items-center bg-[#07090C] p-2 rounded-xl border border-white/[0.08]">
+                            <div key={item.id} className="flex gap-2 items-center bg-[#0D1116] p-2.5 rounded-xl border border-white/[0.08]">
                               <input
                                 type="text"
                                 value={item.name}
@@ -1994,7 +1994,7 @@ ${osmLink}`;
                                 value={item.quantity}
                                 min={1}
                                 onChange={(e) => updateShoppingItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
-                                className="w-10 text-center text-[11px] font-bold border-0 p-0 focus:ring-0 bg-white/[0.04] text-white rounded"
+                                className="w-10 text-center text-xs font-bold border-0 p-1.5 focus:ring-0 bg-[#151A20] text-[#F5F5F5] rounded-lg border border-white/[0.08]"
                               />
                               <input
                                 type="number"
@@ -2027,7 +2027,7 @@ ${osmLink}`;
                           onChange={(e) => setDescription(e.target.value)}
                           placeholder="Tulis jenis paket, alamat tujuan spesifik, cth: Titipan Surat Kematian dari Kantor Desa"
                           rows={2}
-                          className="input-premium py-2 px-3 text-xs resize-none bg-white/[0.04] text-white border-white/[0.08] focus:border-primary/50 rounded-xl"
+                          className="input-premium py-2.5 px-3.5 text-xs resize-none bg-[#0D1116] border border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-xl"
                         />
                         {errors.description && <p className="text-[10px] text-red-500 mt-0.5">{errors.description}</p>}
                       </div>
@@ -2056,69 +2056,69 @@ ${osmLink}`;
 
               
 {/* Pricing Custom Toggles: Holiday, Peak, Rain, Insurance */}
-              <div className="bg-white/[0.02] p-4 border border-white/[0.06] rounded-2xl space-y-3 text-xs text-white/90">
+              <div className="bg-[#11151A] border border-white/[0.08] p-5 rounded-[20px] shadow-cinema space-y-3 text-xs text-white/90">
                 <h4 className="text-xs font-bold text-white/80 uppercase tracking-wider font-outfit border-b border-white/[0.08] pb-2">Opsi & Surcharge Tambahan</h4>
                 
                 {/* Rain/Weather Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CloudRain className="w-4 h-4 text-blue-500" />
+                    <CloudRain className={cn("w-4 h-4 transition-colors", hasRain ? "text-sky-400/80" : "text-white/40")} />
                     <span>Surcharge Cuaca Hujan (+Rp3.000)</span>
                   </div>
                   <input
                     type="checkbox"
                     checked={hasRain}
                     onChange={(e) => setHasRain(e.target.checked)}
-                    className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500 cursor-pointer"
+                    className="w-4 h-4 text-primary bg-[#151A20] border-white/20 rounded focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all duration-200"
                   />
                 </div>
 
                 {/* Holiday Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-red-500" />
+                    <Calendar className={cn("w-4 h-4 transition-colors", hasHoliday ? "text-red-400/80" : "text-white/40")} />
                     <span>Surcharge Hari Libur (+Rp2.000)</span>
                   </div>
                   <input
                     type="checkbox"
                     checked={hasHoliday}
                     onChange={(e) => setHasHoliday(e.target.checked)}
-                    className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500 cursor-pointer"
+                    className="w-4 h-4 text-primary bg-[#151A20] border-white/20 rounded focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all duration-200"
                   />
                 </div>
 
                 {/* Peak Hour Surcharge Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-500 animate-pulse" />
+                    <Clock className={cn("w-4 h-4 transition-colors", hasPeakHour ? "text-amber-400/80 animate-pulse" : "text-white/40")} />
                     <span>Surcharge Jam Sibuk (+Rp3.000)</span>
                   </div>
                   <input
                     type="checkbox"
                     checked={hasPeakHour}
                     onChange={(e) => setHasPeakHour(e.target.checked)}
-                    className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500 cursor-pointer"
+                    className="w-4 h-4 text-primary bg-[#151A20] border-white/20 rounded focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all duration-200"
                   />
                 </div>
 
                 {/* Insurance Surcharge Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-emerald-600" />
+                    <Shield className={cn("w-4 h-4 transition-colors", hasInsurance ? "text-primary" : "text-white/40")} />
                     <span>Asuransi Layanan JSS (+Rp1.000)</span>
                   </div>
                   <input
                     type="checkbox"
                     checked={hasInsurance}
                     onChange={(e) => setHasInsurance(e.target.checked)}
-                    className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500 cursor-pointer"
+                    className="w-4 h-4 text-primary bg-[#151A20] border-white/20 rounded focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all duration-200"
                   />
                 </div>
               </div>
 
               
 {/* Promo Code Discount */}
-              <div className="bg-primary/5 p-4 border border-primary/20 rounded-2xl space-y-2">
+              <div className="bg-[#11151A] border border-primary/30 p-5 rounded-[20px] shadow-[0_12px_40px_rgba(255,201,40,0.05)] space-y-3">
                 <label className="block text-[10px] font-bold text-primary uppercase tracking-wider">Gunakan Kode Promo</label>
                 <div className="flex gap-2">
                   <input
@@ -2126,12 +2126,12 @@ ${osmLink}`;
                     value={promoCodeInput}
                     onChange={(e) => setPromoCodeInput(e.target.value)}
                     placeholder="cth: JSSPERDANA"
-                    className="flex-1 input-premium py-2 px-2.5 text-xs rounded-xl bg-white uppercase"
+                    className="flex-1 input-premium py-2.5 px-3.5 text-xs rounded-xl bg-[#0D1116] border border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10 uppercase placeholder:text-white/20"
                   />
                   <button
                     type="button"
                     onClick={handleApplyPromo}
-                    className="bg-primary text-secondary-900 font-bold px-4 py-2 rounded-xl text-xs hover:bg-primary-600 transition-colors shadow-golden"
+                    className="bg-primary text-secondary-900 font-black px-5 py-2.5 rounded-xl text-xs hover:bg-[#FFD64D] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 shadow-golden"
                   >
                     Terapkan
                   </button>
@@ -2166,7 +2166,7 @@ ${osmLink}`;
                             : 'border-white/[0.06] hover:border-white/[0.12] text-white/50 bg-[#07090C]'
                         )}
                       >
-                        {Icon && <Icon className="w-4 h-4 text-secondary-700" />}
+                        {Icon && <Icon className={cn("w-4 h-4 transition-colors", isSelected ? "text-secondary-900" : "text-[#9299A3]")} />}
                         <span className="text-[9px] leading-tight font-bold">{method.label}</span>
                       </button>
                     );
@@ -2290,7 +2290,7 @@ ${osmLink}`;
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 30 }}
               id="jss-confirm-modal-card"
-              className="bg-[#0B0F14] rounded-card overflow-hidden border border-white/[0.08] shadow-cinema-xl max-w-lg w-full flex flex-col max-h-[90vh]"
+              className="bg-[#11151A] rounded-card overflow-hidden border border-white/[0.08] shadow-cinema-xl max-w-lg w-full flex flex-col max-h-[90vh]"
             >
               {/* Header */}
               <div className="bg-[#11161C] p-5 text-white flex items-center justify-between border-b border-white/[0.06]">
@@ -2310,7 +2310,7 @@ ${osmLink}`;
               <div className="p-6 overflow-y-auto space-y-4.5 text-left text-xs leading-relaxed">
                 
                 {/* Rute preview */}
-                <div className="space-y-3.5 bg-white/[0.02] p-4 border border-white/[0.06] rounded-2xl">
+                <div className="space-y-3.5 bg-[#151A20] border border-white/[0.08] p-4 rounded-xl">
                   {/* Pickup Location */}
                   <div className="space-y-1.5 border-b border-white/[0.06] pb-3">
                     <div className="flex items-center justify-between">
@@ -2358,23 +2358,23 @@ ${osmLink}`;
                 </div>
 
                 {/* Travel stats */}
-                <div className="grid grid-cols-3 gap-2 bg-white/[0.01] border border-white/[0.06] p-3 rounded-2xl text-center">
+                <div className="grid grid-cols-3 gap-2 bg-[#151A20] border border-white/[0.08] p-3 rounded-xl text-center">
                   <div>
                     <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">Jarak Rute</span>
-                    <span className="text-xs font-extrabold text-secondary-800">{formatDistance(pricing.distance)}</span>
+                    <span className="text-xs font-extrabold text-white">{formatDistance(pricing.distance)}</span>
                   </div>
                   <div className="border-x border-white/[0.06]">
                     <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">Estimasi Perjalanan</span>
-                    <span className="text-xs font-extrabold text-secondary-800">{formatDuration(pricing.duration)}</span>
+                    <span className="text-xs font-extrabold text-white">{formatDuration(pricing.duration)}</span>
                   </div>
                   <div>
                     <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">ETA Jemput Driver</span>
-                    <span className="text-xs font-extrabold text-secondary-800">~{Math.round(5 + pricing.distance / 1500)} menit</span>
+                    <span className="text-xs font-extrabold text-white">~{Math.round(5 + pricing.distance / 1500)} menit</span>
                   </div>
                 </div>
 
                 {/* Fees Itemization Breakdown */}
-                <div className="space-y-2 bg-white/[0.02] border border-white/[0.06] p-4 rounded-2xl shadow-sm">
+                <div className="space-y-2 bg-[#151A20] border border-white/[0.08] p-4 rounded-xl shadow-sm">
                   <h4 className="text-[10px] font-extrabold text-white/40 uppercase tracking-wider border-b border-white/[0.06] pb-1.5 mb-2">Rincian Ongkos Kirim</h4>
                   
                   <div className="flex justify-between items-center gap-2">
@@ -2384,21 +2384,21 @@ ${osmLink}`;
 
                   <div className="flex justify-between items-center gap-2">
                     <span className="text-white/50 shrink-0">Tarif Jarak Tempuh</span>
-                    <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.distanceFee)}</span>
+                    <span className="font-bold text-white text-right whitespace-nowrap">{formatCurrency(pricing.distanceFee)}</span>
                   </div>
 
                   {pricing.weightFee > 0 && (
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-secondary-500 shrink-0">Surcharge Berat ({weightRange} kg)</span>
-                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.weightFee)}</span>
+                      <span className="text-white/50 shrink-0">Surcharge Berat ({weightRange} kg)</span>
+                      <span className="font-bold text-white text-right whitespace-nowrap">{formatCurrency(pricing.weightFee)}</span>
                     </div>
                   )}
 
                   {(pricing.shoppingFee > 0 || ['shopping', 'food', 'medicine'].includes(category)) && (
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-secondary-500 shrink-0">Jasa Titip Belanja</span>
+                      <span className="text-white/50 shrink-0">Jasa Titip Belanja</span>
                       {pricing.shoppingFee > 0 ? (
-                        <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.shoppingFee)}</span>
+                        <span className="font-bold text-white text-right whitespace-nowrap">{formatCurrency(pricing.shoppingFee)}</span>
                       ) : (
                         <span className="font-bold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-xs tracking-wide uppercase whitespace-nowrap">
                           GRATIS
