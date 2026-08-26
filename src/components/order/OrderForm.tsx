@@ -212,6 +212,7 @@ export function OrderForm() {
   const [isMobile, setIsMobile] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [activeStep, setActiveStep] = useState(1);
 
   // Location geofencing & detailed states
   const [pickupDetails, setPickupDetails] = useState<DetailedAddress | null>(DEFAULT_PICKUP_DETAILS);
@@ -1120,6 +1121,46 @@ ${osmLink}`;
     }
   };
 
+    const validateStep1 = () => {
+    const newErrors: Record<string, string> = {};
+    if (!customerName.trim()) newErrors.customerName = 'Nama lengkap wajib diisi';
+    if (!whatsappNumber.trim()) {
+      newErrors.whatsappNumber = 'Nomor WhatsApp wajib diisi';
+    } else if (!/^\d{10,14}$/.test(whatsappNumber.replace(/[^0-9]/g, ''))) {
+      newErrors.whatsappNumber = 'Format nomor WhatsApp tidak valid (10-14 digit)';
+    }
+    if (!destinationAddress.trim() || !destinationCoords) {
+      newErrors.destinationAddress = 'Tentukan lokasi tujuan Anda terlebih dahulu.';
+    }
+    if (isOutsideLampung) {
+      newErrors.geofence = 'Layanan JSS saat ini hanya beroperasi di Provinsi Lampung.';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const newErrors: Record<string, string> = {};
+    if (!category) newErrors.category = 'Pilih kategori pesanan';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep3 = () => {
+    const newErrors: Record<string, string> = {};
+    if (category === 'ride') {
+      // Ojek validations
+    } else if (['shopping', 'food', 'medicine'].includes(category)) {
+      if (validShoppingItems.length === 0) {
+        newErrors.shoppingItems = 'Harap isi minimal 1 barang belanjaan';
+      }
+    } else {
+      if (!description.trim()) newErrors.description = 'Deskripsi barang/kegiatan wajib diisi';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleOpenConfirm = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) {
@@ -1157,9 +1198,9 @@ ${osmLink}`;
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Check className="w-8 h-8 text-emerald-600 stroke-[3]" />
           </div>
-          <h2 className="text-2xl font-extrabold text-secondary-900 mb-2 font-outfit">Pemesanan Terkirim! 🚀</h2>
+          <h2 className="text-2xl font-extrabold text-white mb-2 font-outfit">Pemesanan Terkirim! 🚀</h2>
           <p className="text-xs text-white/40 mb-6 leading-relaxed">
-            Pesanan Anda (No: <strong className="text-secondary-900">{createdOrderNumber}</strong>) sedang dialihkan ke WhatsApp untuk alokasi driver logistik terdekat.
+            Pesanan Anda (No: <strong className="text-white">{createdOrderNumber}</strong>) sedang dialihkan ke WhatsApp untuk alokasi driver logistik terdekat.
           </p>
           <div className="space-y-2">
             <a
@@ -1235,9 +1276,54 @@ ${osmLink}`;
             </div>
 
             {/* Form */}
-            <form id="order-form-container" onSubmit={handleOpenConfirm} className="space-y-5">
-              
-              {/* Top Help Guide Banner */}
+            
+            {/* Step Indicator */}
+            <div className="flex items-center justify-between px-1 py-3 border-b border-white/[0.06] mb-5">
+              {[
+                { id: 1, label: 'Lokasi' },
+                { id: 2, label: 'Layanan' },
+                { id: 3, label: 'Detail' },
+                { id: 4, label: 'Konfirmasi' }
+              ].map((st, i) => {
+                const isActive = activeStep === st.id;
+                const isCompleted = activeStep > st.id;
+                return (
+                  <div key={st.id} className="flex items-center gap-1.5 flex-1 justify-center last:flex-none">
+                    <div className={cn(
+                      "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border transition-all",
+                      isActive ? "border-primary bg-primary/10 text-primary" :
+                      isCompleted ? "border-emerald-500 bg-emerald-500/10 text-emerald-400" :
+                      "border-white/[0.08] text-white/20"
+                    )}>
+                      {isCompleted ? '✓' : `0${st.id}`}
+                    </div>
+                    <span className={cn(
+                      "text-[10px] font-bold tracking-tight hidden sm:inline",
+                      isActive ? "text-primary font-extrabold" : "text-white/30"
+                    )}>
+                      {st.label}
+                    </span>
+                    {i < 3 && (
+                      <div className={cn(
+                        "h-[1px] flex-1 min-w-[12px] max-w-[24px] transition-all mx-1",
+                        isCompleted ? "bg-emerald-500" : "bg-white/[0.08]"
+                      )} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+  <form id="order-form-container" onSubmit={(e) => e.preventDefault()} className="space-y-5">
+  <AnimatePresence mode="wait">
+    {activeStep === 1 && (
+      <motion.div
+        key="step-1"
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 10 }}
+        className="space-y-5"
+      >
+{/* Top Help Guide Banner */}
               <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-3.5 flex items-start gap-3 text-xs leading-relaxed text-amber-200 shadow-sm">
                 <Info className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
@@ -1248,7 +1334,8 @@ ${osmLink}`;
                 </div>
               </div>
 
-              {/* Profile/Customer name */}
+              
+{/* Profile/Customer name */}
               <div className="space-y-4 bg-white/[0.02] border border-white/[0.06] p-4 rounded-2xl">
                 <h3 className="text-sm font-bold text-white flex items-center justify-between font-outfit">
                   <span className="flex items-center gap-2">
@@ -1315,7 +1402,8 @@ ${osmLink}`;
                 </div>
               </div>
 
-              {/* Rute / Addresses (Simplified: GPS-only flow) */}
+              
+{/* Rute / Addresses (Simplified: GPS-only flow) */}
               <div className="space-y-4">
                 <div className="space-y-3.5">
 
@@ -1530,7 +1618,8 @@ ${osmLink}`;
 
 
 
-                  {/* Location Type / Upload Photo / Landmark — always visible */}
+                  
+{/* Location Type / Upload Photo / Landmark — always visible */}
                   <div className="bg-white/[0.02] p-3 border border-white/[0.06] rounded-2xl space-y-2">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
@@ -1577,35 +1666,35 @@ ${osmLink}`;
                     </div>
                   </div>
 
-                  {/* Live Kalkulasi Ongkos Kirim Banner */}
-                  {pricing && destinationCoords && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="p-4 bg-gradient-to-r from-primary/[0.05] via-emerald-500/[0.05] to-primary/[0.05] border border-emerald-500/30 rounded-2xl flex items-center justify-between shadow-md text-left"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-emerald-400 font-black text-xs">
-                          <span className="relative flex h-2.5 w-2.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                          </span>
-                          <span>Ongkos Kirim Otomatis Terkalkulasi!</span>
-                        </div>
-                        <p className="text-[11px] text-white/60 font-medium">
-                          Jarak Rute: <strong className="text-white font-extrabold">{formatDistance(pricing.distance)}</strong> ({formatDuration(pricing.duration)})
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[9px] text-white/40 uppercase font-black tracking-wider">Total Biaya Ongkir</p>
-                        <p className="text-2xl font-black text-primary font-outfit leading-tight">{formatCurrency(pricing.totalDeliveryFee)}</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-              </div>
+                  
 
-              {/* Service Categories */}
+                  </div>
+                </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (validateStep1()) {
+              setActiveStep(2);
+            } else {
+              toast.error("Harap lengkapi nama, nomor WhatsApp, dan lokasi tujuan Anda.");
+            }
+          }}
+          className="w-full btn-primary py-3.5 text-sm font-bold flex items-center justify-center gap-2 rounded-2xl shadow-golden"
+        >
+          Lanjutkan ke Layanan <ArrowRight className="w-4 h-4" />
+        </button>
+      </motion.div>
+    )}
+
+    {activeStep === 2 && (
+      <motion.div
+        key="step-2"
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 10 }}
+        className="space-y-5"
+      >
+{/* Service Categories */}
               <div className="space-y-3">
                 <label className="block text-xs font-bold text-white/70 font-outfit uppercase tracking-wider flex items-center justify-between">
                   <span>Kategori Layanan</span>
@@ -1643,7 +1732,66 @@ ${osmLink}`;
                 </div>
               </div>
 
-              {/* Route Options and Rules */}
+              
+        <div className="flex gap-3 pt-2">
+          <button
+            type="button"
+            onClick={() => setActiveStep(1)}
+            className="btn-outline flex-1 py-3.5 text-xs font-bold rounded-2xl"
+          >
+            Kembali
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (validateStep2()) {
+                setActiveStep(3);
+              } else {
+                toast.error("Silakan pilih kategori layanan terlebih dahulu.");
+              }
+            }}
+            className="btn-primary flex-1 py-3.5 text-xs font-bold rounded-2xl shadow-golden"
+          >
+            Lanjutkan ke Detail
+          </button>
+        </div>
+      </motion.div>
+    )}
+
+    {activeStep === 3 && (
+      <motion.div
+        key="step-3"
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 10 }}
+        className="space-y-5"
+      >
+{/* Live Kalkulasi Ongkos Kirim Banner */}
+                  {pricing && destinationCoords && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-4 bg-gradient-to-r from-primary/[0.05] via-emerald-500/[0.05] to-primary/[0.05] border border-emerald-500/30 rounded-2xl flex items-center justify-between shadow-md text-left"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-emerald-400 font-black text-xs">
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                          </span>
+                          <span>Ongkos Kirim Otomatis Terkalkulasi!</span>
+                        </div>
+                        <p className="text-[11px] text-white/60 font-medium">
+                          Jarak Rute: <strong className="text-white font-extrabold">{formatDistance(pricing.distance)}</strong> ({formatDuration(pricing.duration)})
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[9px] text-white/40 uppercase font-black tracking-wider">Total Biaya Ongkir</p>
+                        <p className="text-2xl font-black text-primary font-outfit leading-tight">{formatCurrency(pricing.totalDeliveryFee)}</p>
+                      </div>
+                    </motion.div>
+                  )}
+{/* Route Options and Rules */}
               <div className="bg-white/[0.02] p-4 border border-white/[0.06] rounded-2xl space-y-3">
                 <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider">Profil Pencarian Rute</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -1665,7 +1813,8 @@ ${osmLink}`;
                 </div>
               </div>
 
-              {/* Conditional Inputs: Ride/Ojek vs. Cargo/Logistics */}
+              
+{/* Conditional Inputs: Ride/Ojek vs. Cargo/Logistics */}
               <AnimatePresence mode="wait">
                 {category === 'ride' ? (
                   <motion.div
@@ -1861,7 +2010,8 @@ ${osmLink}`;
                 )}
               </AnimatePresence>
 
-              {/* Waiting Surcharge option */}
+              
+{/* Waiting Surcharge option */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider">Antrean Waktu Tunggu Driver</label>
                 <select
@@ -1878,7 +2028,8 @@ ${osmLink}`;
                 <p className="text-[9px] text-secondary-400">Pilih jika driver harus mengantre lama di warung padat, loket apotek, dll.</p>
               </div>
 
-              {/* Pricing Custom Toggles: Holiday, Peak, Rain, Insurance */}
+              
+{/* Pricing Custom Toggles: Holiday, Peak, Rain, Insurance */}
               <div className="bg-secondary-50/40 p-4 border border-secondary-100 rounded-2xl space-y-3 text-xs">
                 <h4 className="text-xs font-bold text-secondary-800 uppercase tracking-wider font-outfit border-b border-secondary-100 pb-2">Opsi & Surcharge Tambahan</h4>
                 
@@ -1939,7 +2090,8 @@ ${osmLink}`;
                 </div>
               </div>
 
-              {/* Promo Code Discount */}
+              
+{/* Promo Code Discount */}
               <div className="bg-primary/5 p-4 border border-primary/20 rounded-2xl space-y-2">
                 <label className="block text-[10px] font-bold text-primary uppercase tracking-wider">Gunakan Kode Promo</label>
                 <div className="flex gap-2">
@@ -1965,7 +2117,8 @@ ${osmLink}`;
                 )}
               </div>
 
-              {/* Payment selection */}
+              
+{/* Payment selection */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider flex items-center justify-between">
                   <span>Metode Pembayaran</span>
@@ -1995,42 +2148,35 @@ ${osmLink}`;
                 </div>
               </div>
 
-              {/* Submit triggers confirmation modal & Quick Download */}
-              <div className="flex gap-2.5 mt-4">
-                <button
-                  type="submit"
-                  disabled={isSubmitDisabled}
-                  className="flex-1 btn-primary text-sm py-3.5 flex items-center justify-center gap-2 disabled:opacity-40 rounded-2xl shadow-golden"
-                >
-                  {isCalculating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Menghitung Rute...
-                    </>
-                  ) : (
-                    <>
-                      Pesan Sekarang <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
+              
+        <div className="flex gap-3 pt-2">
+          <button
+            type="button"
+            onClick={() => setActiveStep(2)}
+            className="btn-outline flex-1 py-3.5 text-xs font-bold rounded-2xl"
+          >
+            Kembali
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              if (validateStep3()) {
+                handleOpenConfirm(e);
+              } else {
+                toast.error("Harap lengkapi seluruh rincian spesifikasi paket/ojek Anda.");
+              }
+            }}
+            disabled={isSubmitDisabled}
+            className="btn-primary flex-1 py-3.5 text-xs font-bold rounded-2xl shadow-golden disabled:opacity-40"
+          >
+            Konfirmasi Pesanan
+          </button>
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</form>
 
-                {pricing && (
-                  <button
-                    type="button"
-                    onClick={handleDownloadReceipt}
-                    disabled={isDownloadingReceipt}
-                    className="bg-white/[0.04] hover:bg-white/[0.08] text-primary font-bold px-4 py-3.5 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-md disabled:opacity-50 border border-white/[0.08] shrink-0"
-                    title="Download Struk Konfirmasi (PNG)"
-                  >
-                    {isDownloadingReceipt ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
-                    ) : (
-                      <Download className="w-5 h-5 text-amber-400" />
-                    )}
-                    <span className="font-bold">Download Struk</span>
-                  </button>
-                )}
-              </div>
-            </form>
           </div>
         </div>
 
