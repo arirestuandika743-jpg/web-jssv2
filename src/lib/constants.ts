@@ -29,11 +29,11 @@ export const NAV_LINKS = [
 /** Order categories */
 export const ORDER_CATEGORIES = [
   {
-    id: 'ride',
-    label: 'Ojek (Antar Orang)',
-    icon: 'Bike',
-    description: 'Antar jemput penumpang cepat',
-    color: '#10B981',
+    id: 'food',
+    label: 'Makanan',
+    icon: 'UtensilsCrossed',
+    description: 'Pesan makanan & minuman',
+    color: '#FF6B35',
   },
   {
     id: 'packages',
@@ -41,13 +41,6 @@ export const ORDER_CATEGORIES = [
     icon: 'Package',
     description: 'Kirim & ambil paket barang',
     color: '#8B5CF6',
-  },
-  {
-    id: 'food',
-    label: 'Makanan',
-    icon: 'UtensilsCrossed',
-    description: 'Pesan makanan & minuman',
-    color: '#FF6B35',
   },
   {
     id: 'shopping',
@@ -90,6 +83,13 @@ export const ORDER_CATEGORIES = [
     icon: 'MoreHorizontal',
     description: 'Kebutuhan suruh lainnya',
     color: '#6B7280',
+  },
+  {
+    id: 'ride',
+    label: 'Ojek (Antar Orang)',
+    icon: 'Bike',
+    description: 'Antar jemput penumpang cepat',
+    color: '#10B981',
   },
 ] as const;
 
