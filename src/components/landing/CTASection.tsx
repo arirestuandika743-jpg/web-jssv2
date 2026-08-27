@@ -19,13 +19,13 @@ export function CTASection() {
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="relative bg-gradient-to-b from-[#11161C] to-[#0B0F14] rounded-[32px] p-8 md:p-14 text-white shadow-cinema border border-white/[0.06] overflow-hidden"
+          className="relative bg-white rounded-[32px] p-8 md:p-14 text-gray-900 shadow-soft-xl border border-gray-200 overflow-hidden"
         >
           {/* Subtle Grid Overlay */}
           <div
-            className="absolute inset-0 opacity-[0.02] pointer-events-none"
+            className="absolute inset-0 opacity-[0.05] pointer-events-none"
             style={{
-              backgroundImage: `radial-gradient(circle at 1.5px 1.5px, #FFC928 1.5px, transparent 0)`,
+              backgroundImage: `radial-gradient(circle at 1.5px 1.5px, #F5B900 1.5px, transparent 0)`,
               backgroundSize: '32px 32px',
             }}
           />
@@ -33,32 +33,32 @@ export function CTASection() {
           <div className="relative z-10 grid lg:grid-cols-12 gap-8 items-center">
             {/* Left Content */}
             <div className="lg:col-span-8 space-y-6">
-              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.08] text-primary text-xs font-bold shadow-sm">
-                <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold shadow-soft-xs">
+                <Sparkles className="w-4 h-4 text-amber-600 animate-pulse" />
                 <span>Siap Melayani 24 Jam di Kalirejo</span>
               </div>
 
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight text-balance">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-950 leading-tight tracking-tight text-balance">
                 BUTUH BANTUAN?<br />
                 <span className="gradient-text">JSS YANG ANTAR.</span>
               </h2>
 
-              <p className="text-white/50 text-base md:text-lg max-w-2xl font-medium leading-relaxed">
+              <p className="text-gray-500 text-base md:text-lg max-w-2xl font-medium leading-relaxed">
                 Pesan layanan JSS dengan mudah untuk kebutuhanmu di Kalirejo. Tarif transparan dan kurir standby cepat.
               </p>
 
               {/* Trust Badges */}
-              <div className="flex flex-wrap items-center gap-6 pt-2 text-xs text-white/40 font-bold">
+              <div className="flex flex-wrap items-center gap-6 pt-2 text-xs text-gray-500 font-bold">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
                   <span>Driver Terverifikasi</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-primary" />
+                  <Zap className="w-4 h-4 text-amber-500" />
                   <span>Respon Instan</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Bike className="w-4 h-4 text-primary" />
+                  <Bike className="w-4 h-4 text-amber-500" />
                   <span>Armada Standby</span>
                 </div>
               </div>
@@ -77,9 +77,9 @@ export function CTASection() {
               <Link
                 href={`https://wa.me/${BRAND.phone}`}
                 target="_blank"
-                className="w-full sm:w-auto bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white text-xs font-bold px-7 py-3.5 flex items-center justify-center gap-2 rounded-2xl backdrop-blur-md transition-all shadow-md"
+                className="w-full sm:w-auto bg-white hover:bg-gray-50 border border-gray-250 text-gray-700 text-xs font-bold px-7 py-3.5 flex items-center justify-center gap-2 rounded-2xl transition-all shadow-soft-xs"
               >
-                <Phone className="w-4 h-4 text-emerald-400" />
+                <Phone className="w-4 h-4 text-emerald-600" />
                 <span>Chat WhatsApp Admin</span>
               </Link>
             </div>
@@ -89,3 +89,4 @@ export function CTASection() {
     </section>
   );
 }
+

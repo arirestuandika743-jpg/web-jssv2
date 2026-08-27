@@ -47,50 +47,45 @@ export function Footer() {
   if (isAdminPage || isDashboardPage || isCourierPage) return null;
 
   return (
-    <footer className="relative bg-[#07090C] text-white overflow-hidden pt-20 border-t border-white/[0.04] transform-gpu">
-      {/* Ambient Glows */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-primary/[0.03] blur-[120px]" />
-      </div>
-
+    <footer className="relative bg-gray-900 text-white overflow-hidden pt-16 border-t border-gray-800 transform-gpu">
       <div className="relative container-padding z-10">
         {/* Footer Grid Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/[0.06]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-gray-800">
           {/* Brand Column (2 Cols) */}
           <div className="lg:col-span-2 space-y-6">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-golden flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-soft flex-shrink-0">
                 <Image src="/logo-jss.png" alt="JSS Logo" width={40} height={40} className="w-full h-full object-cover" />
               </div>
               <div>
                 <span className="font-extrabold text-lg text-white block leading-none tracking-tight">
                   {BRAND.shortName} Kalirejo
                 </span>
-                <span className="text-[10px] text-white/40 font-medium">Jasa Suruh & Ojek Terpercaya</span>
+                <span className="text-[10px] text-gray-400 font-medium">Jasa Suruh & Ojek Terpercaya</span>
               </div>
             </Link>
 
-            <p className="text-white/50 text-xs md:text-sm leading-relaxed max-w-sm font-medium">
+            <p className="text-gray-400 text-xs md:text-sm leading-relaxed max-w-sm font-medium">
               {BRAND.description}
             </p>
 
             <div className="space-y-3.5 pt-2">
               <a
                 href={`tel:+${BRAND.phone}`}
-                className="flex items-center gap-3 text-xs md:text-sm text-white/50 hover:text-primary transition-colors font-medium"
+                className="flex items-center gap-3 text-xs md:text-sm text-gray-400 hover:text-amber-400 transition-colors font-medium"
               >
-                <Phone className="w-4 h-4 text-primary flex-shrink-0" />
+                <Phone className="w-4 h-4 text-amber-500 flex-shrink-0" />
                 {BRAND.phoneFormatted}
               </a>
               <a
                 href={`mailto:${BRAND.email}`}
-                className="flex items-center gap-3 text-xs md:text-sm text-white/50 hover:text-primary transition-colors font-medium"
+                className="flex items-center gap-3 text-xs md:text-sm text-gray-400 hover:text-amber-400 transition-colors font-medium"
               >
-                <Mail className="w-4 h-4 text-primary flex-shrink-0" />
+                <Mail className="w-4 h-4 text-amber-500 flex-shrink-0" />
                 {BRAND.email}
               </a>
-              <div className="flex items-center gap-3 text-xs md:text-sm text-white/50 font-medium">
-                <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+              <div className="flex items-center gap-3 text-xs md:text-sm text-gray-400 font-medium">
+                <MapPin className="w-4 h-4 text-amber-500 flex-shrink-0" />
                 {BRAND.address}
               </div>
               <div className="flex items-center gap-3 text-xs text-emerald-400 font-bold">
@@ -102,13 +97,13 @@ export function Footer() {
 
           {/* Layanan */}
           <div>
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-5 text-primary">Layanan JSS</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider mb-5 text-amber-400">Layanan JSS</h4>
             <ul className="space-y-3">
               {footerLinks.layanan.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-xs md:text-sm text-white/40 hover:text-white transition-colors font-medium"
+                    className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors font-medium"
                   >
                     {link.label}
                   </Link>
@@ -119,13 +114,13 @@ export function Footer() {
 
           {/* Navigasi */}
           <div>
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-5 text-primary">Navigasi</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider mb-5 text-amber-400">Navigasi</h4>
             <ul className="space-y-3">
               {footerLinks.perusahaan.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-xs md:text-sm text-white/40 hover:text-white transition-colors font-medium"
+                    className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors font-medium"
                   >
                     {link.label}
                   </Link>
@@ -136,13 +131,13 @@ export function Footer() {
 
           {/* Bantuan */}
           <div>
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-5 text-primary">Bantuan & Info</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider mb-5 text-amber-400">Bantuan & Info</h4>
             <ul className="space-y-3 mb-6">
               {footerLinks.bantuan.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-xs md:text-sm text-white/40 hover:text-white transition-colors font-medium"
+                    className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors font-medium"
                   >
                     {link.label}
                   </Link>
@@ -156,7 +151,7 @@ export function Footer() {
                 href={`https://instagram.com/${BRAND.instagram}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-primary hover:text-secondary-900 flex items-center justify-center text-white transition-all"
+                className="w-9 h-9 rounded-xl bg-gray-800 border border-gray-700 hover:bg-amber-500 hover:text-gray-900 hover:border-amber-500 flex items-center justify-center text-gray-400 transition-all"
                 aria-label="Instagram JSS Kalirejo"
               >
                 <Instagram className="w-4 h-4" />
@@ -165,7 +160,7 @@ export function Footer() {
                 href={`https://tiktok.com/@${BRAND.tiktok}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-primary hover:text-secondary-900 flex items-center justify-center text-white transition-all"
+                className="w-9 h-9 rounded-xl bg-gray-800 border border-gray-700 hover:bg-amber-500 hover:text-gray-900 hover:border-amber-500 flex items-center justify-center text-gray-400 transition-all"
                 aria-label="TikTok JSS Kalirejo"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -176,7 +171,7 @@ export function Footer() {
                 href={`https://wa.me/${BRAND.phone}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-emerald-500/20 hover:text-emerald-400 flex items-center justify-center text-white transition-all"
+                className="w-9 h-9 rounded-xl bg-gray-800 border border-gray-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 flex items-center justify-center text-gray-400 transition-all"
                 aria-label="WhatsApp JSS Kalirejo"
               >
                 <MessageCircle className="w-4 h-4" />
@@ -186,7 +181,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-8 text-xs text-white/40 font-medium">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-8 text-xs text-gray-500 font-medium">
           <p className="flex items-center gap-1.5">
             © {new Date().getFullYear()} {BRAND.name}. Dibuat dengan
             <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 inline animate-pulse" />

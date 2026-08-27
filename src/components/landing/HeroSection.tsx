@@ -3,7 +3,7 @@
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Sparkles, ShieldCheck, MapPin, Zap, UtensilsCrossed, Package, ShoppingBag, Pill } from 'lucide-react';
+import { ArrowRight, Zap, ShieldCheck, MapPin, UtensilsCrossed, Package, ShoppingBag } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function HeroSection() {
@@ -75,33 +75,33 @@ export function HeroSection() {
           <div className="lg:col-span-6 max-w-xl">
             {/* Live Status Pill */}
             <motion.div variants={itemVariants}>
-              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] mb-7">
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 mb-7 shadow-soft-xs">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
-                <span className="text-[11px] font-semibold text-white/60 tracking-tight">
+                <span className="text-[11px] font-semibold text-amber-800 tracking-tight">
                   Driver Standby Kalirejo
                 </span>
-                <Zap className="w-3 h-3 text-primary fill-primary" />
+                <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
               </div>
             </motion.div>
 
             {/* Main Headline */}
             <motion.h1
               variants={itemVariants}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-[3.5rem] font-black text-white leading-[1.05] mb-6 tracking-tight"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-[3.5rem] font-black text-gray-900 leading-[1.05] mb-6 tracking-tight"
             >
               BUTUH APA?{' '}
               <br />
               <span className="gradient-text">JSS</span>{' '}
-              <span className="text-white">YANG ANTAR.</span>
+              <span className="text-gray-900">YANG ANTAR.</span>
             </motion.h1>
 
             {/* Sub-headline */}
             <motion.p
               variants={itemVariants}
-              className="text-base sm:text-lg text-white/50 mb-10 leading-relaxed max-w-md font-medium"
+              className="text-base sm:text-lg text-gray-500 mb-10 leading-relaxed max-w-md font-medium"
             >
               Pesan makanan, kirim paket, belanja, atau kebutuhan lainnya dengan mudah di Kalirejo.
             </motion.p>
@@ -130,7 +130,7 @@ export function HeroSection() {
             {/* Trust Markers */}
             <motion.div
               variants={itemVariants}
-              className="pt-6 border-t border-white/[0.06] grid grid-cols-3 gap-4 max-w-md"
+              className="pt-6 border-t border-gray-200 grid grid-cols-3 gap-4 max-w-md"
             >
               {[
                 { icon: Zap, title: 'Super Cepat', subtitle: '15-30m Sampai' },
@@ -138,12 +138,12 @@ export function HeroSection() {
                 { icon: MapPin, title: 'Kalirejo', subtitle: 'Jangkauan Luas' },
               ].map((badge, idx) => (
                 <div key={idx} className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 border border-primary/10">
-                    <badge.icon className="w-3.5 h-3.5 text-primary" />
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0 border border-amber-200">
+                    <badge.icon className="w-3.5 h-3.5 text-amber-500" />
                   </div>
                   <div>
-                    <p className="text-[11px] font-bold text-white/80 leading-tight">{badge.title}</p>
-                    <p className="text-[9px] text-white/30 font-medium">{badge.subtitle}</p>
+                    <p className="text-[11px] font-bold text-gray-800 leading-tight">{badge.title}</p>
+                    <p className="text-[9px] text-gray-400 font-medium">{badge.subtitle}</p>
                   </div>
                 </div>
               ))}
@@ -166,7 +166,7 @@ export function HeroSection() {
                 style={isMobile ? {} : { x: motoX, y: motoY }}
                 className="relative z-10 flex items-center justify-center"
               >
-                <div className="relative w-full aspect-[360/220] rounded-2xl overflow-hidden border border-white/[0.08] shadow-cinema-xl bg-[#0B0F14]/40 backdrop-blur-md">
+                <div className="relative w-full aspect-[360/220] rounded-2xl overflow-hidden border border-gray-200 shadow-soft-xl bg-white">
                   <Image
                     src="/hero-courier.png"
                     alt="JSS Delivery Courier"
@@ -188,15 +188,15 @@ export function HeroSection() {
                   <motion.div
                     animate={{ y: [-8, 8, -8] }}
                     transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                    className="absolute top-[5%] right-[-5%] glass-cinema-subtle px-3.5 py-2.5 rounded-xl flex items-center gap-2.5"
+                    className="absolute top-[5%] right-[-5%] bg-white shadow-soft border border-gray-200 px-3.5 py-2.5 rounded-xl flex items-center gap-2.5"
                     style={{ transform: 'translateZ(40px)' }}
                   >
-                    <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                      <UtensilsCrossed className="w-4 h-4 text-primary" />
+                    <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
+                      <UtensilsCrossed className="w-4 h-4 text-amber-500" />
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-white">Makanan</p>
-                      <p className="text-[9px] text-white/30">Mulai Rp5.000</p>
+                      <p className="text-[11px] font-bold text-gray-800">Makanan</p>
+                      <p className="text-[9px] text-gray-400">Mulai Rp5.000</p>
                     </div>
                   </motion.div>
 
@@ -204,15 +204,15 @@ export function HeroSection() {
                   <motion.div
                     animate={{ y: [6, -6, 6] }}
                     transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-                    className="absolute bottom-[15%] left-[-10%] glass-cinema-subtle px-3.5 py-2.5 rounded-xl flex items-center gap-2.5"
+                    className="absolute bottom-[15%] left-[-10%] bg-white shadow-soft border border-gray-200 px-3.5 py-2.5 rounded-xl flex items-center gap-2.5"
                     style={{ transform: 'translateZ(30px)' }}
                   >
-                    <div className="w-8 h-8 rounded-lg bg-violet-500/15 flex items-center justify-center">
-                      <Package className="w-4 h-4 text-violet-400" />
+                    <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center border border-violet-200">
+                      <Package className="w-4 h-4 text-violet-500" />
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-white">Paket</p>
-                      <p className="text-[9px] text-white/30">Kirim Cepat</p>
+                      <p className="text-[11px] font-bold text-gray-800">Paket</p>
+                      <p className="text-[9px] text-gray-400">Kirim Cepat</p>
                     </div>
                   </motion.div>
 
@@ -220,15 +220,15 @@ export function HeroSection() {
                   <motion.div
                     animate={{ y: [-5, 10, -5] }}
                     transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-                    className="absolute bottom-[5%] right-[5%] glass-cinema-subtle px-3.5 py-2.5 rounded-xl flex items-center gap-2.5"
+                    className="absolute bottom-[5%] right-[5%] bg-white shadow-soft border border-gray-200 px-3.5 py-2.5 rounded-xl flex items-center gap-2.5"
                     style={{ transform: 'translateZ(50px)' }}
                   >
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
-                      <ShoppingBag className="w-4 h-4 text-amber-400" />
+                    <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
+                      <ShoppingBag className="w-4 h-4 text-amber-500" />
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-white">Belanja</p>
-                      <p className="text-[9px] text-white/30">Titip Beli</p>
+                      <p className="text-[11px] font-bold text-gray-800">Belanja</p>
+                      <p className="text-[9px] text-gray-400">Titip Beli</p>
                     </div>
                   </motion.div>
                 </motion.div>

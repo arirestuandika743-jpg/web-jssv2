@@ -1,0 +1,30 @@
+# JSS Visual Restoration — Task List
+
+- `[x]` **1. Foundation: globals.css** — Replace cinematic dark design system with light theme
+- `[x]` **2. Foundation: tailwind.config.js** — Update color tokens and shadows
+- `[x]` **3. Layout: Navbar.tsx** — Restore white header
+- `[x]` **4. Layout: Footer.tsx** — Clean up ambient effects
+- `[x]` **5. App: layout.tsx** — Remove dark body classes
+- `[x]` **6. App: order/page.tsx** — Fix loading fallback
+- `[x]` **7. OrderForm.tsx** — Restore entire order flow (biggest change)
+  - `[x]` Container & layout panel
+  - `[x]` Hero/Introduction section
+  - `[x]` Weather card
+  - `[x]` Form instruction card
+  - `[x]` Customer account section & inputs
+  - `[x]` GPS section (keep blue)
+  - `[x]` Location type / photo
+  - `[x]` Service selection grid
+  - `[x]` Route profile
+  - `[x]` Package specification & weight
+  - `[x]` Shopping list inputs
+  - `[x]` Waiting time dropdown
+  - `[x]` Surcharge toggles
+  - `[x]` Promo code section
+  - `[x]` Payment selection
+  - `[x]` Confirmation modal
+  - `[x]` Success state
+  - `[x]` PIN dialog
+- `[x]` **8. Landing Components** — Hero, How It Works, Testimonials, About Us, Coverage Preview, CTA Section, Cinematic Background (Restored to light cards and white/light background gradients)
+- `[x]` **9. UI Components** — Button, Card, Input
+- `[/]` **10. Verification** — Build check in progress

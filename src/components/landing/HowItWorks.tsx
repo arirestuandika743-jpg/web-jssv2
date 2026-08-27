@@ -42,14 +42,14 @@ export function HowItWorks() {
           transition={{ duration: 0.7 }}
           className="text-center max-w-2xl mx-auto mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-primary text-[11px] font-bold uppercase tracking-wider mb-5">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[11px] font-bold uppercase tracking-wider mb-5">
             Cara Kerja JSS
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-5 tracking-tight text-balance">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 mb-5 tracking-tight text-balance">
             Pesan dalam{' '}
             <span className="gradient-text">4 Langkah Mudah</span>
           </h2>
-          <p className="text-sm md:text-base text-white/40 leading-relaxed font-medium">
+          <p className="text-sm md:text-base text-gray-500 leading-relaxed font-medium">
             Tanpa perlu download aplikasi. Cukup pesan langsung dari browser smartphone kamu.
           </p>
         </motion.div>
@@ -72,29 +72,29 @@ export function HowItWorks() {
                   viewport={{ once: true, margin: '-40px' }}
                   transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <div className="relative bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 group h-full">
+                  <div className="relative bg-white border border-gray-200 rounded-2xl p-6 hover:bg-gray-50/50 hover:border-amber-400 shadow-soft-xs transition-all duration-500 group h-full">
                     {/* Step Number */}
                     <div className="flex items-center justify-between mb-5">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/15 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                        <IconComp className="w-5 h-5 text-primary" />
+                      <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                        <IconComp className="w-5 h-5 text-amber-600" />
                       </div>
-                      <span className="text-3xl font-black text-white/[0.06] group-hover:text-primary/30 transition-colors">
+                      <span className="text-3xl font-black text-gray-200 group-hover:text-amber-500/30 transition-colors">
                         {stepItem.step}
                       </span>
                     </div>
 
                     {/* Content */}
-                    <h3 className="text-base font-bold text-white mb-2 group-hover:text-primary transition-colors">
+                    <h3 className="text-base font-bold text-gray-900 mb-2 group-hover:text-amber-600 transition-colors">
                       {stepItem.title}
                     </h3>
-                    <p className="text-xs text-white/40 leading-relaxed font-medium">
+                    <p className="text-xs text-gray-500 leading-relaxed font-medium">
                       {stepItem.description}
                     </p>
 
                     {/* Footer */}
-                    <div className="mt-5 pt-3 border-t border-white/[0.04] flex items-center justify-between text-[10px] text-white/20 font-semibold">
+                    <div className="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-400 font-semibold">
                       <span>Langkah {stepItem.step}</span>
-                      <ArrowRight className="w-3 h-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ArrowRight className="w-3 h-3 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </div>
                 </motion.div>
@@ -123,3 +123,4 @@ export function HowItWorks() {
     </section>
   );
 }
+

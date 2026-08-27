@@ -42,15 +42,15 @@ export function Testimonials() {
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-primary text-xs font-bold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold uppercase tracking-wider mb-4">
             <MessageSquareHeart className="w-3.5 h-3.5" />
             Testimoni Pelanggan
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-5 tracking-tight text-balance">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 mb-5 tracking-tight text-balance">
             Dipercaya Oleh Pengguna{' '}
             <span className="gradient-text">Se-Kalirejo</span>
           </h2>
-          <p className="text-sm md:text-base text-white/40 leading-relaxed font-medium">
+          <p className="text-sm md:text-base text-gray-500 leading-relaxed font-medium">
             Simak ulasan asli dari pelanggan yang telah merasakan kecepatan, keamanan, dan keramahan driver JSS.
           </p>
         </motion.div>
@@ -65,21 +65,21 @@ export function Testimonials() {
         >
           {TESTIMONIALS.map((testimonial, index) => (
             <motion.div key={index} variants={itemVariants}>
-              <div className="relative bg-white/[0.03] border border-white/[0.06] rounded-2xl p-7 hover:bg-white/[0.05] hover:border-white/[0.1] transition-all duration-500 flex flex-col justify-between h-full group hover:-translate-y-1.5">
+              <div className="relative bg-white border border-gray-200 rounded-2xl p-7 hover:bg-gray-50/50 hover:border-amber-400 shadow-soft transition-all duration-500 flex flex-col justify-between h-full group hover:-translate-y-1.5">
                 <div>
                   {/* Quote Header & Star Rating */}
                   <div className="flex items-center justify-between mb-5">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/15 flex items-center justify-center text-primary">
-                      <Quote className="w-4 h-4 fill-primary/20 text-primary" />
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+                      <Quote className="w-4 h-4 fill-amber-100 text-amber-600" />
                     </div>
-                    <div className="flex items-center gap-1 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.08]">
+                    <div className="flex items-center gap-1 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-255">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                            key={i}
                            className={`w-3 h-3 ${
                              i < testimonial.rating
-                               ? 'text-primary fill-primary'
-                               : 'text-white/10'
+                               ? 'text-amber-500 fill-amber-500'
+                               : 'text-gray-200'
                            }`}
                         />
                       ))}
@@ -87,22 +87,22 @@ export function Testimonials() {
                   </div>
 
                   {/* Review Text */}
-                  <p className="text-xs sm:text-sm text-white/70 leading-relaxed mb-6 font-medium">
+                  <p className="text-xs sm:text-sm text-gray-700 leading-relaxed mb-6 font-medium">
                     &quot;{testimonial.text}&quot;
                   </p>
                 </div>
 
                 {/* Customer Info */}
-                <div className="pt-4 border-t border-white/[0.06] flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center font-extrabold text-secondary-900 text-xs shadow-golden flex-shrink-0">
+                <div className="pt-4 border-t border-gray-200 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center font-extrabold text-gray-900 text-xs shadow-golden flex-shrink-0">
                     {testimonial.avatar}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-white truncate">{testimonial.name}</p>
-                    <p className="text-[10px] text-white/30 truncate">{testimonial.location}</p>
+                    <p className="text-xs font-bold text-gray-800 truncate">{testimonial.name}</p>
+                    <p className="text-[10px] text-gray-400 truncate">{testimonial.location}</p>
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                    <CheckCircle2 className="w-3 h-3" />
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-250">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                     <span>Terverifikasi</span>
                   </div>
                 </div>
@@ -114,3 +114,4 @@ export function Testimonials() {
     </section>
   );
 }
+

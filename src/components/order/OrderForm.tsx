@@ -1193,14 +1193,14 @@ ${osmLink}`;
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-[#0B0F14] rounded-card p-8 border border-white/[0.08] shadow-cinema-xl"
+          className="bg-white rounded-card p-8 border border-gray-200 shadow-soft-xl"
         >
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Check className="w-8 h-8 text-emerald-600 stroke-[3]" />
           </div>
-          <h2 className="text-2xl font-extrabold text-white mb-2 font-outfit">Pemesanan Terkirim! 🚀</h2>
-          <p className="text-xs text-white/40 mb-6 leading-relaxed">
-            Pesanan Anda (No: <strong className="text-white">{createdOrderNumber}</strong>) sedang dialihkan ke WhatsApp untuk alokasi driver logistik terdekat.
+          <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Pemesanan Terkirim! 🚀</h2>
+          <p className="text-xs text-gray-500 mb-6 leading-relaxed">
+            Pesanan Anda (No: <strong className="text-gray-900">{createdOrderNumber}</strong>) sedang dialihkan ke WhatsApp untuk alokasi driver logistik terdekat.
           </p>
           <div className="space-y-2">
             <a
@@ -1214,7 +1214,7 @@ ${osmLink}`;
             </a>
             <button
               onClick={() => setIsSubmitted(false)}
-              className="w-full text-xs font-bold text-white/40 hover:text-white/70 py-2.5 transition-colors"
+              className="w-full text-xs font-bold text-gray-400 hover:text-gray-600 py-2.5 transition-colors"
             >
               Pesan Layanan Lain
             </button>
@@ -1233,42 +1233,42 @@ ${osmLink}`;
 
   return (
     <PageTransition>
-      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-80px)] pt-16 bg-background">
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-80px)] pt-16 bg-white">
         
         {/* LEFT PANEL: Booking Controls & Inputs */}
         <div className={cn(
-          "w-full lg:w-[480px] lg:flex-shrink-0 bg-[#11151A] border-r border-white/[0.08] flex flex-col z-10 shadow-cinema transition-all",
+          "w-full lg:w-[480px] lg:flex-shrink-0 bg-white border-r border-gray-200 flex flex-col z-10 shadow-soft transition-all",
           isMobile ? "relative overflow-y-auto" : "h-[calc(100vh-80px)] overflow-y-auto"
         )}>
           <div className="p-6 md:p-8 space-y-6">
             
             {/* Header info */}
             <div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-extrabold uppercase rounded-full mb-3 tracking-wider border border-primary/20">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-extrabold uppercase rounded-full mb-3 tracking-wider border border-amber-200">
                 <Truck className="w-3.5 h-3.5" /> Platform Premium JSS
               </span>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight font-outfit">
-                Pesan <span className="gradient-text font-black">Layanan JSS</span>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+                Pesan <span className="text-amber-500 font-black">Layanan JSS</span>
               </h1>
-              <p className="text-xs text-white/40 mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 Layanan antar-jemput dan logistik kurir terpercaya Provinsi Lampung.
               </p>
             </div>
 
             {/* Weather status notification */}
             <div className={cn(
-              "p-3.5 rounded-2xl border text-xs space-y-1 transition-all flex items-start gap-3 shadow-sm",
+              "p-3.5 rounded-2xl border text-xs space-y-1 transition-all flex items-start gap-3 shadow-soft-xs",
               hasRain 
-                ? "bg-blue-500/10 border-blue-500/30 text-blue-200 animate-pulse" 
-                : "bg-white/[0.02] border-white/[0.06] text-white/80"
+                ? "bg-blue-50 border-blue-200 text-blue-800 animate-pulse" 
+                : "bg-white border-amber-200/60 text-gray-800"
             )}>
-              <CloudRain className={cn("w-5 h-5 mt-0.5", hasRain ? "text-blue-400 animate-bounce" : "text-primary")} />
+              <CloudRain className={cn("w-5 h-5 mt-0.5", hasRain ? "text-blue-500 animate-bounce" : "text-amber-500")} />
               <div>
-                <p className="font-extrabold tracking-tight font-outfit">Kondisi Cuaca Kalirejo</p>
-                <p className="text-[11px] text-white/50 leading-relaxed mt-0.5">{localWeatherText}</p>
+                <p className="font-extrabold tracking-tight text-gray-900">Kondisi Cuaca Kalirejo</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed mt-0.5">{localWeatherText}</p>
                 {weatherAlertVisible && (
-                  <div className="mt-1.5 p-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-[10px] text-blue-300 flex items-center gap-1.5 font-semibold">
-                    <AlertTriangle className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+                  <div className="mt-1.5 p-1.5 bg-blue-50 border border-blue-200 rounded-lg text-[10px] text-blue-700 flex items-center gap-1.5 font-semibold">
+                    <AlertTriangle className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
                     Warning: Tambahan Surcharge Hujan Aktif (+Rp3.000)
                   </div>
                 )}
@@ -1278,7 +1278,7 @@ ${osmLink}`;
             {/* Form */}
             
             {/* Step Indicator */}
-            <div className="flex items-center justify-between px-1 py-3 border-b border-white/[0.06] mb-5">
+            <div className="flex items-center justify-between px-1 py-3 border-b border-gray-200 mb-5">
               {[
                 { id: 1, label: 'Lokasi' },
                 { id: 2, label: 'Layanan' },
@@ -1291,22 +1291,22 @@ ${osmLink}`;
                   <div key={st.id} className="flex items-center gap-1.5 flex-1 justify-center last:flex-none">
                     <div className={cn(
                       "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border transition-all",
-                      isActive ? "border-primary bg-primary/10 text-primary" :
-                      isCompleted ? "border-emerald-500 bg-emerald-500/10 text-emerald-400" :
-                      "border-white/[0.08] text-white/20"
+                      isActive ? "border-amber-500 bg-amber-50 text-amber-600" :
+                      isCompleted ? "border-emerald-500 bg-emerald-50 text-emerald-600" :
+                      "border-gray-200 text-gray-300"
                     )}>
                       {isCompleted ? '✓' : `0${st.id}`}
                     </div>
                     <span className={cn(
                       "text-[10px] font-bold tracking-tight hidden sm:inline",
-                      isActive ? "text-primary font-extrabold" : "text-white/30"
+                      isActive ? "text-amber-600 font-extrabold" : "text-gray-400"
                     )}>
                       {st.label}
                     </span>
                     {i < 3 && (
                       <div className={cn(
                         "h-[1px] flex-1 min-w-[12px] max-w-[24px] transition-all mx-1",
-                        isCompleted ? "bg-emerald-500" : "bg-white/[0.08]"
+                        isCompleted ? "bg-emerald-500" : "bg-gray-200"
                       )} />
                     )}
                   </div>
@@ -1324,33 +1324,33 @@ ${osmLink}`;
         className="space-y-5"
       >
 {/* Top Help Guide Banner */}
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-3.5 flex items-start gap-3 text-xs leading-relaxed text-amber-200 shadow-sm">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex items-start gap-3 text-xs leading-relaxed text-amber-900 shadow-soft-xs">
                 <Info className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <p className="font-bold text-xs font-outfit">📌 Petunjuk Pengisian Form:</p>
-                  <p className="text-[11px] text-white/50">
-                    Kolom bertanda <span className="text-red-600 font-extrabold px-1.5 py-0.5 bg-red-100/90 rounded border border-red-200 text-[10px]">* WAJIB</span> harus diisi. Kolom bertanda <span className="text-secondary-600 font-semibold px-1.5 py-0.5 bg-secondary-150 rounded border border-secondary-250 text-[10px]">(OPSIONAL)</span> boleh dikosongkan jika tidak ada catatan.
+                  <p className="font-bold text-xs">📌 Petunjuk Pengisian Form:</p>
+                  <p className="text-[11px] text-gray-600">
+                    Kolom bertanda <span className="text-red-600 font-extrabold px-1.5 py-0.5 bg-red-50 rounded border border-red-200 text-[10px]">* WAJIB</span> harus diisi. Kolom bertanda <span className="text-gray-500 font-semibold px-1.5 py-0.5 bg-gray-100 rounded border border-gray-200 text-[10px]">(OPSIONAL)</span> boleh dikosongkan jika tidak ada catatan.
                   </p>
                 </div>
               </div>
 
               
 {/* Profile/Customer name */}
-              <div className="space-y-4 bg-[#11151A] border border-white/[0.08] p-5 rounded-[20px] shadow-cinema">
-                <h3 className="text-sm font-bold text-white flex items-center justify-between font-outfit">
+              <div className="space-y-4 bg-white border border-gray-200 p-5 rounded-[20px] shadow-soft">
+                <h3 className="text-sm font-bold text-gray-900 flex items-center justify-between">
                   <span className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-primary" />
+                    <User className="w-4 h-4 text-amber-500" />
                     Pemesanan Akun
                   </span>
-                  <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/25">
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
                     Data Pelanggan
                   </span>
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-[11px] font-bold text-white/70 uppercase tracking-wider mb-1 flex items-center justify-between">
+                    <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 flex items-center justify-between">
                       <span>Nama Lengkap</span>
-                      <span className="text-red-400 font-extrabold text-[10px] bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20 tracking-wider">* WAJIB</span>
+                      <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
                     </label>
                     <input
                       type="text"
@@ -1363,18 +1363,18 @@ ${osmLink}`;
                       }}
                       placeholder="Contoh: Budi Santoso"
                       className={cn(
-                        "input-premium py-2.5 text-xs rounded-xl transition-all",
-                        errors.customerName ? "bg-red-500/10 border-red-500 focus:ring-red-500/20 text-white" : customerName ? "bg-[#0D1116] border-emerald-500/30 text-white" : "bg-[#0D1116] border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        "w-full px-4 py-2.5 text-xs rounded-xl transition-all border bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2",
+                        errors.customerName ? "border-red-400 focus:ring-red-200" : customerName ? "border-emerald-400 focus:ring-emerald-100" : "border-gray-200 focus:border-amber-400 focus:ring-amber-100"
                       )}
                     />
                     {errors.customerName ? (
                       <p className="text-[10px] text-red-500 mt-1 font-semibold flex items-center gap-1">⚠️ {errors.customerName}</p>
                     ) : (
-                      <p className="text-[9.5px] text-white/30 mt-1">Nama pemesan atau panggilan untuk konfirmasi</p>
+                      <p className="text-[9.5px] text-gray-400 mt-1">Nama pemesan atau panggilan untuk konfirmasi</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-primary uppercase tracking-wider mb-1 flex items-center justify-between">
+                    <label className="block text-[11px] font-bold text-amber-600 uppercase tracking-wider mb-1 flex items-center justify-between">
                       <span>No. WhatsApp</span>
                       <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
                     </label>
@@ -1389,14 +1389,14 @@ ${osmLink}`;
                       }}
                       placeholder="08xxxxxxxxxx"
                       className={cn(
-                        "input-premium py-2.5 text-xs rounded-xl transition-all",
-                        errors.whatsappNumber ? "bg-red-500/10 border-red-500 focus:ring-red-500/20 text-white" : whatsappNumber ? "bg-[#0D1116] border-emerald-500/30 text-white" : "bg-[#0D1116] border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        "w-full px-4 py-2.5 text-xs rounded-xl transition-all border bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2",
+                        errors.whatsappNumber ? "border-red-400 focus:ring-red-200" : whatsappNumber ? "border-emerald-400 focus:ring-emerald-100" : "border-gray-200 focus:border-amber-400 focus:ring-amber-100"
                       )}
                     />
                     {errors.whatsappNumber ? (
                       <p className="text-[10px] text-red-500 mt-1 font-semibold flex items-center gap-1">⚠️ {errors.whatsappNumber}</p>
                     ) : (
-                      <p className="text-[9.5px] text-secondary-400 mt-1">10-14 digit nomor aktif untuk konfirmasi kurir</p>
+                      <p className="text-[9.5px] text-gray-400 mt-1">10-14 digit nomor aktif untuk konfirmasi kurir</p>
                     )}
                   </div>
                 </div>
@@ -1408,14 +1408,14 @@ ${osmLink}`;
                 <div className="space-y-3.5">
 
                   {/* Menu Deteksi Lokasi Real-Time Customer via Native Device GPS */}
-                  <div className="bg-[#11151A] border border-white/[0.08] p-5 rounded-[20px] space-y-3 text-left shadow-cinema">
+                  <div className="bg-blue-50 border border-blue-200 p-5 rounded-[20px] space-y-3 text-left shadow-soft">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="relative flex h-3 w-3">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                         </span>
-                        <span className="text-xs font-black text-blue-200 font-outfit uppercase tracking-wide">
+                        <span className="text-xs font-black text-blue-800 uppercase tracking-wide">
                           Deteksi Lokasi Tujuan Real-Time
                         </span>
                       </div>
@@ -1438,8 +1438,8 @@ ${osmLink}`;
                       </span>
                     </div>
 
-                    <p className="text-[11px] text-white/50 leading-relaxed font-medium">
-                      Tekan tombol <strong className="text-blue-950 font-bold">&quot;Cek Lokasi Saat Ini&quot;</strong> untuk mendeteksi posisi presisi dari sensor GPS HP Anda secara real-time. Sistem akan otomatis menentukan lokasi tujuan Anda &amp; menghitung biaya ongkos kirim.
+                    <p className="text-[11px] text-blue-700 leading-relaxed font-medium">
+                      Tekan tombol <strong className="text-blue-900 font-bold">&quot;Cek Lokasi Saat Ini&quot;</strong> untuk mendeteksi posisi presisi dari sensor GPS HP Anda secara real-time. Sistem akan otomatis menentukan lokasi tujuan Anda &amp; menghitung biaya ongkos kirim.
                     </p>
 
                     {destinationGpsStatus && (
@@ -1454,7 +1454,7 @@ ${osmLink}`;
                         type="button"
                         onClick={handleGetDestinationLocation}
                         disabled={isLocatingDestination}
-                        className="flex-1 min-w-[200px] bg-primary text-secondary-900 font-extrabold text-xs px-5 py-3.5 rounded-xl hover:bg-[#FFD64D] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all shadow-golden disabled:opacity-50"
+                        className="flex-1 min-w-[200px] bg-blue-600 text-white font-extrabold text-xs px-5 py-3.5 rounded-xl hover:bg-blue-700 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all shadow-soft disabled:opacity-50"
                       >
                         {isLocatingDestination ? (
                           <>
@@ -1474,7 +1474,7 @@ ${osmLink}`;
                           href={`https://www.google.com/maps?q=${destinationCoords.lat},${destinationCoords.lng}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-white/[0.04] hover:bg-white/[0.08] text-blue-400 border border-blue-500/30 text-xs font-black px-3.5 py-3 rounded-xl transition-all shadow-soft flex items-center gap-1.5 shrink-0"
+                          className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 text-xs font-black px-3.5 py-3 rounded-xl transition-all shadow-soft flex items-center gap-1.5 shrink-0"
                           title="Buka lokasi ini di aplikasi Google Maps"
                         >
                           <span>🗺️ Buka Google Maps</span>
@@ -1484,15 +1484,15 @@ ${osmLink}`;
                     </div>
 
                     {destinationGpsError && (
-                      <div className="p-3.5 bg-red-500/5 border border-red-500/20 rounded-xl space-y-2.5 text-left shadow-soft-xs">
+                      <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl space-y-2.5 text-left shadow-soft-xs">
                         <div className="flex items-start gap-2">
-                          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                          <div className="space-y-1.5 text-xs text-red-200">
+                          <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                          <div className="space-y-1.5 text-xs text-red-700">
                             <p className="font-bold">{destinationGpsError}</p>
-                            <p className="text-[11px] font-semibold text-red-300">
+                            <p className="text-[11px] font-semibold text-red-600">
                               Langkah troubleshooting agar GPS akurat:
                             </p>
-                            <ul className="list-disc list-inside text-[11px] text-red-700 space-y-0.5 font-medium">
+                            <ul className="list-disc list-inside text-[11px] text-red-600 space-y-0.5 font-medium">
                               <li>Aktifkan Layanan Lokasi / GPS pada HP Anda</li>
                               <li>Aktifkan Mode Lokasi Presisi / Akurasi Tinggi (High Accuracy Location)</li>
                               <li>Izinkan akses lokasi untuk browser yang Anda gunakan</li>
@@ -1587,12 +1587,12 @@ ${osmLink}`;
                     )}
 
                     {/* Google Maps Link — Hidden feature, PIN-protected */}
-                    <div className="pt-2 border-t border-blue-200/60 space-y-1">
+                    <div className="pt-2 border-t border-blue-200 space-y-1">
                       {!gmapsUnlocked ? (
                         <button
                           type="button"
                           onClick={() => { setShowPinDialog(true); setPinError(''); setPinInput(''); }}
-                          className="flex items-center gap-1.5 text-[10px] font-bold text-white/30 hover:text-white/60 transition-colors py-1"
+                          className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 hover:text-gray-600 transition-colors py-1"
                           title="Mode Khusus"
                         >
                           <span>🔒</span>
@@ -1600,7 +1600,7 @@ ${osmLink}`;
                         </button>
                       ) : (
                         <>
-                          <label className="block text-[10px] font-extrabold text-blue-200 uppercase tracking-wider flex items-center justify-between">
+                          <label className="block text-[10px] font-extrabold text-blue-700 uppercase tracking-wider flex items-center justify-between">
                             <span>📌 Tempel Link / Koordinat Google Maps</span>
                             <span className="text-emerald-600 text-[9px] font-bold">🔓 Terbuka</span>
                           </label>
@@ -1609,7 +1609,7 @@ ${osmLink}`;
                             value={gmapsLinkInput}
                             onChange={(e) => handleParseGmapsInput(e.target.value)}
                             placeholder="Tempel link Google Maps (maps.app.goo.gl...) atau koordinat (-5.2951, 104.9752)"
-                            className="w-full bg-[#07090C] font-semibold text-white px-3 py-2 rounded-xl border border-white/[0.08] focus:outline-none focus:ring-2 focus:ring-primary/40 text-xs shadow-soft-xs placeholder:text-white/20"
+                            className="w-full bg-white font-semibold text-gray-900 px-3 py-2 rounded-xl border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 text-xs shadow-soft-xs placeholder:text-gray-400"
                           />
                         </>
                       )}
@@ -1621,23 +1621,23 @@ ${osmLink}`;
                     <motion.div
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="p-4 bg-gradient-to-r from-primary/[0.05] via-emerald-500/[0.05] to-primary/[0.05] border border-emerald-500/30 rounded-2xl flex items-center justify-between shadow-md text-left"
+                      className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between shadow-soft-xs text-left"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-emerald-400 font-black text-xs">
+                        <div className="flex items-center gap-1.5 text-emerald-700 font-black text-xs">
                           <span className="relative flex h-2.5 w-2.5">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                           </span>
                           <span>Ongkos Kirim Otomatis Terkalkulasi!</span>
                         </div>
-                        <p className="text-[11px] text-white/60 font-medium">
-                          Jarak Rute: <strong className="text-white font-extrabold">{formatDistance(pricing.distance)}</strong> ({formatDuration(pricing.duration)})
+                        <p className="text-[11px] text-gray-600 font-medium">
+                          Jarak Rute: <strong className="text-gray-900 font-extrabold">{formatDistance(pricing.distance)}</strong> ({formatDuration(pricing.duration)})
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[9px] text-white/40 uppercase font-black tracking-wider">Total Biaya Ongkir</p>
-                        <p className="text-2xl font-black text-primary font-outfit leading-tight">{formatCurrency(pricing.totalDeliveryFee)}</p>
+                        <p className="text-[9px] text-gray-500 uppercase font-black tracking-wider">Total Biaya Ongkir</p>
+                        <p className="text-2xl font-black text-amber-500 leading-tight">{formatCurrency(pricing.totalDeliveryFee)}</p>
                       </div>
                     </motion.div>
                   )}
@@ -1646,17 +1646,17 @@ ${osmLink}`;
 
                   
 {/* Location Type / Upload Photo / Landmark — always visible */}
-                  <div className="bg-[#11151A] border border-white/[0.08] p-5 rounded-[20px] space-y-3 shadow-cinema">
+                  <div className="bg-white border border-gray-200 p-5 rounded-[20px] space-y-3 shadow-soft">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[9px] font-extrabold text-white/70 uppercase tracking-wider flex items-center justify-between">
+                        <label className="block text-[9px] font-extrabold text-gray-600 uppercase tracking-wider flex items-center justify-between">
                           <span>Jenis Lokasi</span>
-                          <span className="text-white/30 font-semibold text-[8px]">(OPSIONAL)</span>
+                          <span className="text-gray-400 font-semibold text-[8px]">(OPSIONAL)</span>
                         </label>
                         <select
                           value={destinationLocationType}
                           onChange={(e) => setDestinationLocationType(e.target.value)}
-                          className="input-premium py-2 px-3 text-xs rounded-xl bg-[#0D1116] border border-white/[0.10] mt-1 text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10"
+                          className="w-full px-4 py-2 text-xs rounded-xl bg-white border border-gray-200 mt-1 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
                         >
                           {LOCATION_TYPES.map(loc => (
                             <option key={loc.value} value={loc.value}>{loc.icon} {loc.label}</option>
@@ -1664,30 +1664,30 @@ ${osmLink}`;
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[9px] font-extrabold text-white/40 uppercase tracking-wider flex items-center justify-between">
+                        <label className="block text-[9px] font-extrabold text-gray-500 uppercase tracking-wider flex items-center justify-between">
                           <span>Foto Tempat</span>
-                          <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                          <span className="text-gray-400 font-semibold text-[8px]">(OPSIONAL)</span>
                         </label>
                         <div className="flex items-center gap-1.5 mt-1.5">
-                          <label className="cursor-pointer bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-[9px] font-bold px-2 py-1 flex items-center gap-1 text-white/70">
+                          <label className="cursor-pointer bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-[9px] font-bold px-2 py-1 flex items-center gap-1 text-gray-700">
                             <span>📸 Upload</span>
                             <input type="file" accept="image/*" className="hidden" onChange={handleLocationPhotoUpload} />
                           </label>
-                          {destinationPhotoUrl && <div className="w-5 h-5 rounded bg-emerald-500/10 flex items-center justify-center text-[10px]">✅</div>}
+                          {destinationPhotoUrl && <div className="w-5 h-5 rounded bg-emerald-50 border border-emerald-200 flex items-center justify-center text-[10px] text-emerald-700">✅</div>}
                         </div>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-extrabold text-white/40 uppercase tracking-wider flex items-center justify-between">
+                      <label className="block text-[9px] font-extrabold text-gray-500 uppercase tracking-wider flex items-center justify-between">
                         <span>Patokan / Catatan Tujuan</span>
-                        <span className="text-secondary-400 font-semibold text-[8px]">(OPSIONAL)</span>
+                        <span className="text-gray-400 font-semibold text-[8px]">(OPSIONAL)</span>
                       </label>
                       <input
                         type="text"
                         value={destinationLandmark}
                         onChange={(e) => setDestinationLandmark(e.target.value)}
                         placeholder="cth: Pagar hitam, dekat warung kelontong"
-                        className="input-premium py-2 px-3 text-xs rounded-xl mt-1 bg-[#0D1116] border border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        className="w-full px-4 py-2 text-xs rounded-xl mt-1 bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
                       />
                     </div>
                   </div>
@@ -1722,7 +1722,7 @@ ${osmLink}`;
       >
 {/* Service Categories */}
               <div className="space-y-3">
-                <label className="block text-xs font-bold text-white/70 font-outfit uppercase tracking-wider flex items-center justify-between">
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center justify-between">
                   <span>Kategori Layanan</span>
                   <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
                 </label>
@@ -1744,13 +1744,13 @@ ${osmLink}`;
                           }
                         }}
                         className={cn(
-                          'p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 shadow-sm',
+                          'p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 shadow-soft-xs bg-white',
                           isSelected
-                            ? 'border-primary bg-primary/10 text-primary font-bold scale-[1.02]'
-                            : 'border-white/[0.06] hover:border-primary/45 hover:bg-white/[0.04] text-white/60'
+                            ? 'border-amber-500 bg-amber-50 text-amber-700 font-bold scale-[1.02]'
+                            : 'border-gray-200 hover:border-amber-400 hover:bg-amber-50/20 text-gray-600'
                         )}
                       >
-                        {Icon && <Icon className={cn('w-5 h-5', isSelected ? 'text-primary' : 'text-white/30')} />}
+                        {Icon && <Icon className={cn('w-5 h-5', isSelected ? 'text-amber-500' : 'text-gray-400')} />}
                         <span className="text-[10px] leading-tight font-bold">{cat.label.split(' ')[0]}</span>
                       </button>
                     );
@@ -1792,34 +1792,34 @@ ${osmLink}`;
         exit={{ opacity: 0, x: 10 }}
         className="space-y-5"
       >
-{/* Live Kalkulasi Ongkos Kirim Banner */}
+                  {/* Live Kalkulasi Ongkos Kirim Banner */}
                   {pricing && destinationCoords && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="p-4 bg-gradient-to-r from-primary/[0.05] via-emerald-500/[0.05] to-primary/[0.05] border border-emerald-500/30 rounded-2xl flex items-center justify-between shadow-md text-left"
+                      className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between shadow-soft-xs text-left"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-emerald-400 font-black text-xs">
+                        <div className="flex items-center gap-1.5 text-emerald-700 font-black text-xs">
                           <span className="relative flex h-2.5 w-2.5">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                           </span>
                           <span>Ongkos Kirim Otomatis Terkalkulasi!</span>
                         </div>
-                        <p className="text-[11px] text-white/60 font-medium">
-                          Jarak Rute: <strong className="text-white font-extrabold">{formatDistance(pricing.distance)}</strong> ({formatDuration(pricing.duration)})
+                        <p className="text-[11px] text-gray-600 font-medium">
+                          Jarak Rute: <strong className="text-gray-900 font-extrabold">{formatDistance(pricing.distance)}</strong> ({formatDuration(pricing.duration)})
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[9px] text-white/40 uppercase font-black tracking-wider">Total Biaya Ongkir</p>
-                        <p className="text-2xl font-black text-primary font-outfit leading-tight">{formatCurrency(pricing.totalDeliveryFee)}</p>
+                        <p className="text-[9px] text-gray-500 uppercase font-black tracking-wider">Total Biaya Ongkir</p>
+                        <p className="text-2xl font-black text-amber-500 leading-tight">{formatCurrency(pricing.totalDeliveryFee)}</p>
                       </div>
                     </motion.div>
                   )}
 {/* Route Options and Rules */}
-              <div className="bg-white/[0.02] p-4 border border-white/[0.06] rounded-2xl space-y-3">
-                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider">Profil Pencarian Rute</label>
+              <div className="bg-white p-4 border border-gray-200 rounded-2xl space-y-3 shadow-soft-xs">
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Profil Pencarian Rute</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(['fastest', 'shortest', 'motorcycle'] as const).map((opt) => (
                     <button
@@ -1829,8 +1829,8 @@ ${osmLink}`;
                       className={cn(
                         'py-1.5 px-2 rounded-xl text-[10px] font-bold border transition-all text-center',
                         routeOption === opt
-                          ? 'bg-primary border-primary text-secondary-900 font-bold shadow-golden'
-                          : 'bg-white/[0.04] border border-white/[0.08] text-white/50 hover:bg-white/[0.06]'
+                          ? 'bg-amber-500 border-amber-500 text-white font-bold shadow-soft'
+                          : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                       )}
                     >
                       {opt === 'fastest' ? '⚡ Tercepat' : opt === 'shortest' ? '📏 Terpendek' : '🛵 Rute Motor'}
@@ -1848,18 +1848,18 @@ ${osmLink}`;
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="space-y-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4"
+                    className="space-y-4 bg-white border border-gray-200 rounded-2xl p-4 shadow-soft-xs"
                   >
-                    <h4 className="text-xs font-extrabold text-white uppercase tracking-wider font-outfit border-b border-white/[0.06] pb-2">Spesifikasi Ojek</h4>
+                    <h4 className="text-xs font-extrabold text-gray-900 uppercase tracking-wider border-b border-gray-200 pb-2">Spesifikasi Ojek</h4>
                     
                     {/* Passenger count */}
                     <div className="grid grid-cols-2 gap-3.5">
                       <div>
-                        <label className="block text-[10px] font-bold text-white/40 mb-1">Jumlah Penumpang</label>
+                        <label className="block text-[10px] font-bold text-gray-500 mb-1">Jumlah Penumpang</label>
                         <select
                           value={passengerCount}
                           onChange={(e) => setPassengerCount(parseInt(e.target.value))}
-                          className="input-premium py-2 px-3 text-xs rounded-xl bg-[#0D1116] border border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10"
+                          className="w-full px-4 py-2 text-xs rounded-xl bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
                         >
                           <option value="1">1 Orang</option>
                           <option value="2">2 Orang</option>
@@ -1868,11 +1868,11 @@ ${osmLink}`;
 
                       {/* Weight Category */}
                       <div>
-                        <label className="block text-[10px] font-bold text-white/40 mb-1">Rentang Berat Penumpang</label>
+                        <label className="block text-[10px] font-bold text-gray-500 mb-1">Rentang Berat Penumpang</label>
                         <select
                           value={weightRange}
                           onChange={(e) => setWeightRange(e.target.value)}
-                          className="input-premium py-2 px-2 text-xs rounded-xl bg-white"
+                          className="w-full px-4 py-2 text-xs rounded-xl bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
                         >
                           <option value="<80">&lt; 80 kg</option>
                           <option value="80-120">80 - 120 kg (+Rp3.000)</option>
@@ -1883,7 +1883,7 @@ ${osmLink}`;
 
                     {/* Helm selection */}
                     <div>
-                      <label className="block text-[10px] font-bold text-white/40 mb-1.5">Ketersediaan Helm</label>
+                      <label className="block text-[10px] font-bold text-gray-500 mb-1.5">Ketersediaan Helm</label>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
@@ -1891,8 +1891,8 @@ ${osmLink}`;
                           className={cn(
                             "py-2 px-2 border rounded-xl text-xs font-bold transition-all",
                             ojekHelmet === 'need' 
-                              ? "bg-primary border-primary text-secondary-900 font-bold shadow-golden" 
-                              : "bg-white border-secondary-200 text-secondary-600"
+                              ? "bg-amber-500 border-amber-500 text-white font-bold shadow-soft" 
+                              : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
                           )}
                         >
                           Butuh Helm Driver
@@ -1903,8 +1903,8 @@ ${osmLink}`;
                           className={cn(
                             "py-2 px-2 border rounded-xl text-xs font-bold transition-all",
                             ojekHelmet === 'own' 
-                              ? "bg-amber-500 border-amber-500 text-white shadow-sm" 
-                              : "bg-white border-secondary-200 text-secondary-600"
+                              ? "bg-amber-500 border-amber-500 text-white font-bold shadow-soft" 
+                              : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
                           )}
                         >
                           Bawa Helm Sendiri
@@ -1913,16 +1913,16 @@ ${osmLink}`;
                     </div>
 
                     {/* Roundtrip & extra waiting */}
-                    <div className="flex items-center justify-between py-1 border-t border-secondary-100 pt-3 mt-1">
+                    <div className="flex items-center justify-between py-1 border-t border-gray-200 pt-3 mt-1">
                       <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
                           id="roundtrip"
                           checked={ojekRoundTrip}
                           onChange={(e) => setOjekRoundTrip(e.target.checked)}
-                          className="w-4 h-4 text-amber-500 border-secondary-300 rounded focus:ring-amber-500"
+                          className="w-4 h-4 text-amber-500 border-gray-300 rounded focus:ring-amber-500"
                         />
-                        <label htmlFor="roundtrip" className="text-xs font-bold text-white/70 cursor-pointer">Perjalanan Pulang Pergi (PP)</label>
+                        <label htmlFor="roundtrip" className="text-xs font-bold text-gray-700 cursor-pointer">Perjalanan Pulang Pergi (PP)</label>
                       </div>
                     </div>
                   </motion.div>
@@ -1933,13 +1933,13 @@ ${osmLink}`;
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="space-y-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4"
+                    className="space-y-4 bg-white border border-gray-200 rounded-2xl p-4 shadow-soft-xs"
                   >
-                    <h4 className="text-xs font-extrabold text-white/80 uppercase tracking-wider font-outfit border-b border-white/[0.08] pb-2">Spesifikasi Paket & Titipan</h4>
+                    <h4 className="text-xs font-extrabold text-gray-950 uppercase tracking-wider border-b border-gray-200 pb-2">Spesifikasi Paket & Titipan</h4>
                     
                     {/* Weight options */}
                     <div>
-                      <label className="block text-[10px] font-bold text-white/40 mb-1.5">Estimasi Berat Paket</label>
+                      <label className="block text-[10px] font-bold text-gray-500 mb-1.5">Estimasi Berat Paket</label>
                       <div className="grid grid-cols-5 gap-1.5">
                         {[
                           { val: '0-2', lbl: '0-2kg' },
@@ -1955,8 +1955,8 @@ ${osmLink}`;
                             className={cn(
                               "py-2 border rounded-xl text-[9px] font-bold text-center transition-all",
                               weightRange === w.val 
-                                ? "bg-amber-500 border-amber-500 text-white shadow-sm" 
-                                : "bg-white/[0.04] border border-white/[0.08] text-white/50 hover:bg-white/[0.06]"
+                                ? "bg-amber-500 border-amber-500 text-white font-bold shadow-soft" 
+                                : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
                             )}
                           >
                             {w.lbl}
@@ -1969,11 +1969,11 @@ ${osmLink}`;
                     {['shopping', 'food', 'medicine'].includes(category) && (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider">Daftar Belanjaan *</label>
+                          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Daftar Belanjaan *</label>
                           <button
                             type="button"
                             onClick={addShoppingItem}
-                            className="text-[10px] text-primary font-extrabold flex items-center gap-0.5 px-2 py-1 rounded-md hover:bg-primary/10 active:bg-primary/15 transition-all"
+                            className="text-[10px] text-amber-600 hover:text-amber-700 font-extrabold flex items-center gap-0.5 px-2 py-1 rounded-md hover:bg-amber-50 active:bg-amber-100 transition-all"
                           >
                             <Plus className="w-3.5 h-3.5" /> Tambah Barang
                           </button>
@@ -1981,33 +1981,33 @@ ${osmLink}`;
 
                         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                           {shoppingItems.map((item, idx) => (
-                            <div key={item.id} className="flex gap-2 items-center bg-[#0D1116] p-2.5 rounded-xl border border-white/[0.08]">
+                            <div key={item.id} className="flex gap-2 items-center bg-white p-2.5 rounded-xl border border-gray-200 shadow-soft-xs">
                               <input
                                 type="text"
                                 value={item.name}
                                 onChange={(e) => updateShoppingItem(item.id, 'name', e.target.value)}
                                 placeholder="Nama barang (cth: Apel)"
-                                className="flex-1 text-[11px] font-semibold border-0 p-0 focus:ring-0"
+                                className="flex-1 text-[11px] font-semibold border-0 p-0 focus:ring-0 bg-transparent text-gray-900 placeholder:text-gray-400"
                               />
                               <input
                                 type="number"
                                 value={item.quantity}
                                 min={1}
                                 onChange={(e) => updateShoppingItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
-                                className="w-10 text-center text-xs font-bold border-0 p-1.5 focus:ring-0 bg-[#151A20] text-[#F5F5F5] rounded-lg border border-white/[0.08]"
+                                className="w-10 text-center text-xs font-bold border border-gray-200 p-1.5 focus:ring-0 bg-white text-gray-900 rounded-lg"
                               />
                               <input
                                 type="number"
                                 value={item.estimatedPrice || ''}
                                 onChange={(e) => updateShoppingItem(item.id, 'estimatedPrice', parseInt(e.target.value) || 0)}
                                 placeholder="Harga est."
-                                className="w-20 text-right text-[11px] font-semibold border-0 p-0 focus:ring-0"
+                                className="w-20 text-right text-[11px] font-semibold border-0 p-0 focus:ring-0 bg-transparent text-gray-900 placeholder:text-gray-400"
                               />
                               {shoppingItems.length > 1 && (
                                 <button
                                   type="button"
                                   onClick={() => removeShoppingItem(item.id)}
-                                  className="text-red-400 hover:text-red-600 p-0.5"
+                                  className="text-red-500 hover:text-red-700 p-0.5"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -2021,13 +2021,13 @@ ${osmLink}`;
                     {/* Standard text description for package */}
                     {!['shopping', 'food', 'medicine'].includes(category) && (
                       <div>
-                        <label className="block text-[10px] font-bold text-secondary-500 mb-1">Rincian Paket / Dokumen *</label>
+                        <label className="block text-[10px] font-bold text-gray-600 mb-1">Rincian Paket / Dokumen *</label>
                         <textarea
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
                           placeholder="Tulis jenis paket, alamat tujuan spesifik, cth: Titipan Surat Kematian dari Kantor Desa"
                           rows={2}
-                          className="input-premium py-2.5 px-3.5 text-xs resize-none bg-[#0D1116] border border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-xl"
+                          className="w-full px-4 py-2.5 text-xs resize-none bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-xl placeholder:text-gray-400"
                         />
                         {errors.description && <p className="text-[10px] text-red-500 mt-0.5">{errors.description}</p>}
                       </div>
@@ -2039,11 +2039,11 @@ ${osmLink}`;
               
 {/* Waiting Surcharge option */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-white/60 font-outfit uppercase tracking-wider">Antrean Waktu Tunggu Driver</label>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">Antrean Waktu Tunggu Driver</label>
                 <select
                   value={waitingMinutes}
                   onChange={(e) => setWaitingMinutes(parseInt(e.target.value) || 0)}
-                  className="input-premium py-2.5 text-xs rounded-xl bg-white"
+                  className="w-full px-4 py-2.5 text-xs rounded-xl bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
                 >
                   <option value="0">Tidak Perlu Menunggu (Rp0)</option>
                   <option value="10">Mengantre ~10 Menit (+Rp5.000)</option>
@@ -2051,93 +2051,93 @@ ${osmLink}`;
                   <option value="30">Mengantre ~30 Menit (+Rp15.000)</option>
                   <option value="60">Mengantre ~60 Menit (+Rp30.000)</option>
                 </select>
-                <p className="text-[9px] text-secondary-400">Pilih jika driver harus mengantre lama di warung padat, loket apotek, dll.</p>
+                <p className="text-[9px] text-gray-500">Pilih jika driver harus mengantre lama di warung padat, loket apotek, dll.</p>
               </div>
 
               
 {/* Pricing Custom Toggles: Holiday, Peak, Rain, Insurance */}
-              <div className="bg-[#11151A] border border-white/[0.08] p-5 rounded-[20px] shadow-cinema space-y-3 text-xs text-white/90">
-                <h4 className="text-xs font-bold text-white/80 uppercase tracking-wider font-outfit border-b border-white/[0.08] pb-2">Opsi & Surcharge Tambahan</h4>
+              <div className="bg-white border border-gray-200 p-5 rounded-[20px] shadow-soft space-y-3 text-xs text-gray-800">
+                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider border-b border-gray-250 pb-2">Opsi & Surcharge Tambahan</h4>
                 
                 {/* Rain/Weather Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CloudRain className={cn("w-4 h-4 transition-colors", hasRain ? "text-sky-400/80" : "text-white/40")} />
+                    <CloudRain className={cn("w-4 h-4 transition-colors", hasRain ? "text-sky-500" : "text-gray-400")} />
                     <span>Surcharge Cuaca Hujan (+Rp3.000)</span>
                   </div>
                   <input
                     type="checkbox"
                     checked={hasRain}
                     onChange={(e) => setHasRain(e.target.checked)}
-                    className="w-4 h-4 text-primary bg-[#151A20] border-white/20 rounded focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all duration-200"
+                    className="w-4 h-4 text-amber-500 bg-white border-gray-300 rounded focus:ring-amber-400 cursor-pointer transition-all duration-200"
                   />
                 </div>
 
                 {/* Holiday Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Calendar className={cn("w-4 h-4 transition-colors", hasHoliday ? "text-red-400/80" : "text-white/40")} />
+                    <Calendar className={cn("w-4 h-4 transition-colors", hasHoliday ? "text-red-500" : "text-gray-400")} />
                     <span>Surcharge Hari Libur (+Rp2.000)</span>
                   </div>
                   <input
                     type="checkbox"
                     checked={hasHoliday}
                     onChange={(e) => setHasHoliday(e.target.checked)}
-                    className="w-4 h-4 text-primary bg-[#151A20] border-white/20 rounded focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all duration-200"
+                    className="w-4 h-4 text-amber-500 bg-white border-gray-300 rounded focus:ring-amber-400 cursor-pointer transition-all duration-200"
                   />
                 </div>
 
                 {/* Peak Hour Surcharge Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Clock className={cn("w-4 h-4 transition-colors", hasPeakHour ? "text-amber-400/80 animate-pulse" : "text-white/40")} />
+                    <Clock className={cn("w-4 h-4 transition-colors", hasPeakHour ? "text-amber-500 animate-pulse" : "text-gray-400")} />
                     <span>Surcharge Jam Sibuk (+Rp3.000)</span>
                   </div>
                   <input
                     type="checkbox"
                     checked={hasPeakHour}
                     onChange={(e) => setHasPeakHour(e.target.checked)}
-                    className="w-4 h-4 text-primary bg-[#151A20] border-white/20 rounded focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all duration-200"
+                    className="w-4 h-4 text-amber-500 bg-white border-gray-300 rounded focus:ring-amber-400 cursor-pointer transition-all duration-200"
                   />
                 </div>
 
                 {/* Insurance Surcharge Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Shield className={cn("w-4 h-4 transition-colors", hasInsurance ? "text-primary" : "text-white/40")} />
+                    <Shield className={cn("w-4 h-4 transition-colors", hasInsurance ? "text-amber-500" : "text-gray-400")} />
                     <span>Asuransi Layanan JSS (+Rp1.000)</span>
                   </div>
                   <input
                     type="checkbox"
                     checked={hasInsurance}
                     onChange={(e) => setHasInsurance(e.target.checked)}
-                    className="w-4 h-4 text-primary bg-[#151A20] border-white/20 rounded focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all duration-200"
+                    className="w-4 h-4 text-amber-500 bg-white border-gray-300 rounded focus:ring-amber-400 cursor-pointer transition-all duration-200"
                   />
                 </div>
               </div>
 
               
 {/* Promo Code Discount */}
-              <div className="bg-[#11151A] border border-primary/30 p-5 rounded-[20px] shadow-[0_12px_40px_rgba(255,201,40,0.05)] space-y-3">
-                <label className="block text-[10px] font-bold text-primary uppercase tracking-wider">Gunakan Kode Promo</label>
+              <div className="bg-white border border-amber-300 p-5 rounded-[20px] shadow-soft space-y-3">
+                <label className="block text-[10px] font-bold text-amber-600 uppercase tracking-wider">Gunakan Kode Promo</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={promoCodeInput}
                     onChange={(e) => setPromoCodeInput(e.target.value)}
                     placeholder="cth: JSSPERDANA"
-                    className="flex-1 input-premium py-2.5 px-3.5 text-xs rounded-xl bg-[#0D1116] border border-white/[0.10] text-[#F5F5F5] focus:border-primary focus:ring-2 focus:ring-primary/10 uppercase placeholder:text-white/20"
+                    className="flex-1 px-4 py-2.5 text-xs rounded-xl bg-white border border-gray-250 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 uppercase placeholder:text-gray-400"
                   />
                   <button
                     type="button"
                     onClick={handleApplyPromo}
-                    className="bg-primary text-secondary-900 font-black px-5 py-2.5 rounded-xl text-xs hover:bg-[#FFD64D] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 shadow-golden"
+                    className="btn-primary px-5 py-2.5 rounded-xl text-xs"
                   >
                     Terapkan
                   </button>
                 </div>
                 {appliedPromo && (
-                  <p className="text-[10px] text-emerald-400 font-extrabold flex items-center gap-1.5">
+                  <p className="text-[10px] text-emerald-600 font-extrabold flex items-center gap-1.5">
                     <Check className="w-3.5 h-3.5 stroke-[3]" /> Kode promo &quot;{appliedPromo}&quot; aktif.
                   </p>
                 )}
@@ -2146,7 +2146,7 @@ ${osmLink}`;
               
 {/* Payment selection */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-secondary-700 font-outfit uppercase tracking-wider flex items-center justify-between">
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center justify-between">
                   <span>Metode Pembayaran</span>
                   <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
                 </label>
@@ -2160,13 +2160,13 @@ ${osmLink}`;
                         type="button"
                         onClick={() => setPaymentMethod(method.id)}
                         className={cn(
-                          'p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 shadow-sm',
+                          'p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 shadow-soft-xs bg-white',
                           isSelected
-                            ? 'border-primary bg-primary/10 text-primary font-bold'
-                            : 'border-white/[0.06] hover:border-white/[0.12] text-white/50 bg-[#07090C]'
+                            ? 'border-amber-500 bg-amber-50 text-amber-700 font-bold'
+                            : 'border-gray-200 hover:border-amber-400 text-gray-600'
                         )}
                       >
-                        {Icon && <Icon className={cn("w-4 h-4 transition-colors", isSelected ? "text-secondary-900" : "text-[#9299A3]")} />}
+                        {Icon && <Icon className={cn("w-4 h-4 transition-colors", isSelected ? "text-amber-600" : "text-gray-400")} />}
                         <span className="text-[9px] leading-tight font-bold">{method.label}</span>
                       </button>
                     );
@@ -2222,35 +2222,35 @@ ${osmLink}`;
       {/* PIN Dialog Modal for Google Maps Link feature */}
       <AnimatePresence>
         {showPinDialog && (
-          <div className="fixed inset-0 z-[2100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-[2100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0B0F14] rounded-2xl overflow-hidden border border-white/[0.08] shadow-cinema-xl max-w-sm w-full"
+              className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-soft-xl max-w-sm w-full"
             >
-              <div className="bg-[#11161C] p-4 text-white flex items-center justify-between border-b border-white/[0.06]">
+              <div className="bg-gray-50 p-4 text-gray-900 flex items-center justify-between border-b border-gray-200">
                 <div>
-                  <h3 className="text-sm font-bold font-outfit text-white flex items-center gap-2">🔒 Mode Khusus</h3>
-                  <p className="text-[10px] text-white/30 mt-0.5">Masukkan PIN untuk membuka fitur ini.</p>
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">🔒 Mode Khusus</h3>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Masukkan PIN untuk membuka fitur ini.</p>
                 </div>
                 <button
                   onClick={() => { setShowPinDialog(false); setPinInput(''); setPinError(''); }}
-                  className="text-white/40 hover:text-white text-lg p-1.5 hover:bg-white/[0.04] rounded-xl transition-all"
+                  className="text-gray-400 hover:text-gray-700 text-lg p-1.5 hover:bg-gray-100 rounded-xl transition-all"
                 >
                   ✕
                 </button>
               </div>
               <div className="p-5 space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-white/70 uppercase tracking-wider">PIN Akses</label>
+                  <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider">PIN Akses</label>
                   <input
                     type="password"
                     value={pinInput}
                     onChange={(e) => { setPinInput(e.target.value); setPinError(''); }}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handlePinSubmit(); } }}
                     placeholder="Masukkan PIN..."
-                    className="w-full input-premium py-2.5 px-3 text-sm rounded-xl text-center tracking-[0.3em] font-bold bg-[#07090C] border border-white/[0.08]"
+                    className="w-full px-4 py-2.5 text-sm rounded-xl text-center tracking-[0.3em] font-bold bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
                     autoFocus
                   />
                   {pinError && (
@@ -2290,17 +2290,17 @@ ${osmLink}`;
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 30 }}
               id="jss-confirm-modal-card"
-              className="bg-[#11151A] rounded-card overflow-hidden border border-white/[0.08] shadow-cinema-xl max-w-lg w-full flex flex-col max-h-[90vh]"
+              className="bg-white rounded-card overflow-hidden border border-gray-200 shadow-soft-xl max-w-lg w-full flex flex-col max-h-[90vh]"
             >
               {/* Header */}
-              <div className="bg-[#11161C] p-5 text-white flex items-center justify-between border-b border-white/[0.06]">
+              <div className="bg-gray-50 p-5 text-gray-900 flex items-center justify-between border-b border-gray-200">
                 <div>
-                  <h3 className="text-lg font-bold font-outfit text-white">Konfirmasi Pemesanan JSS</h3>
-                  <p className="text-[10px] text-white/30">Harap tinjau rincian biaya dan rute sebelum mengirim ke WhatsApp</p>
+                  <h3 className="text-lg font-bold text-gray-900">Konfirmasi Pemesanan JSS</h3>
+                  <p className="text-[10px] text-gray-400">Harap tinjau rincian biaya dan rute sebelum mengirim ke WhatsApp</p>
                 </div>
                 <button
                   onClick={() => setShowConfirmModal(false)}
-                  className="text-secondary-400 hover:text-white text-lg p-1.5 hover:bg-secondary-800 rounded-xl transition-all"
+                  className="text-gray-400 hover:text-gray-700 text-lg p-1.5 hover:bg-gray-100 rounded-xl transition-all"
                 >
                   ✕
                 </button>
@@ -2310,44 +2310,44 @@ ${osmLink}`;
               <div className="p-6 overflow-y-auto space-y-4.5 text-left text-xs leading-relaxed">
                 
                 {/* Rute preview */}
-                <div className="space-y-3.5 bg-[#151A20] border border-white/[0.08] p-4 rounded-xl">
+                <div className="space-y-3.5 bg-white border border-gray-200 p-4 rounded-xl shadow-soft-xs">
                   {/* Pickup Location */}
-                  <div className="space-y-1.5 border-b border-white/[0.06] pb-3">
+                  <div className="space-y-1.5 border-b border-gray-200 pb-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[9px] uppercase font-extrabold text-white/40 flex items-center gap-1">
+                      <span className="text-[9px] uppercase font-extrabold text-gray-500 flex items-center gap-1">
                         📍 PICKUP LOCATION
                       </span>
-                      <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                      <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                         ✅ GPS Verified
                       </span>
                     </div>
-                    <div className="font-bold text-white/80 leading-snug space-y-0.5 text-xs">
-                      <p className="font-black text-white">Perempatan Pasar Kalirejo</p>
-                      <p className="text-secondary-600">Desa Kalirejo, Kec. Kalirejo</p>
-                      <p className="text-white/50 text-[11px]">Kab. Lampung Tengah, Lampung</p>
+                    <div className="font-bold text-gray-800 leading-snug space-y-0.5 text-xs">
+                      <p className="font-black text-gray-900">Perempatan Pasar Kalirejo</p>
+                      <p className="text-gray-600">Desa Kalirejo, Kec. Kalirejo</p>
+                      <p className="text-gray-500 text-[11px]">Kab. Lampung Tengah, Lampung</p>
                     </div>
                   </div>
 
                   {/* Destination Location */}
                   <div className="space-y-2 pt-0.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[9px] uppercase font-extrabold text-secondary-400 flex items-center gap-1">
+                      <span className="text-[9px] uppercase font-extrabold text-gray-500 flex items-center gap-1">
                         🎯 DESTINATION
                       </span>
                       <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                         ✅ GPS Verified
                       </span>
                     </div>
-                    <p className="font-bold text-white leading-snug text-xs">{destinationAddress}</p>
-                    {destinationLandmark && <p className="text-[10px] text-primary font-semibold">📍 Patokan: {destinationLandmark}</p>}
+                    <p className="font-bold text-gray-800 leading-snug text-xs">{destinationAddress}</p>
+                    {destinationLandmark && <p className="text-[10px] text-amber-600 font-semibold">📍 Patokan: {destinationLandmark}</p>}
                     {destinationCoords && (
-                      <div className="text-[10px] text-white/60 space-y-1 mt-1.5 font-mono bg-[#07090C] p-2.5 rounded-xl border border-white/[0.08] shadow-soft-xs">
-                        <p className="font-bold text-blue-200">📍 Koordinat: {destinationCoords.lat.toFixed(7)}, {destinationCoords.lng.toFixed(7)}</p>
+                      <div className="text-[10px] text-gray-600 space-y-1 mt-1.5 font-mono bg-gray-50 p-2.5 rounded-xl border border-gray-200 shadow-soft-xs">
+                        <p className="font-bold text-blue-600">📍 Koordinat: {destinationCoords.lat.toFixed(7)}, {destinationCoords.lng.toFixed(7)}</p>
                         <a
                           href={`https://www.google.com/maps?q=${destinationCoords.lat.toFixed(7)},${destinationCoords.lng.toFixed(7)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary hover:underline font-extrabold flex items-center gap-1 text-[10px]"
+                          className="text-amber-600 hover:underline font-extrabold flex items-center gap-1 text-[10px]"
                         >
                           <span>🗺️ Google Maps Link</span>
                           <span className="text-[9px]">↗</span>
@@ -2358,49 +2358,49 @@ ${osmLink}`;
                 </div>
 
                 {/* Travel stats */}
-                <div className="grid grid-cols-3 gap-2 bg-[#151A20] border border-white/[0.08] p-3 rounded-xl text-center">
+                <div className="grid grid-cols-3 gap-2 bg-white border border-gray-200 p-3 rounded-xl text-center shadow-soft-xs">
                   <div>
-                    <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">Jarak Rute</span>
-                    <span className="text-xs font-extrabold text-white">{formatDistance(pricing.distance)}</span>
+                    <span className="block text-[8px] font-bold text-gray-500 uppercase tracking-wider">Jarak Rute</span>
+                    <span className="text-xs font-extrabold text-gray-900">{formatDistance(pricing.distance)}</span>
                   </div>
-                  <div className="border-x border-white/[0.06]">
-                    <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">Estimasi Perjalanan</span>
-                    <span className="text-xs font-extrabold text-white">{formatDuration(pricing.duration)}</span>
+                  <div className="border-x border-gray-200">
+                    <span className="block text-[8px] font-bold text-gray-500 uppercase tracking-wider">Estimasi Perjalanan</span>
+                    <span className="text-xs font-extrabold text-gray-900">{formatDuration(pricing.duration)}</span>
                   </div>
                   <div>
-                    <span className="block text-[8px] font-bold text-secondary-400 uppercase tracking-wider">ETA Jemput Driver</span>
-                    <span className="text-xs font-extrabold text-white">~{Math.round(5 + pricing.distance / 1500)} menit</span>
+                    <span className="block text-[8px] font-bold text-gray-500 uppercase tracking-wider">ETA Jemput Driver</span>
+                    <span className="text-xs font-extrabold text-gray-900">~{Math.round(5 + pricing.distance / 1500)} menit</span>
                   </div>
                 </div>
 
                 {/* Fees Itemization Breakdown */}
-                <div className="space-y-2 bg-[#151A20] border border-white/[0.08] p-4 rounded-xl shadow-sm">
-                  <h4 className="text-[10px] font-extrabold text-white/40 uppercase tracking-wider border-b border-white/[0.06] pb-1.5 mb-2">Rincian Ongkos Kirim</h4>
+                <div className="space-y-2 bg-white border border-gray-200 p-4 rounded-xl shadow-soft-xs">
+                  <h4 className="text-[10px] font-extrabold text-gray-500 uppercase tracking-wider border-b border-gray-200 pb-1.5 mb-2">Rincian Ongkos Kirim</h4>
                   
                   <div className="flex justify-between items-center gap-2">
-                    <span className="text-white/50 shrink-0">Tarif Dasar ({category === 'ride' ? 'Ojek' : 'Logistik'})</span>
-                    <span className="font-bold text-white/80 text-right whitespace-nowrap">{formatCurrency(pricing.baseFee)}</span>
+                    <span className="text-gray-600 shrink-0">Tarif Dasar ({category === 'ride' ? 'Ojek' : 'Logistik'})</span>
+                    <span className="font-bold text-gray-800 text-right whitespace-nowrap">{formatCurrency(pricing.baseFee)}</span>
                   </div>
 
                   <div className="flex justify-between items-center gap-2">
-                    <span className="text-white/50 shrink-0">Tarif Jarak Tempuh</span>
-                    <span className="font-bold text-white text-right whitespace-nowrap">{formatCurrency(pricing.distanceFee)}</span>
+                    <span className="text-gray-600 shrink-0">Tarif Jarak Tempuh</span>
+                    <span className="font-bold text-gray-800 text-right whitespace-nowrap">{formatCurrency(pricing.distanceFee)}</span>
                   </div>
 
                   {pricing.weightFee > 0 && (
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-white/50 shrink-0">Surcharge Berat ({weightRange} kg)</span>
-                      <span className="font-bold text-white text-right whitespace-nowrap">{formatCurrency(pricing.weightFee)}</span>
+                      <span className="text-gray-600 shrink-0">Surcharge Berat ({weightRange} kg)</span>
+                      <span className="font-bold text-gray-800 text-right whitespace-nowrap">{formatCurrency(pricing.weightFee)}</span>
                     </div>
                   )}
 
                   {(pricing.shoppingFee > 0 || ['shopping', 'food', 'medicine'].includes(category)) && (
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-white/50 shrink-0">Jasa Titip Belanja</span>
+                      <span className="text-gray-600 shrink-0">Jasa Titip Belanja</span>
                       {pricing.shoppingFee > 0 ? (
-                        <span className="font-bold text-white text-right whitespace-nowrap">{formatCurrency(pricing.shoppingFee)}</span>
+                        <span className="font-bold text-gray-800 text-right whitespace-nowrap">{formatCurrency(pricing.shoppingFee)}</span>
                       ) : (
-                        <span className="font-bold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-xs tracking-wide uppercase whitespace-nowrap">
+                        <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full text-xs tracking-wide uppercase whitespace-nowrap">
                           GRATIS
                         </span>
                       )}
@@ -2409,84 +2409,84 @@ ${osmLink}`;
 
                   {pricing.waitingFee > 0 && (
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-secondary-500 shrink-0">Biaya Tunggu Driver Antrean</span>
-                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.waitingFee)}</span>
+                      <span className="text-gray-600 shrink-0">Biaya Tunggu Driver Antrean</span>
+                      <span className="font-bold text-gray-800 text-right whitespace-nowrap">{formatCurrency(pricing.waitingFee)}</span>
                     </div>
                   )}
 
                   {pricing.rainFee > 0 && (
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-secondary-500 shrink-0">Surcharge Cuaca Hujan</span>
-                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.rainFee)}</span>
+                      <span className="text-gray-600 shrink-0">Surcharge Cuaca Hujan</span>
+                      <span className="font-bold text-gray-800 text-right whitespace-nowrap">{formatCurrency(pricing.rainFee)}</span>
                     </div>
                   )}
 
                   {pricing.holidayFee && pricing.holidayFee > 0 && (
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-secondary-500 shrink-0">Surcharge Hari Libur</span>
-                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.holidayFee)}</span>
+                      <span className="text-gray-600 shrink-0">Surcharge Hari Libur</span>
+                      <span className="font-bold text-gray-800 text-right whitespace-nowrap">{formatCurrency(pricing.holidayFee)}</span>
                     </div>
                   )}
 
                   {pricing.peakHourFee && pricing.peakHourFee > 0 && (
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-secondary-500 shrink-0">Surcharge Jam Sibuk</span>
-                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.peakHourFee)}</span>
+                      <span className="text-gray-600 shrink-0">Surcharge Jam Sibuk</span>
+                      <span className="font-bold text-gray-800 text-right whitespace-nowrap">{formatCurrency(pricing.peakHourFee)}</span>
                     </div>
                   )}
 
                   {pricing.serviceFee && pricing.serviceFee > 0 && (
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-secondary-500 shrink-0">Biaya Layanan Platform</span>
-                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.serviceFee)}</span>
+                      <span className="text-gray-600 shrink-0">Biaya Layanan Platform</span>
+                      <span className="font-bold text-gray-800 text-right whitespace-nowrap">{formatCurrency(pricing.serviceFee)}</span>
                     </div>
                   )}
 
                   {pricing.insuranceFee && pricing.insuranceFee > 0 && (
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-secondary-500 shrink-0">Asuransi Perjalanan JSS</span>
-                      <span className="font-bold text-secondary-800 text-right whitespace-nowrap">{formatCurrency(pricing.insuranceFee)}</span>
+                      <span className="text-gray-600 shrink-0">Asuransi Perjalanan JSS</span>
+                      <span className="font-bold text-gray-800 text-right whitespace-nowrap">{formatCurrency(pricing.insuranceFee)}</span>
                     </div>
                   )}
 
                   {pricing.isRoundTrip && pricing.roundTripFee && pricing.roundTripFee > 0 && (
-                    <div className="flex justify-between items-center gap-2 text-primary font-semibold bg-primary/5 p-1.5 rounded-lg border border-primary/20 mt-1">
+                    <div className="flex justify-between items-center gap-2 text-amber-700 font-semibold bg-amber-50 p-1.5 rounded-lg border border-amber-200 mt-1">
                       <span>Perjalanan Pulang Pergi (PP 2x)</span>
                       <span className="whitespace-nowrap">+{formatCurrency(pricing.roundTripFee)}</span>
                     </div>
                   )}
 
                   {pricing.promoDiscount && pricing.promoDiscount > 0 && (
-                    <div className="flex justify-between items-center gap-2 text-emerald-400 font-semibold bg-emerald-500/10 p-1.5 rounded-lg border border-emerald-500/20 mt-1">
+                    <div className="flex justify-between items-center gap-2 text-emerald-700 font-semibold bg-emerald-50 p-1.5 rounded-lg border border-emerald-200 mt-1">
                       <span>Promo Discount ({appliedPromo})</span>
                       <span className="whitespace-nowrap">-{formatCurrency(pricing.promoDiscount)}</span>
                     </div>
                   )}
 
                   {category !== 'ride' && totalItemPrice > 0 && (
-                    <div className="flex justify-between items-center gap-2 text-white/50 border-t border-dashed border-white/[0.08] pt-2 mt-2">
+                    <div className="flex justify-between items-center gap-2 text-gray-500 border-t border-dashed border-gray-200 pt-2 mt-2">
                       <span>Estimasi Budget Belanja</span>
                       <span className="whitespace-nowrap">{formatCurrency(totalItemPrice)}</span>
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center pt-3 border-t border-white/[0.08] font-extrabold text-sm text-white">
+                  <div className="flex justify-between items-center pt-3 border-t border-gray-200 font-extrabold text-sm text-gray-900">
                     <span>Grand Total Tagihan</span>
-                    <span className="text-lg text-primary font-outfit whitespace-nowrap">{formatCurrency(pricing.grandTotal)}</span>
+                    <span className="text-lg text-amber-500 whitespace-nowrap font-bold">{formatCurrency(pricing.grandTotal)}</span>
                   </div>
                 </div>
 
                 {/* Payment & disclaimer */}
-                <div className="flex justify-between items-center p-3 border border-white/[0.08] rounded-2xl bg-white/[0.02]">
-                  <span className="font-bold text-secondary-700">Metode Pembayaran:</span>
-                  <span className="font-extrabold text-white bg-white/[0.04] border border-white/[0.08] px-3 py-1 rounded-xl shadow-sm uppercase tracking-wide">
+                <div className="flex justify-between items-center p-3 border border-gray-200 rounded-2xl bg-gray-50">
+                  <span className="font-bold text-gray-700">Metode Pembayaran:</span>
+                  <span className="font-extrabold text-gray-900 bg-white border border-gray-250 px-3 py-1 rounded-xl shadow-soft-xs uppercase tracking-wide">
                     {paymentMethod === 'cash' ? '💵 Tunai (COD)' : paymentMethod === 'qris' ? '📱 QRIS' : '🏦 Transfer'}
                   </span>
                 </div>
               </div>
 
               {/* Action buttons */}
-              <div className="p-5 bg-[#11161C] border-t border-white/[0.06] flex flex-col sm:flex-row gap-2.5">
+              <div className="p-5 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowConfirmModal(false)}
@@ -2498,21 +2498,21 @@ ${osmLink}`;
                   type="button"
                   onClick={handleDownloadReceipt}
                   disabled={isDownloadingReceipt}
-                  className="bg-white/[0.04] hover:bg-white/[0.08] text-white font-bold py-3 px-4 rounded-button text-xs flex items-center justify-center gap-2 transition-all shadow-sm flex-1 disabled:opacity-50 border border-white/[0.08]"
+                  className="bg-white hover:bg-gray-50 text-gray-800 font-bold py-3 px-4 rounded-button text-xs flex items-center justify-center gap-2 transition-all shadow-soft flex-1 disabled:opacity-50 border border-gray-250"
                 >
                   {isDownloadingReceipt ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Download className="w-4 h-4 text-amber-400" />
+                    <Download className="w-4 h-4 text-amber-500" />
                   )}
                   Download Struk
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmSubmit}
-                  className="btn-primary py-3 px-4 rounded-button text-xs flex items-center justify-center gap-2 shadow-golden flex-1 font-bold"
+                  className="btn-primary py-3 px-4 rounded-button text-xs flex items-center justify-center gap-2 shadow-soft flex-1 font-bold"
                 >
-                  <MessageCircle className="w-4 h-4 text-secondary-900" />
+                  <MessageCircle className="w-4 h-4 text-gray-900" />
                   Kirim ke WhatsApp
                 </button>
               </div>

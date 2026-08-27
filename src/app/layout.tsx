@@ -110,7 +110,7 @@ export default function RootLayout({
   return (
     <html lang="id" className={inter.variable}>
       <head>
-        <meta name="theme-color" content="#07090C" />
+        <meta name="theme-color" content="#FFFFFF" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -134,9 +134,10 @@ export default function RootLayout({
               style: {
                 borderRadius: '14px',
                 fontFamily: 'var(--font-inter)',
-                background: '#11161C',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: '#F5F5F5',
+                background: '#FFFFFF',
+                border: '1px solid rgba(0,0,0,0.08)',
+                color: '#202124',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
               },
             }}
           />
