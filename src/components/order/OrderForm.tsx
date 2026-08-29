@@ -212,7 +212,7 @@ export function OrderForm() {
   const [isMobile, setIsMobile] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [activeStep, setActiveStep] = useState(1);
+  // activeStep state removed for continuous form
 
   // Location geofencing & detailed states
   const [pickupDetails, setPickupDetails] = useState<DetailedAddress | null>(DEFAULT_PICKUP_DETAILS);
@@ -1121,45 +1121,8 @@ ${osmLink}`;
     }
   };
 
-    const validateStep1 = () => {
-    const newErrors: Record<string, string> = {};
-    if (!customerName.trim()) newErrors.customerName = 'Nama lengkap wajib diisi';
-    if (!whatsappNumber.trim()) {
-      newErrors.whatsappNumber = 'Nomor WhatsApp wajib diisi';
-    } else if (!/^\d{10,14}$/.test(whatsappNumber.replace(/[^0-9]/g, ''))) {
-      newErrors.whatsappNumber = 'Format nomor WhatsApp tidak valid (10-14 digit)';
-    }
-    if (!destinationAddress.trim() || !destinationCoords) {
-      newErrors.destinationAddress = 'Tentukan lokasi tujuan Anda terlebih dahulu.';
-    }
-    if (isOutsideLampung) {
-      newErrors.geofence = 'Layanan JSS saat ini hanya beroperasi di Provinsi Lampung.';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    // validateStep functions removed
 
-  const validateStep2 = () => {
-    const newErrors: Record<string, string> = {};
-    if (!category) newErrors.category = 'Pilih kategori pesanan';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validateStep3 = () => {
-    const newErrors: Record<string, string> = {};
-    if (category === 'ride') {
-      // Ojek validations
-    } else if (['shopping', 'food', 'medicine'].includes(category)) {
-      if (validShoppingItems.length === 0) {
-        newErrors.shoppingItems = 'Harap isi minimal 1 barang belanjaan';
-      }
-    } else {
-      if (!description.trim()) newErrors.description = 'Deskripsi barang/kegiatan wajib diisi';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleOpenConfirm = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1277,52 +1240,10 @@ ${osmLink}`;
 
             {/* Form */}
             
-            {/* Step Indicator */}
-            <div className="flex items-center justify-between px-1 py-3 border-b border-gray-200 mb-5">
-              {[
-                { id: 1, label: 'Lokasi' },
-                { id: 2, label: 'Layanan' },
-                { id: 3, label: 'Detail' },
-                { id: 4, label: 'Konfirmasi' }
-              ].map((st, i) => {
-                const isActive = activeStep === st.id;
-                const isCompleted = activeStep > st.id;
-                return (
-                  <div key={st.id} className="flex items-center gap-1.5 flex-1 justify-center last:flex-none">
-                    <div className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border transition-all",
-                      isActive ? "border-amber-500 bg-amber-50 text-amber-600" :
-                      isCompleted ? "border-emerald-500 bg-emerald-50 text-emerald-600" :
-                      "border-gray-200 text-gray-300"
-                    )}>
-                      {isCompleted ? '✓' : `0${st.id}`}
-                    </div>
-                    <span className={cn(
-                      "text-[10px] font-bold tracking-tight hidden sm:inline",
-                      isActive ? "text-amber-600 font-extrabold" : "text-gray-400"
-                    )}>
-                      {st.label}
-                    </span>
-                    {i < 3 && (
-                      <div className={cn(
-                        "h-[1px] flex-1 min-w-[12px] max-w-[24px] transition-all mx-1",
-                        isCompleted ? "bg-emerald-500" : "bg-gray-200"
-                      )} />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-  <form id="order-form-container" onSubmit={(e) => e.preventDefault()} className="space-y-5">
-  <AnimatePresence mode="wait">
-    {activeStep === 1 && (
-      <motion.div
-        key="step-1"
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 10 }}
-        className="space-y-5"
-      >
+            {/* Step Indicator Removed */}
+            <div className="w-full h-2"></div>
+            <form id="order-form-container" onSubmit={(e) => e.preventDefault()} className="space-y-5">
+              <div className="space-y-5 lg:space-y-8">
 {/* Top Help Guide Banner */}
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex items-start gap-3 text-xs leading-relaxed text-amber-900 shadow-soft-xs">
                 <Info className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
@@ -1696,30 +1617,8 @@ ${osmLink}`;
 
                   </div>
                 </div>
-        <button
-          type="button"
-          onClick={() => {
-            if (validateStep1()) {
-              setActiveStep(2);
-            } else {
-              toast.error("Harap lengkapi nama, nomor WhatsApp, dan lokasi tujuan Anda.");
-            }
-          }}
-          className="w-full btn-primary py-3.5 text-sm font-bold flex items-center justify-center gap-2 rounded-2xl shadow-golden"
-        >
-          Lanjutkan ke Layanan <ArrowRight className="w-4 h-4" />
-        </button>
-      </motion.div>
-    )}
-
-    {activeStep === 2 && (
-      <motion.div
-        key="step-2"
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 10 }}
-        className="space-y-5"
-      >
+        {/* Lanjutkan ke Layanan Button Removed */}
+        <div className="w-full h-[1px] bg-gray-200 my-6"></div>
 {/* Service Categories */}
               <div className="space-y-3">
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center justify-between">
@@ -1759,39 +1658,8 @@ ${osmLink}`;
               </div>
 
               
-        <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => setActiveStep(1)}
-            className="btn-outline flex-1 py-3.5 text-xs font-bold rounded-2xl"
-          >
-            Kembali
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (validateStep2()) {
-                setActiveStep(3);
-              } else {
-                toast.error("Silakan pilih kategori layanan terlebih dahulu.");
-              }
-            }}
-            className="btn-primary flex-1 py-3.5 text-xs font-bold rounded-2xl shadow-golden"
-          >
-            Lanjutkan ke Detail
-          </button>
-        </div>
-      </motion.div>
-    )}
-
-    {activeStep === 3 && (
-      <motion.div
-        key="step-3"
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 10 }}
-        className="space-y-5"
-      >
+        {/* Navigation Buttons Removed */}
+        <div className="w-full h-[1px] bg-gray-200 my-6"></div>
                   {/* Live Kalkulasi Ongkos Kirim Banner */}
                   {pricing && destinationCoords && (
                     <motion.div
@@ -2175,32 +2043,24 @@ ${osmLink}`;
               </div>
 
               
-        <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => setActiveStep(2)}
-            className="btn-outline flex-1 py-3.5 text-xs font-bold rounded-2xl"
-          >
-            Kembali
-          </button>
+        <div className="pt-4 pb-8">
           <button
             type="button"
             onClick={(e) => {
-              if (validateStep3()) {
+              if (validate()) {
                 handleOpenConfirm(e);
               } else {
-                toast.error("Harap lengkapi seluruh rincian spesifikasi paket/ojek Anda.");
+                toast.error("Harap lengkapi seluruh kolom yang WAJIB diisi.");
               }
             }}
             disabled={isSubmitDisabled}
-            className="btn-primary flex-1 py-3.5 text-xs font-bold rounded-2xl shadow-golden disabled:opacity-40"
+            className="w-full btn-primary py-4 text-sm font-bold rounded-2xl shadow-golden disabled:opacity-40 flex items-center justify-center gap-2"
           >
-            Konfirmasi Pesanan
+            <span>Pesan Sekarang</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
-      </motion.div>
-    )}
-  </AnimatePresence>
+      </div>
 </form>
 
           </div>
