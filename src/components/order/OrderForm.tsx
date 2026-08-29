@@ -1096,7 +1096,7 @@ ${osmLink}`;
               actionDiv.className = 'p-4 bg-secondary-900 text-center text-white border-t border-secondary-800';
               actionDiv.innerHTML = `
                 <div style="font-size: 12px; font-weight: 800; color: #FACC15; letter-spacing: 0.5px; margin-bottom: 3px;">JSS (JASA SURUH KALIREJO)</div>
-                <div style="font-size: 10px; color: #94A3B8;">Struk Resmi Konfirmasi Pemesanan • WA Admin: ${BRAND.phone} • https://web-jssv2.vercel.app</div>
+                <div style="font-size: 10px; color: #94A3B8;">Struk Resmi Konfirmasi Pemesanan • WA Admin: ${BRAND.phone} • https://jasa-suruh-kalirejo.vercel.app</div>
               `;
             }
           }

@@ -32,8 +32,8 @@ const INITIAL_ORDERS: Order[] = [];
 export function getApiUrl(path: string): string {
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
-    if (host.includes('vercel.app') && host !== 'web-jssv2.vercel.app') {
-      return `https://web-jssv2.vercel.app${path}`;
+    if (host.includes('vercel.app') && host !== 'jasa-suruh-kalirejo.vercel.app') {
+      return `https://jasa-suruh-kalirejo.vercel.app${path}`;
     }
   }
   return path;
