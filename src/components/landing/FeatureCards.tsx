@@ -33,8 +33,8 @@ const SERVICE_SCENES: Record<string, React.ComponentType<{ className?: string }>
   medicine: MedicineDeliveryScene,
   packages: ParcelDeliveryScene,
   documents: DocumentDeliveryScene,
-  large_cargo: GroceryShoppingScene,
-  carter: GroceryShoppingScene,
+  car_barang: GroceryShoppingScene,
+  car_ojek: GroceryShoppingScene,
 };
 
 export const SERVICES_LIST = [
@@ -87,20 +87,20 @@ export const SERVICES_LIST = [
     badge: 'Aman',
   },
   {
-    id: 'large_cargo',
-    title: 'Pengiriman Besar',
-    subtitle: 'Kargo & Muatan',
-    description: 'Layanan angkut barang berat atau muatan besar dengan armada terpercaya.',
+    id: 'car_barang',
+    title: 'JSS CAR Barang',
+    subtitle: 'Antar Barang via Mobil',
+    description: 'Kirim paket, belanjaan, atau barang besar menggunakan mobil. Kapasitas lebih besar!',
     icon: Truck,
-    badge: 'Kargo',
+    badge: 'Baru 🚗',
   },
   {
-    id: 'carter',
-    title: 'Carter Mobil',
-    subtitle: 'Luar Kota / Desa',
-    description: 'Sewa mobil lengkap dengan driver profesional untuk perjalanan pribadi/keluarga.',
+    id: 'car_ojek',
+    title: 'JSS CAR Ojek',
+    subtitle: 'Antar Penumpang via Mobil',
+    description: 'Perjalanan nyaman menggunakan mobil untuk 1-6 penumpang. Aman & berAC!',
     icon: Car,
-    badge: 'Carter',
+    badge: 'Baru 🚗',
   },
 ];
 

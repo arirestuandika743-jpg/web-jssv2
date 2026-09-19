@@ -16,7 +16,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Jasa Suruh Kalirejo — Layanan Antar Jemput & Titip Beli #1 di Kalirejo',
+    default: 'Jasa Suruh Kalirejo',
     template: '%s | Jasa Suruh Kalirejo',
   },
   description:

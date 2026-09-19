@@ -33,6 +33,7 @@ function markOrderRated(orderId: string) {
 
 const statusConfig: Record<OrderStatus, { label: string; class: string }> = {
   waiting: { label: 'Menunggu', class: 'badge-pending' },
+  need_admin_confirmation: { label: 'Menunggu Konfirmasi', class: 'bg-amber-100 text-amber-700 badge-status' },
   accepted: { label: 'Diterima', class: 'badge-active' },
   driver_going: { label: 'Driver Menuju', class: 'bg-indigo-100 text-indigo-700 badge-status' },
   shopping: { label: 'Belanja', class: 'bg-purple-100 text-purple-700 badge-status' },

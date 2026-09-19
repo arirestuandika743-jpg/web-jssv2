@@ -4,10 +4,10 @@
    ============================================ */
 
 /** Order category type */
-export type OrderCategory = 'shopping' | 'food' | 'medicine' | 'documents' | 'packages' | 'ride' | 'others';
+export type OrderCategory = 'shopping' | 'food' | 'medicine' | 'documents' | 'packages' | 'ride' | 'others' | 'car_barang' | 'car_ojek';
 
 /** Order status progression */
-export type OrderStatus = 'waiting' | 'accepted' | 'driver_going' | 'shopping' | 'delivering' | 'completed' | 'cancelled';
+export type OrderStatus = 'waiting' | 'need_admin_confirmation' | 'accepted' | 'driver_going' | 'shopping' | 'delivering' | 'completed' | 'cancelled';
 
 /** Courier-specific order status (granular steps) */
 export type CourierOrderStatus = 'accepted' | 'heading_to_pickup' | 'item_picked_up' | 'delivering' | 'completed';
@@ -81,6 +81,9 @@ export interface OrderFormData {
   passengerWeight?: string;
   luggage?: string;
   luggageDescription?: string;
+  itemWeightKg?: number;
+  itemSize?: string;
+  itemType?: string;
 }
 
 export interface ShoppingItem {
@@ -112,6 +115,7 @@ export interface DeliveryPricing {
   isRoundTrip?: boolean;
   roundTripFee?: number;
   promoDiscount?: number;
+  passengerFee?: number;
   totalDeliveryFee: number;
   estimatedItemPrice: number;
   grandTotal: number;

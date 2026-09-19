@@ -42,7 +42,8 @@ import {
   AlertTriangle,
   Info,
   Download,
-  RotateCw
+  RotateCw,
+  Locate
 } from 'lucide-react';
 import { ORDER_CATEGORIES, PAYMENT_METHODS, BRAND, MAP_CENTER } from '@/lib/constants';
 import dynamic from 'next/dynamic';
@@ -208,6 +209,11 @@ export function OrderForm() {
   const [ojekHelmet, setOjekHelmet] = useState<'need' | 'own'>('need');
   const [ojekRoundTrip, setOjekRoundTrip] = useState<boolean>(false);
 
+  // Car Barang specifics
+  const [itemWeight, setItemWeight] = useState<number | ''>('');
+  const [itemSize, setItemSize] = useState<'KECIL' | 'SEDANG' | 'BESAR'>('KECIL');
+  const [itemType, setItemType] = useState<string>('Paket');
+
   // Layout & Navigation State
   const [isMobile, setIsMobile] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(true);
@@ -228,6 +234,8 @@ export function OrderForm() {
   const [destinationAccuracy, setDestinationAccuracy] = useState<number | null>(null);
   const [destinationGpsError, setDestinationGpsError] = useState<string | null>(null);
   const [destinationGpsStatus, setDestinationGpsStatus] = useState<string | null>(null);
+  const [destinationGpsSuccess, setDestinationGpsSuccess] = useState(false);
+  const destinationSuccessTimerRef = useRef<NodeJS.Timeout | null>(null);
   const destinationCleanupRef = useRef<(() => void) | null>(null);
   const isDestinationFromGpsRef = useRef(false);
   const [gmapsLinkInput, setGmapsLinkInput] = useState('');
@@ -304,7 +312,9 @@ export function OrderForm() {
         hasPeakHour,
         hasInsurance,
         promoCode: appliedPromo || undefined,
-        isRoundTrip: category === 'ride' ? ojekRoundTrip : false,
+        isRoundTrip: (category === 'ride' || category === 'car_ojek') ? ojekRoundTrip : false,
+        passengerCount,
+        itemWeightKg: typeof itemWeight === 'number' ? itemWeight : undefined,
       });
     }
   }, [
@@ -322,6 +332,8 @@ export function OrderForm() {
     hasInsurance,
     appliedPromo,
     ojekRoundTrip,
+    passengerCount,
+    itemWeight,
     calculate
   ]);
 
@@ -685,6 +697,8 @@ export function OrderForm() {
 
     setIsLocatingDestination(true);
     setDestinationGpsError(null);
+    setDestinationGpsSuccess(false);
+    if (destinationSuccessTimerRef.current) clearTimeout(destinationSuccessTimerRef.current);
     setDestinationGpsStatus('🔍 Mencari lokasi GPS...');
     toast.info('🔍 Mencari lokasi GPS real-time HP Anda (Akurasi Tinggi)...');
 
@@ -718,6 +732,9 @@ export function OrderForm() {
           setDestinationCoords(res.coords);
           setDestinationAccuracy(res.accuracy);
           setIsLocatingDestination(false); // Found a reliable location!
+          setDestinationGpsSuccess(true);
+          if (destinationSuccessTimerRef.current) clearTimeout(destinationSuccessTimerRef.current);
+          destinationSuccessTimerRef.current = setTimeout(() => setDestinationGpsSuccess(false), 3000);
 
           console.log('GPS LATITUDE:', res.coords.lat);
           console.log('GPS LONGITUDE:', res.coords.lng);
@@ -862,6 +879,15 @@ export function OrderForm() {
 
     if (category === 'ride') {
       // Ojek validations
+    } else if (category === 'car_barang') {
+      if (itemWeight === '' || typeof itemWeight !== 'number' || itemWeight < 0) {
+        newErrors.itemWeight = 'Berat barang tidak valid. Masukkan angka minimal 0.';
+      }
+      if (!description.trim()) newErrors.description = 'Deskripsi barang wajib diisi';
+    } else if (category === 'car_ojek') {
+      if (passengerCount < 1 || passengerCount > 6) {
+        newErrors.passengerCount = 'Tidak dapat memesan. Jumlah penumpang melebihi kapasitas kendaraan.';
+      }
     } else if (['shopping', 'food', 'medicine'].includes(category)) {
       if (validShoppingItems.length === 0) {
         newErrors.shoppingItems = 'Harap isi minimal 1 barang belanjaan';
@@ -888,6 +914,10 @@ export function OrderForm() {
     let finalDescription = description;
     if (category === 'ride') {
       finalDescription = `🛵 OJEK (ANTAR ORANG)\nPenumpang: ${passengerCount} Orang\nBerat Penumpang: ${weightRange === '<80' ? '<80 kg' : weightRange === '80-120' ? '80-120 kg' : '120 kg+'}\nHelm: ${ojekHelmet === 'need' ? 'Butuh Helm' : 'Bawa Helm Sendiri'}\nPulang Pergi: ${ojekRoundTrip ? 'Ya (Pulang Pergi)' : 'Tidak'}`;
+    } else if (category === 'car_barang') {
+      finalDescription = `🚗 CAR BARANG\nJenis Barang: ${itemType}\nDeskripsi: ${description}\nBerat: ${itemWeight} kg\nUkuran: ${itemSize}`;
+    } else if (category === 'car_ojek') {
+      finalDescription = `🚗 CAR OJEK (MOBIL)\nPenumpang: ${passengerCount} Orang\nBiaya Tambahan Penumpang: Rp${pricing?.passengerFee || 0}`;
     } else if (['shopping', 'food', 'medicine'].includes(category)) {
       finalDescription = 'Daftar Belanjaan:\n' + validShoppingItems
         .map((item, idx) => `${idx + 1}. ${item.name} (${item.quantity}x) Catatan: ${item.notes || '-'}`)
@@ -913,6 +943,9 @@ export function OrderForm() {
           estimatedItemPrice: category === 'ride' ? 0 : totalItemPrice,
           deliveryNotes: finalDeliveryNotes,
           paymentMethod,
+          itemWeightKg: category === 'car_barang' ? (Number(itemWeight) || 0) : undefined,
+          itemSize: category === 'car_barang' ? itemSize : undefined,
+          itemType: category === 'car_barang' ? itemType : undefined,
         },
         {
           distance: pricing?.distance || 0,
@@ -956,15 +989,22 @@ export function OrderForm() {
       additionalText = `  - Jumlah Penumpang: ${passengerCount} Orang
   - Helm: ${ojekHelmet === 'need' ? 'Butuh Helm Admin' : 'Bawa Helm Sendiri'}
   - Pulang Pergi: ${ojekRoundTrip ? 'Ya (+Biaya Tambahan)' : 'Tidak'}`;
+    } else if (category === 'car_ojek') {
+      additionalText = `  - Jumlah Penumpang: ${passengerCount} Orang
+  - Pulang Pergi: ${ojekRoundTrip ? 'Ya (+Biaya Tambahan)' : 'Tidak'}`;
+    } else if (category === 'car_barang') {
+      additionalText = `  - Jenis Barang: ${itemType}
+  - Deskripsi: ${description}
+  - Berat: ${itemWeight} kg
+  - Ukuran: ${itemSize}`;
     } else {
-      additionalText = `  - Estimasi Berat Barang: ${weightRange} kg
-  - Jumlah Jenis Barang: ${totalItemCount} pcs`;
+      additionalText = `  - Estimasi Berat Barang: ${weightRange} kg\n  - Jumlah Jenis Barang: ${totalItemCount} pcs`;
     }
 
     const itemizedFees = pricing ? `
   - Biaya Dasar (Base): ${formatCurrency(pricing.baseFee)}
   - Biaya Jarak Tempuh: ${formatCurrency(pricing.distanceFee)}
-  ${pricing.serviceFee && pricing.serviceFee > 0 ? `  - Biaya Layanan Sistem: ${formatCurrency(pricing.serviceFee)}\n` : ''}  - Asuransi Layanan: ${formatCurrency(pricing.insuranceFee || 0)}
+  ${pricing.passengerFee && pricing.passengerFee > 0 ? `  - Biaya Penumpang: ${formatCurrency(pricing.passengerFee)}\n` : ''}${pricing.serviceFee && pricing.serviceFee > 0 ? `  - Biaya Layanan Sistem: ${formatCurrency(pricing.serviceFee)}\n` : ''}  - Asuransi Layanan: ${formatCurrency(pricing.insuranceFee || 0)}
   ${pricing.isRoundTrip && pricing.roundTripFee && pricing.roundTripFee > 0 ? `  - Layanan Pulang Pergi (PP 2x Tarif): +${formatCurrency(pricing.roundTripFee)}\n` : ''}${pricing.waitingFee > 0 ? `  - Biaya Tunggu: ${formatCurrency(pricing.waitingFee)}\n` : ''}${pricing.rainFee > 0 ? `  - Surcharge Hujan: ${formatCurrency(pricing.rainFee)}\n` : ''}${pricing.holidayFee && pricing.holidayFee > 0 ? `  - Surcharge Hari Libur: ${formatCurrency(pricing.holidayFee)}\n` : ''}${pricing.peakHourFee && pricing.peakHourFee > 0 ? `  - Surcharge Jam Sibuk: ${formatCurrency(pricing.peakHourFee)}\n` : ''}${pricing.weightFee > 0 ? `  - Surcharge Berat Paket: ${formatCurrency(pricing.weightFee)}\n` : ''}${['shopping', 'food', 'medicine'].includes(category) ? `  - Biaya Jasa Titip Belanja: GRATIS 🎉\n` : pricing.shoppingFee > 0 ? `  - Biaya Jasa Titip Belanja: ${formatCurrency(pricing.shoppingFee)}\n` : ''}${pricing.promoDiscount && pricing.promoDiscount > 0 ? `  - Diskon Promo (${appliedPromo}): -${formatCurrency(pricing.promoDiscount)}\n` : ''}` : '';
 
     const osmLink = pickupCoords && destinationCoords 
@@ -977,7 +1017,7 @@ export function OrderForm() {
 
 👤 *Pelanggan:* ${customerName}
 📞 *No. WhatsApp:* ${whatsappNumber}
-🛵 *Layanan:* ${categoryLabel}
+${category === 'car_barang' || category === 'car_ojek' ? '🚗' : '🛵'} *Layanan:* ${categoryLabel}
 
 📍 *Titik Jemput:*
 ${pickupAddress}
@@ -1360,7 +1400,7 @@ ${osmLink}`;
                     </div>
 
                     <p className="text-[11px] text-blue-700 leading-relaxed font-medium">
-                      Tekan tombol <strong className="text-blue-900 font-bold">&quot;Cek Lokasi Saat Ini&quot;</strong> untuk mendeteksi posisi presisi dari sensor GPS HP Anda secara real-time. Sistem akan otomatis menentukan lokasi tujuan Anda &amp; menghitung biaya ongkos kirim.
+                      Tekan tombol <strong className="text-blue-900 font-bold">&quot;Cek Ongkir Lokasi Saya&quot;</strong> untuk mendeteksi posisi presisi dari sensor GPS HP Anda secara real-time. Sistem akan otomatis menentukan lokasi tujuan Anda &amp; menghitung biaya ongkos kirim.
                     </p>
 
                     {destinationGpsStatus && (
@@ -1375,19 +1415,66 @@ ${osmLink}`;
                         type="button"
                         onClick={handleGetDestinationLocation}
                         disabled={isLocatingDestination}
-                        className="flex-1 min-w-[200px] bg-blue-600 text-white font-extrabold text-xs px-5 py-3.5 rounded-xl hover:bg-blue-700 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all shadow-soft disabled:opacity-50"
+                        className={`flex-1 min-w-[200px] relative group overflow-hidden text-white font-extrabold text-sm px-6 rounded-2xl transition-all duration-200 ease-out disabled:cursor-not-allowed ${
+                          destinationGpsSuccess
+                            ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.35)]'
+                            : destinationGpsError && !isLocatingDestination
+                            ? 'bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)]'
+                            : 'bg-gradient-to-r from-blue-600 to-blue-500 shadow-[0_0_24px_rgba(59,130,246,0.35)] hover:shadow-[0_0_32px_rgba(59,130,246,0.5)] hover:-translate-y-[2px] hover:brightness-110'
+                        } active:translate-y-0 active:scale-[0.98]`}
+                        style={{ height: '62px' }}
                       >
-                        {isLocatingDestination ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin text-white" />
-                            <span>Mendeteksi Lokasi GPS...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Navigation className="w-4.5 h-4.5 fill-white" />
-                            <span>🎯 Cek Lokasi Saat Ini</span>
-                          </>
+                        {/* Subtle shimmer overlay on default state */}
+                        {!isLocatingDestination && !destinationGpsSuccess && !destinationGpsError && (
+                          <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+                            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+                          </div>
                         )}
+
+                        <div className="relative z-10 flex items-center justify-center gap-3 w-full">
+                          {isLocatingDestination ? (
+                            <>
+                              <div className="relative flex items-center justify-center">
+                                <Loader2 className="w-6 h-6 animate-spin text-white" />
+                              </div>
+                              <div className="flex flex-col items-start">
+                                <span className="text-[13px] font-bold leading-tight">Mendeteksi Lokasi...</span>
+                                <span className="text-[10px] font-medium text-white/70 leading-tight">Mencari sinyal GPS</span>
+                              </div>
+                            </>
+                          ) : destinationGpsSuccess ? (
+                            <>
+                              <CheckCircle2 className="w-6 h-6 text-white" />
+                              <div className="flex flex-col items-start">
+                                <span className="text-[13px] font-bold leading-tight">Lokasi Terdeteksi</span>
+                                <span className="text-[10px] font-medium text-white/70 leading-tight">GPS berhasil ditemukan</span>
+                              </div>
+                            </>
+                          ) : destinationGpsError ? (
+                            <>
+                              <RotateCw className="w-5 h-5 text-white" />
+                              <div className="flex flex-col items-start">
+                                <span className="text-[13px] font-bold leading-tight">Coba Lagi</span>
+                                <span className="text-[10px] font-medium text-white/70 leading-tight">Deteksi GPS gagal</span>
+                              </div>
+                              <ArrowRight className="w-4 h-4 text-white/60 ml-auto" />
+                            </>
+                          ) : (
+                            <>
+                              <div className="relative flex items-center justify-center">
+                                {/* Animated GPS pulse rings */}
+                                <span className="absolute inline-flex h-8 w-8 rounded-full bg-white/20 animate-ping" style={{ animationDuration: '2s' }} />
+                                <span className="absolute inline-flex h-6 w-6 rounded-full bg-white/10 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+                                <Locate className="w-6 h-6 text-white relative z-10" />
+                              </div>
+                              <div className="flex flex-col items-start">
+                                <span className="text-[13px] font-bold leading-tight">Cek Ongkir Lokasi Saya</span>
+                                <span className="text-[10px] font-medium text-white/60 leading-tight">Deteksi GPS Real-Time</span>
+                              </div>
+                              <ArrowRight className="w-4 h-4 text-white/50 ml-auto group-hover:translate-x-1 transition-transform duration-200" />
+                            </>
+                          )}
+                        </div>
                       </button>
 
                       {destinationCoords && (
@@ -1626,7 +1713,7 @@ ${osmLink}`;
                   <span className="text-red-500 font-extrabold text-[10px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 tracking-wider">* WAJIB</span>
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {ORDER_CATEGORIES.map((cat) => {
+                  {ORDER_CATEGORIES.filter(cat => cat.id !== 'car_barang' && cat.id !== 'car_ojek').map((cat) => {
                     const Icon = CATEGORY_ICONS[cat.icon];
                     const isSelected = category === cat.id;
                     return (
@@ -1638,6 +1725,7 @@ ${osmLink}`;
                           // Default weights for Ojek vs Logistics
                           if (cat.id === 'ride') {
                             setWeightRange('<80');
+                            setPassengerCount(prev => Math.min(prev, 2));
                           } else {
                             setWeightRange('0-2');
                           }
@@ -1654,7 +1742,71 @@ ${osmLink}`;
                       </button>
                     );
                   })}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCategory('car_barang' as any);
+                      setWeightRange('0-2');
+                    }}
+                    className={cn(
+                      'p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 shadow-soft-xs bg-white',
+                      (category === 'car_barang' || category === 'car_ojek')
+                        ? 'border-amber-500 bg-amber-50 text-amber-700 font-bold scale-[1.02]'
+                        : 'border-gray-200 hover:border-amber-400 hover:bg-amber-50/20 text-gray-600'
+                    )}
+                  >
+                    <Car className={cn('w-5 h-5', (category === 'car_barang' || category === 'car_ojek') ? 'text-amber-500' : 'text-gray-400')} />
+                    <span className="text-[10px] leading-tight font-bold">JSS CAR</span>
+                  </button>
                 </div>
+                {/* JSS CAR Sub Menu */}
+                <AnimatePresence>
+                  {(category === 'car_barang' || category === 'car_ojek') && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-3 p-3 bg-amber-50/50 border border-amber-200 rounded-xl overflow-hidden"
+                    >
+                      <label className="block text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-2">
+                        Pilih Tipe Layanan Mobil:
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setCategory('car_barang' as any)}
+                          className={cn(
+                            'p-2.5 rounded-xl border text-center transition-all flex items-center justify-center gap-2 shadow-soft-xs',
+                            category === 'car_barang'
+                              ? 'border-amber-500 bg-white text-amber-700 font-bold'
+                              : 'border-amber-200 bg-amber-50/50 hover:bg-white text-amber-600'
+                          )}
+                        >
+                          <Package className="w-4 h-4" />
+                          <span className="text-[11px]">CAR BARANG</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCategory('car_ojek' as any)}
+                          className={cn(
+                            'p-2.5 rounded-xl border text-center transition-all flex items-center justify-center gap-2 shadow-soft-xs',
+                            category === 'car_ojek'
+                              ? 'border-amber-500 bg-white text-amber-700 font-bold'
+                              : 'border-amber-200 bg-amber-50/50 hover:bg-white text-amber-600'
+                          )}
+                        >
+                          <User className="w-4 h-4" />
+                          <span className="text-[11px]">CAR OJEK</span>
+                        </button>
+                      </div>
+                      <p className="text-[9px] text-amber-600/80 mt-2 text-center">
+                        {category === 'car_barang' 
+                          ? 'Untuk kirim paket, belanjaan, atau barang (mulai Rp10.000)' 
+                          : 'Untuk penumpang (mulai Rp15.000)'}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               
@@ -1710,7 +1862,7 @@ ${osmLink}`;
               
 {/* Conditional Inputs: Ride/Ojek vs. Cargo/Logistics */}
               <AnimatePresence mode="wait">
-                {category === 'ride' ? (
+                {category === 'ride' || category === 'car_ojek' ? (
                   <motion.div
                     key="ride-fields"
                     initial={{ height: 0, opacity: 0 }}
@@ -1718,67 +1870,101 @@ ${osmLink}`;
                     exit={{ height: 0, opacity: 0 }}
                     className="space-y-4 bg-white border border-gray-200 rounded-2xl p-4 shadow-soft-xs"
                   >
-                    <h4 className="text-xs font-extrabold text-gray-900 uppercase tracking-wider border-b border-gray-200 pb-2">Spesifikasi Ojek</h4>
+                    <h4 className="text-xs font-extrabold text-gray-900 uppercase tracking-wider border-b border-gray-200 pb-2">
+                      Spesifikasi {category === 'car_ojek' ? 'Mobil Penumpang' : 'Ojek'}
+                    </h4>
                     
                     {/* Passenger count */}
-                    <div className="grid grid-cols-2 gap-3.5">
+                    <div className={cn("grid gap-3.5", category === 'ride' ? 'grid-cols-2' : 'grid-cols-1')}>
                       <div>
                         <label className="block text-[10px] font-bold text-gray-500 mb-1">Jumlah Penumpang</label>
-                        <select
-                          value={passengerCount}
-                          onChange={(e) => setPassengerCount(parseInt(e.target.value))}
-                          className="w-full px-4 py-2 text-xs rounded-xl bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                        >
-                          <option value="1">1 Orang</option>
-                          <option value="2">2 Orang</option>
-                        </select>
+                        {category === 'car_ojek' ? (
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between border border-gray-200 rounded-xl p-1 bg-white">
+                              <button
+                                type="button"
+                                onClick={() => setPassengerCount(Math.max(1, passengerCount - 1))}
+                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-600 font-bold hover:bg-gray-100 transition-colors"
+                              >
+                                &minus;
+                              </button>
+                              <span className="font-extrabold text-gray-900">{passengerCount}</span>
+                              <button
+                                type="button"
+                                onClick={() => setPassengerCount(Math.min(6, passengerCount + 1))}
+                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-600 font-bold hover:bg-gray-100 transition-colors"
+                              >
+                                &#43;
+                              </button>
+                            </div>
+                            <div className="flex items-center justify-between text-[10px] bg-amber-50 p-2 rounded-lg border border-amber-100">
+                               <span className="font-bold text-amber-800">Biaya Penumpang:</span>
+                               <span className="font-black text-amber-600">
+                                 {(pricing?.passengerFee || 0) > 0 ? `+Rp${(pricing?.passengerFee || 0).toLocaleString('id-ID')}` : 'GRATIS'}
+                               </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <select
+                            value={passengerCount}
+                            onChange={(e) => setPassengerCount(parseInt(e.target.value))}
+                            className="w-full px-4 py-2 text-xs rounded-xl bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          >
+                            <option value="1">1 Orang</option>
+                            <option value="2">2 Orang</option>
+                          </select>
+                        )}
                       </div>
 
                       {/* Weight Category */}
-                      <div>
-                        <label className="block text-[10px] font-bold text-gray-500 mb-1">Rentang Berat Penumpang</label>
-                        <select
-                          value={weightRange}
-                          onChange={(e) => setWeightRange(e.target.value)}
-                          className="w-full px-4 py-2 text-xs rounded-xl bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                        >
-                          <option value="<80">&lt; 80 kg</option>
-                          <option value="80-120">80 - 120 kg (+Rp3.000)</option>
-                          <option value="120+">120 kg+ (+Rp10.000)</option>
-                        </select>
-                      </div>
+                      {category === 'ride' && (
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-1">Rentang Berat Penumpang</label>
+                          <select
+                            value={weightRange}
+                            onChange={(e) => setWeightRange(e.target.value)}
+                            className="w-full px-4 py-2 text-xs rounded-xl bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          >
+                            <option value="<80">&lt; 80 kg</option>
+                            <option value="80-120">80 - 120 kg (+Rp3.000)</option>
+                            <option value="120+">120 kg+ (+Rp10.000)</option>
+                          </select>
+                        </div>
+                      )}
                     </div>
 
                     {/* Helm selection */}
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-500 mb-1.5">Ketersediaan Helm</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setOjekHelmet('need')}
-                          className={cn(
-                            "py-2 px-2 border rounded-xl text-xs font-bold transition-all",
-                            ojekHelmet === 'need' 
-                              ? "bg-amber-500 border-amber-500 text-white font-bold shadow-soft" 
-                              : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                          )}
-                        >
-                          Butuh Helm Driver
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setOjekHelmet('own')}
-                          className={cn(
-                            "py-2 px-2 border rounded-xl text-xs font-bold transition-all",
-                            ojekHelmet === 'own' 
-                              ? "bg-amber-500 border-amber-500 text-white font-bold shadow-soft" 
-                              : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                          )}
-                        >
-                          Bawa Helm Sendiri
-                        </button>
+                    {category === 'ride' && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-500 mb-1.5">Ketersediaan Helm</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setOjekHelmet('need')}
+                            className={cn(
+                              "py-2 px-2 border rounded-xl text-xs font-bold transition-all",
+                              ojekHelmet === 'need' 
+                                ? "bg-amber-500 border-amber-500 text-white font-bold shadow-soft" 
+                                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                            )}
+                          >
+                            Butuh Helm Driver
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setOjekHelmet('own')}
+                            className={cn(
+                              "py-2 px-2 border rounded-xl text-xs font-bold transition-all",
+                              ojekHelmet === 'own' 
+                                ? "bg-amber-500 border-amber-500 text-white font-bold shadow-soft" 
+                                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                            )}
+                          >
+                            Bawa Helm Sendiri
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Roundtrip & extra waiting */}
                     <div className="flex items-center justify-between py-1 border-t border-gray-200 pt-3 mt-1">
@@ -1806,32 +1992,34 @@ ${osmLink}`;
                     <h4 className="text-xs font-extrabold text-gray-950 uppercase tracking-wider border-b border-gray-200 pb-2">Spesifikasi Paket & Titipan</h4>
                     
                     {/* Weight options */}
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-500 mb-1.5">Estimasi Berat Paket</label>
-                      <div className="grid grid-cols-5 gap-1.5">
-                        {[
-                          { val: '0-2', lbl: '0-2kg' },
-                          { val: '3-5', lbl: '3-5kg (+3k)' },
-                          { val: '6-10', lbl: '6-10kg (+8k)' },
-                          { val: '11-20', lbl: '11-20kg (+15k)' },
-                          { val: '20+', lbl: '20kg+ (+30k)' },
-                        ].map((w) => (
-                          <button
-                            key={w.val}
-                            type="button"
-                            onClick={() => setWeightRange(w.val)}
-                            className={cn(
-                              "py-2 border rounded-xl text-[9px] font-bold text-center transition-all",
-                              weightRange === w.val 
-                                ? "bg-amber-500 border-amber-500 text-white font-bold shadow-soft" 
-                                : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-                            )}
-                          >
-                            {w.lbl}
-                          </button>
-                        ))}
+                    {category !== 'car_barang' && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-500 mb-1.5">Estimasi Berat Paket</label>
+                        <div className="grid grid-cols-5 gap-1.5">
+                          {[
+                            { val: '0-2', lbl: '0-2kg' },
+                            { val: '3-5', lbl: '3-5kg (+3k)' },
+                            { val: '6-10', lbl: '6-10kg (+8k)' },
+                            { val: '11-20', lbl: '11-20kg (+15k)' },
+                            { val: '20+', lbl: '20kg+ (+30k)' },
+                          ].map((w) => (
+                            <button
+                              key={w.val}
+                              type="button"
+                              onClick={() => setWeightRange(w.val)}
+                              className={cn(
+                                "py-2 border rounded-xl text-[9px] font-bold text-center transition-all",
+                                weightRange === w.val 
+                                  ? "bg-amber-500 border-amber-500 text-white font-bold shadow-soft" 
+                                  : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                              )}
+                            >
+                              {w.lbl}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Item list for shopping food and medicine */}
                     {['shopping', 'food', 'medicine'].includes(category) && (
@@ -1887,7 +2075,7 @@ ${osmLink}`;
                     )}
 
                     {/* Standard text description for package */}
-                    {!['shopping', 'food', 'medicine'].includes(category) && (
+                    {!['shopping', 'food', 'medicine', 'car_barang'].includes(category) && (
                       <div>
                         <label className="block text-[10px] font-bold text-gray-600 mb-1">Rincian Paket / Dokumen *</label>
                         <textarea
@@ -1898,6 +2086,76 @@ ${osmLink}`;
                           className="w-full px-4 py-2.5 text-xs resize-none bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-xl placeholder:text-gray-400"
                         />
                         {errors.description && <p className="text-[10px] text-red-500 mt-0.5">{errors.description}</p>}
+                      </div>
+                    )}
+
+                    {/* Car Barang specific fields */}
+                    {category === 'car_barang' && (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-600 mb-1">Jenis Barang</label>
+                            <select
+                              value={itemType}
+                              onChange={(e) => setItemType(e.target.value)}
+                              className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            >
+                              <option value="Paket">Paket</option>
+                              <option value="Belanjaan">Belanjaan</option>
+                              <option value="Dokumen">Dokumen</option>
+                              <option value="Elektronik">Elektronik</option>
+                              <option value="Barang lainnya">Barang lainnya</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-600 mb-1">Ukuran Barang</label>
+                            <select
+                              value={itemSize}
+                              onChange={(e) => setItemSize(e.target.value as any)}
+                              className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            >
+                              <option value="KECIL">KECIL</option>
+                              <option value="SEDANG">SEDANG</option>
+                              <option value="BESAR">BESAR</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-600 mb-1">Berat Barang (kg) *</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={itemWeight}
+                            onChange={(e) => setItemWeight(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="Contoh: 15"
+                            className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          />
+                          {errors.itemWeight && <p className="text-[10px] text-red-500 mt-0.5">{errors.itemWeight}</p>}
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-600 mb-1">Deskripsi Barang *</label>
+                          <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Jelaskan isi barang secara detail..."
+                            rows={2}
+                            className="w-full px-3 py-2.5 text-xs resize-none bg-white border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-xl placeholder:text-gray-400"
+                          />
+                          {errors.description && <p className="text-[10px] text-red-500 mt-0.5">{errors.description}</p>}
+                        </div>
+
+                        {((typeof itemWeight === 'number' && itemWeight > 50) || itemSize === 'BESAR') && (
+                          <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex gap-2 items-start mt-2">
+                            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-[10px] font-bold text-amber-800 leading-tight">
+                              ⚠️ PERLU KONFIRMASI ADMIN<br/>
+                              Barang {(typeof itemWeight === 'number' && itemWeight > 50 && itemSize === 'BESAR') ? 'di atas 50 kg dan berukuran besar' : (typeof itemWeight === 'number' && itemWeight > 50) ? 'di atas 50 kg' : 'berukuran besar'} memerlukan konfirmasi Admin JSS sebelum dapat diproses.
+                            </p>
+                          </div>
+                        )}
+                        <p className="text-[9px] text-gray-400 mt-2 text-center italic px-2">Barang yang melebihi kapasitas kendaraan, berbahaya, mudah tumpah, atau tidak aman untuk dibawa dapat ditolak oleh kurir/Admin.</p>
                       </div>
                     )}
                   </motion.div>
@@ -2056,7 +2314,7 @@ ${osmLink}`;
             disabled={isSubmitDisabled}
             className="w-full btn-primary py-4 text-sm font-bold rounded-2xl shadow-golden disabled:opacity-40 flex items-center justify-center gap-2"
           >
-            <span>Pesan Sekarang</span>
+            <span>{(category === 'car_barang' && ((typeof itemWeight === 'number' && itemWeight > 50) || itemSize === 'BESAR')) ? 'Minta Persetujuan Admin' : 'Pesan Sekarang'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

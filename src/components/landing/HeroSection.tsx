@@ -166,13 +166,13 @@ export function HeroSection() {
                 style={isMobile ? {} : { x: motoX, y: motoY }}
                 className="relative z-10 flex items-center justify-center"
               >
-                <div className="relative w-full aspect-[360/220] rounded-2xl overflow-hidden border border-gray-200 shadow-soft-xl bg-white">
+                <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden">
                   <Image
-                    src="/hero-courier.png"
-                    alt="JSS Delivery Courier"
+                    src="/hero-promo.jpg"
+                    alt="JSS Delivery Courier - Jasa Suruh Kalirejo"
                     fill
-                    sizes="(max-width: 1024px) 100%, 500px"
-                    className="object-cover transition-transform duration-700 hover:scale-105"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-contain transition-transform duration-700 hover:scale-[1.02]"
                     priority
                   />
                 </div>

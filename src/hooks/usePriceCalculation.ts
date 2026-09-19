@@ -31,6 +31,8 @@ export function usePriceCalculation() {
         hasInsurance?: boolean;
         promoCode?: string;
         isRoundTrip?: boolean;
+        passengerCount?: number;
+        itemWeightKg?: number;
       }
     ) => {
       setIsCalculating(true);

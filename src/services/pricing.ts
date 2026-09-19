@@ -21,17 +21,26 @@ export function calculateDeliveryPrice(
     hasInsurance?: boolean;
     promoCode?: string;
     isRoundTrip?: boolean;
+    passengerCount?: number;
+    itemWeightKg?: number;
   }
 ): DeliveryPricing {
   const distanceInKm = distanceInMeters / 1000;
   const category = opts?.category || '';
   const isRide = category === 'ride';
+  const isCarBarang = category === 'car_barang';
+  const isCarOjek = category === 'car_ojek';
+  const isJssCar = isCarBarang || isCarOjek;
 
   // 1. Base Fee
-  const baseFee = isRide ? 10000 : 5000;
+  let baseFee = 5000;
+  if (isRide) baseFee = 10000;
+  else if (isCarOjek) baseFee = 15000;
+  else if (isCarBarang) baseFee = 10000;
 
-  // 2. Distance Fee (Rp3.000/km)
-  const perKmRate = 3000;
+  // 2. Distance Fee
+  let perKmRate = 3000;
+  if (isJssCar) perKmRate = 5000;
   const distanceFee = Math.round(distanceInKm * perKmRate);
 
   // 3. Weight Surcharge (Handles Ojek weight limits and standard logistics weights)
@@ -40,6 +49,15 @@ export function calculateDeliveryPrice(
   if (isRide) {
     if (weightRange === '80-120') weightFee = 3000;
     else if (weightRange === '120+') weightFee = 10000;
+  } else if (isCarOjek) {
+    weightFee = 0; // No weight surcharge for Car Ojek
+  } else if (isCarBarang) {
+    const w = opts?.itemWeightKg || 0;
+    if (w <= 10) weightFee = 0;
+    else if (w <= 20) weightFee = 5000;
+    else if (w <= 30) weightFee = 10000;
+    else if (w <= 40) weightFee = 20000;
+    else weightFee = 30000; // Cap at 30k, if > 50kg will require admin confirmation
   } else {
     if (weightRange === '3-5') weightFee = 3000;
     else if (weightRange === '6-10') weightFee = 8000;
@@ -47,9 +65,26 @@ export function calculateDeliveryPrice(
     else if (weightRange === '20+') weightFee = 30000;
   }
 
+  // 3.5 Passenger Fee (Khusus JSS CAR OJEK)
+  let passengerFee = 0;
+  if (isCarOjek) {
+    const pc = opts?.passengerCount || 1;
+    if (distanceInKm <= 10) {
+      if (pc === 3) passengerFee = 10000;
+      else if (pc === 4) passengerFee = 15000;
+      else if (pc === 5) passengerFee = 20000;
+      else if (pc === 6) passengerFee = 25000;
+    } else {
+      if (pc === 3) passengerFee = 25000;
+      else if (pc === 4) passengerFee = 35000;
+      else if (pc === 5) passengerFee = 45000;
+      else if (pc === 6) passengerFee = 60000;
+    }
+  }
+
   // 4. Shopping Fee (Layanan Titip Belanja - GRATIS / Rp0 promo)
   let shoppingFee = 0;
-  if (!isRide && ['shopping', 'food', 'medicine'].includes(category)) {
+  if (!isRide && !isJssCar && ['shopping', 'food', 'medicine'].includes(category)) {
     shoppingFee = 0;
   }
 
@@ -60,7 +95,7 @@ export function calculateDeliveryPrice(
   const heavyItemFee = 0;
 
   // 7. Large Quantity Fee (Rp0 by default, active only if explicitly requested)
-  const largeQuantityFee = (!isRide && opts?.hasLargeQuantity) ? (opts.itemCount || 0) * 500 : 0;
+  const largeQuantityFee = (!isRide && !isJssCar && opts?.hasLargeQuantity) ? (opts.itemCount || 0) * 500 : 0;
 
   // 8. Remote Area Fee (Rp10.000 if distance > 20 km)
   const remoteAreaFee = distanceInKm > 20 ? 10000 : 0;
@@ -98,6 +133,7 @@ export function calculateDeliveryPrice(
     baseFee +
     distanceFee +
     weightFee +
+    passengerFee +
     shoppingFee +
     waitingFee +
     heavyItemFee +
@@ -110,8 +146,12 @@ export function calculateDeliveryPrice(
     serviceFee +
     insuranceFee;
 
-  // Ensure minimum delivery fee (Rp10.000 for Ojek, Rp5.000 for standard)
-  const minDeliveryFee = isRide ? 10000 : 5000;
+  // Ensure minimum delivery fee
+  let minDeliveryFee = 5000;
+  if (isRide) minDeliveryFee = 10000;
+  else if (isCarOjek) minDeliveryFee = 15000;
+  else if (isCarBarang) minDeliveryFee = 10000;
+  
   totalDeliveryFee = Math.max(totalDeliveryFee, minDeliveryFee);
 
   // Round to nearest Rp500
@@ -149,6 +189,7 @@ export function calculateDeliveryPrice(
     baseFee,
     distanceFee,
     weightFee,
+    passengerFee,
     shoppingFee,
     waitingFee,
     heavyItemFee,

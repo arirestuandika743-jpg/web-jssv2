@@ -171,6 +171,13 @@ export const dbService = {
     const cleanDescription = sanitizeString(formData.description);
     const cleanDeliveryNotes = formData.deliveryNotes ? sanitizeString(formData.deliveryNotes) : null;
 
+    let initialStatus: any = 'waiting';
+    if (formData.category === 'car_barang') {
+      if ((formData.itemWeightKg !== undefined && formData.itemWeightKg > 50) || formData.itemSize === 'BESAR') {
+        initialStatus = 'need_admin_confirmation';
+      }
+    }
+
     let newOrderResult: Order;
 
     if (isSupabaseEnabled && supabase) {
@@ -195,7 +202,7 @@ export const dbService = {
           duration: pricing.duration,
           delivery_fee: pricing.totalDeliveryFee,
           grand_total: pricing.grandTotal,
-          status: 'waiting',
+          status: initialStatus,
           payment_method: formData.paymentMethod,
           payment_status: 'pending',
         })
@@ -254,7 +261,7 @@ export const dbService = {
         duration: pricing.duration,
         deliveryFee: pricing.totalDeliveryFee,
         grandTotal: pricing.grandTotal,
-        status: 'waiting',
+        status: initialStatus,
         paymentMethod: formData.paymentMethod,
         paymentStatus: 'pending',
         createdAt: new Date().toISOString(),

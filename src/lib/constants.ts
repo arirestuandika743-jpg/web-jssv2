@@ -91,6 +91,20 @@ export const ORDER_CATEGORIES = [
     description: 'Antar jemput penumpang cepat',
     color: '#10B981',
   },
+  {
+    id: 'car_barang',
+    label: 'JSS CAR BARANG',
+    icon: 'Truck',
+    description: 'Antar barang, paket & belanjaan',
+    color: '#F59E0B',
+  },
+  {
+    id: 'car_ojek',
+    label: 'JSS CAR OJEK',
+    icon: 'Car',
+    description: 'Antar penumpang menggunakan mobil',
+    color: '#10B981',
+  },
 ] as const;
 
 /** Pricing configuration */

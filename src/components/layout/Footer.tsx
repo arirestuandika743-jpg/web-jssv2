@@ -22,6 +22,8 @@ const footerLinks = {
     { label: 'Titip Beli Obat', href: '/order?category=medicine' },
     { label: 'Kirim Dokumen', href: '/order?category=documents' },
     { label: 'Ojek Online', href: '/order?category=ride' },
+    { label: 'JSS CAR Barang', href: '/order?category=car_barang' },
+    { label: 'JSS CAR Ojek', href: '/order?category=car_ojek' },
   ],
   perusahaan: [
     { label: 'Beranda', href: '/' },
