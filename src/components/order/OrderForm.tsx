@@ -850,7 +850,7 @@ export function OrderForm() {
       return;
     }
 
-    if (['JSSPERDANA', 'DISKON30', 'DISKON50'].includes(code)) {
+    if (['DISKON30', 'DISKON50'].includes(code)) {
       setAppliedPromo(code);
       setAppliedPromoAmount(0); // Handled in pricing.ts explicitly
       toast.success(`Kode promo "${code}" berhasil diterapkan!`);
@@ -2272,7 +2272,7 @@ ${osmLink}`;
                     type="text"
                     value={promoCodeInput}
                     onChange={(e) => setPromoCodeInput(e.target.value)}
-                    placeholder="cth: JSSPERDANA"
+                    placeholder="cth: DISKON30"
                     className="flex-1 px-4 py-2.5 text-xs rounded-xl bg-white border border-gray-250 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 uppercase placeholder:text-gray-400"
                   />
                   <button

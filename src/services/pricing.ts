@@ -158,9 +158,7 @@ export function calculateDeliveryPrice(
   let promoDiscount = opts?.promoDiscountAmount || 0;
   if (!promoDiscount && opts?.promoCode) {
     const code = opts.promoCode.toUpperCase();
-    if (code === 'JSSPERDANA') {
-      promoDiscount = 5000;
-    } else if (code === 'DISKON30') {
+    if (code === 'DISKON30') {
       promoDiscount = Math.round((totalDeliveryFee * 0.3) / 500) * 500;
     } else if (code === 'DISKON50') {
       promoDiscount = Math.round((totalDeliveryFee * 0.5) / 500) * 500;
