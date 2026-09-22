@@ -30,6 +30,7 @@ export function usePriceCalculation() {
         hasPeakHour?: boolean;
         hasInsurance?: boolean;
         promoCode?: string;
+        promoDiscountAmount?: number;
         isRoundTrip?: boolean;
         passengerCount?: number;
         itemWeightKg?: number;

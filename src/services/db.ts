@@ -8,6 +8,7 @@ import type { Order, OrderFormData, Driver, User, OrderStatus, LatLng, Dashboard
 
 import { broadcastService } from './broadcastService';
 import { notificationService } from './notificationService';
+import { promoService } from './promoService';
 
 const supabase = isSupabaseEnabled ? createClient() : null;
 
@@ -270,6 +271,15 @@ export const dbService = {
 
       orders.unshift(newOrderResult); // Add to beginning
       saveMockOrders(orders);
+    }
+
+    // Increment promo usage if applied
+    if (formData.appliedPromoCode) {
+      try {
+        await promoService.incrementPromoUsage(formData.appliedPromoCode);
+      } catch (err) {
+        console.warn('Failed to increment promo usage:', err);
+      }
     }
 
     // Sync with Server API Route (/api/orders) across all domain origins

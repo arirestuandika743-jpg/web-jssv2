@@ -84,6 +84,7 @@ export interface OrderFormData {
   itemWeightKg?: number;
   itemSize?: string;
   itemType?: string;
+  appliedPromoCode?: string;
 }
 
 export interface ShoppingItem {
@@ -146,6 +147,7 @@ export interface Order {
   paymentStatus: PaymentStatus;
   driverId?: string;
   driverName?: string;
+  appliedPromoCode?: string;
   createdAt: string;
   updatedAt: string;
   // Extended fields for courier dashboard
@@ -480,4 +482,21 @@ export interface ExportFilter {
   endDate: string;
   type: 'orders' | 'revenue' | 'couriers' | 'full';
   format: 'xlsx' | 'pdf';
+}
+
+/** Promo Code Status */
+export type PromoCodeStatus = 'active' | 'used' | 'expired' | 'revoked';
+
+/** Promo Code */
+export interface PromoCode {
+  id: string;
+  code: string;
+  discountAmount: number;
+  winnerName: string;
+  winnerWhatsapp?: string;
+  createdAt: string;
+  expiresAt: string;
+  usageCount: number;
+  maxUsage: number;
+  status: PromoCodeStatus;
 }

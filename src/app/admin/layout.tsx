@@ -23,6 +23,7 @@ import {
   Activity,
   FileDown,
   Wallet,
+  Gift,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +38,7 @@ const sidebarLinks = [
   { icon: Users, label: 'Pelanggan', href: '/admin/customers' },
   { icon: Truck, label: 'Driver', href: '/admin/drivers' },
   { icon: Activity, label: 'Log Aktivitas', href: '/admin/activity-log' },
+  { icon: Gift, label: 'Promo Giveaway', href: '/admin/promo' },
   { icon: FileDown, label: 'Export', href: '/admin/export' },
   { icon: Settings, label: 'Pengaturan', href: '/admin/settings' },
 ];

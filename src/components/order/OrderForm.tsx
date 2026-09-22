@@ -93,6 +93,7 @@ import { useSearchParams } from 'next/navigation';
 import { PageTransition, FadeIn } from '@/components/layout/PageTransition';
 import { useAuth } from '@/context/AuthContext';
 import { dbService } from '@/services/db';
+import { promoService } from '@/services/promoService';
 import { toast } from 'sonner';
 
 const LOCATION_TYPES = [
@@ -199,9 +200,10 @@ export function OrderForm() {
   const [hasRain, setHasRain] = useState<boolean>(false);
   const [hasHoliday, setHasHoliday] = useState<boolean>(false);
   const [hasPeakHour, setHasPeakHour] = useState<boolean>(false);
-  const [hasInsurance, setHasInsurance] = useState<boolean>(true);
+  const [hasInsurance, setHasInsurance] = useState<boolean>(false);
   const [promoCodeInput, setPromoCodeInput] = useState<string>('');
   const [appliedPromo, setAppliedPromo] = useState<string>('');
+  const [appliedPromoAmount, setAppliedPromoAmount] = useState<number>(0);
   const [routeOption, setRouteOption] = useState<'fastest' | 'shortest' | 'motorcycle'>('fastest');
 
   // Ojek specifics
@@ -264,13 +266,7 @@ export function OrderForm() {
   const [whatsappUrl, setWhatsappUrl] = useState<string>('');
   const [isDownloadingReceipt, setIsDownloadingReceipt] = useState(false);
 
-  // Auto-detect Peak Hour (17.00 - 19.00)
-  useEffect(() => {
-    const hours = new Date().getHours();
-    if (hours >= 17 && hours <= 19) {
-      setHasPeakHour(true);
-    }
-  }, []);
+
 
   // Detect responsive screen
   useEffect(() => {
@@ -312,6 +308,7 @@ export function OrderForm() {
         hasPeakHour,
         hasInsurance,
         promoCode: appliedPromo || undefined,
+        promoDiscountAmount: appliedPromoAmount || undefined,
         isRoundTrip: (category === 'ride' || category === 'car_ojek') ? ojekRoundTrip : false,
         passengerCount,
         itemWeightKg: typeof itemWeight === 'number' ? itemWeight : undefined,
@@ -331,6 +328,7 @@ export function OrderForm() {
     hasPeakHour,
     hasInsurance,
     appliedPromo,
+    appliedPromoAmount,
     ojekRoundTrip,
     passengerCount,
     itemWeight,
@@ -816,6 +814,12 @@ export function OrderForm() {
     setDestinationAccuracy(null);
     setGmapsLinkInput('');
     setErrors({});
+    
+    // Reset all surcharges to OFF
+    setHasRain(false);
+    setHasHoliday(false);
+    setHasPeakHour(false);
+    setHasInsurance(false);
     toast.info('Lokasi jemput dikembalikan ke Kalirejo & lokasi tujuan direset');
   };
 
@@ -837,19 +841,35 @@ export function OrderForm() {
   };
 
   // Apply code promo action
-  const handleApplyPromo = () => {
+  const handleApplyPromo = async () => {
     const code = promoCodeInput.trim().toUpperCase();
     if (!code) {
       setAppliedPromo('');
+      setAppliedPromoAmount(0);
       toast.info('Kode promo dikosongkan.');
       return;
     }
 
     if (['JSSPERDANA', 'DISKON30', 'DISKON50'].includes(code)) {
       setAppliedPromo(code);
+      setAppliedPromoAmount(0); // Handled in pricing.ts explicitly
       toast.success(`Kode promo "${code}" berhasil diterapkan!`);
-    } else {
-      toast.error('Kode promo tidak valid atau sudah kedaluwarsa.');
+      return;
+    }
+
+    try {
+      const result = await promoService.validatePromoCode(code, whatsappNumber);
+      if (result.valid) {
+        setAppliedPromo(code);
+        setAppliedPromoAmount(result.discountAmount);
+        toast.success(`Kode promo "${code}" berhasil diterapkan! Diskon: -${formatCurrency(result.discountAmount)}`);
+      } else {
+        setAppliedPromo('');
+        setAppliedPromoAmount(0);
+        toast.error(result.message || 'Kode promo tidak valid.');
+      }
+    } catch (e) {
+      toast.error('Gagal memvalidasi kode promo.');
     }
   };
 
@@ -946,6 +966,7 @@ export function OrderForm() {
           itemWeightKg: category === 'car_barang' ? (Number(itemWeight) || 0) : undefined,
           itemSize: category === 'car_barang' ? itemSize : undefined,
           itemType: category === 'car_barang' ? itemType : undefined,
+          appliedPromoCode: appliedPromo || undefined,
         },
         {
           distance: pricing?.distance || 0,

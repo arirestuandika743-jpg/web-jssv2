@@ -20,6 +20,7 @@ export function calculateDeliveryPrice(
     hasPeakHour?: boolean;
     hasInsurance?: boolean;
     promoCode?: string;
+    promoDiscountAmount?: number;
     isRoundTrip?: boolean;
     passengerCount?: number;
     itemWeightKg?: number;
@@ -109,18 +110,8 @@ export function calculateDeliveryPrice(
   // 11. Holiday Fee (Rp2.000 flat when holiday is active)
   const holidayFee = opts?.hasHoliday ? 2000 : 0;
 
-  // 12. Peak Hour Fee (Rp3.000 flat, auto-detect between 17:00-19:00 or if set manually)
-  let isPeak = false;
-  if (opts?.hasPeakHour !== undefined) {
-    isPeak = opts.hasPeakHour;
-  } else {
-    try {
-      const now = new Date();
-      const hours = now.getHours();
-      isPeak = hours >= 17 && hours <= 19;
-    } catch (e) {}
-  }
-  const peakHourFee = isPeak ? 3000 : 0;
+  // 12. Peak Hour Fee (Rp3.000 flat)
+  const peakHourFee = opts?.hasPeakHour ? 3000 : 0;
 
   // 13. Service Fee / Platform Fee (Rp0 flat)
   const serviceFee = 0;
@@ -164,8 +155,8 @@ export function calculateDeliveryPrice(
   }
 
   // 15. Promo Discount
-  let promoDiscount = 0;
-  if (opts?.promoCode) {
+  let promoDiscount = opts?.promoDiscountAmount || 0;
+  if (!promoDiscount && opts?.promoCode) {
     const code = opts.promoCode.toUpperCase();
     if (code === 'JSSPERDANA') {
       promoDiscount = 5000;
@@ -174,8 +165,8 @@ export function calculateDeliveryPrice(
     } else if (code === 'DISKON50') {
       promoDiscount = Math.round((totalDeliveryFee * 0.5) / 500) * 500;
     }
-    promoDiscount = Math.min(promoDiscount, totalDeliveryFee);
   }
+  promoDiscount = Math.min(promoDiscount, totalDeliveryFee);
 
   const finalDeliveryFee = totalDeliveryFee - promoDiscount;
   const grandTotal = finalDeliveryFee + estimatedItemPrice;
