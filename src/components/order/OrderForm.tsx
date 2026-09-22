@@ -850,13 +850,6 @@ export function OrderForm() {
       return;
     }
 
-    if (['DISKON30', 'DISKON50'].includes(code)) {
-      setAppliedPromo(code);
-      setAppliedPromoAmount(0); // Handled in pricing.ts explicitly
-      toast.success(`Kode promo "${code}" berhasil diterapkan!`);
-      return;
-    }
-
     try {
       const result = await promoService.validatePromoCode(code, whatsappNumber);
       if (result.valid) {
@@ -866,7 +859,7 @@ export function OrderForm() {
       } else {
         setAppliedPromo('');
         setAppliedPromoAmount(0);
-        toast.error(result.message || 'Kode promo tidak valid.');
+        toast.error('Kode promo tidak valid atau sudah tidak berlaku.');
       }
     } catch (e) {
       toast.error('Gagal memvalidasi kode promo.');
@@ -2272,7 +2265,7 @@ ${osmLink}`;
                     type="text"
                     value={promoCodeInput}
                     onChange={(e) => setPromoCodeInput(e.target.value)}
-                    placeholder="cth: DISKON30"
+                    placeholder="Masukkan kode promo..."
                     className="flex-1 px-4 py-2.5 text-xs rounded-xl bg-white border border-gray-250 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 uppercase placeholder:text-gray-400"
                   />
                   <button
