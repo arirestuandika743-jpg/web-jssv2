@@ -1,0 +1,1147 @@
+/* ============================================
+   JSS Mobile App — Design System
+   Brand: Black + Yellow + White
+   ============================================ */
+
+/* ============================================
+   CSS Variables
+   ============================================ */
+:root {
+  --jss-black: #0A0A0A;
+  --jss-black-light: #1A1A1A;
+  --jss-black-card: #141414;
+  --jss-yellow: #FFD700;
+  --jss-yellow-hover: #E6C200;
+  --jss-yellow-light: #FFF3B0;
+  --jss-yellow-glow: rgba(255, 215, 0, 0.15);
+  --jss-white: #FFFFFF;
+  --jss-gray-50: #FAFAFA;
+  --jss-gray-100: #F5F5F5;
+  --jss-gray-200: #E5E5E5;
+  --jss-gray-300: #D4D4D4;
+  --jss-gray-400: #A3A3A3;
+  --jss-gray-500: #737373;
+  --jss-gray-600: #525252;
+  --jss-gray-700: #404040;
+  --jss-gray-800: #262626;
+  --jss-gray-900: #171717;
+  --jss-green: #22C55E;
+  --jss-green-light: rgba(34, 197, 94, 0.15);
+  --jss-red: #EF4444;
+  --jss-red-light: rgba(239, 68, 68, 0.15);
+  --jss-blue: #3B82F6;
+  --jss-blue-light: rgba(59, 130, 246, 0.15);
+  --jss-orange: #F97316;
+  --jss-orange-light: rgba(249, 115, 22, 0.15);
+  --jss-radius-sm: 8px;
+  --jss-radius-md: 12px;
+  --jss-radius-lg: 16px;
+  --jss-radius-xl: 20px;
+  --jss-radius-full: 9999px;
+  --jss-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --jss-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --jss-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --jss-shadow-glow: 0 0 20px rgba(255, 215, 0, 0.2);
+  --jss-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --jss-nav-height: 64px;
+  --jss-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ============================================
+   Global Mobile Styles
+   ============================================ */
+.jss-mobile-app {
+  min-height: 100dvh;
+  background: var(--jss-black);
+  color: var(--jss-white);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  padding-bottom: calc(var(--jss-nav-height) + var(--jss-safe-bottom));
+}
+
+.jss-mobile-app * {
+  box-sizing: border-box;
+}
+
+/* ============================================
+   Splash Screen
+   ============================================ */
+.jss-splash {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--jss-black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.jss-splash.fade-out {
+  opacity: 0;
+  transform: scale(1.05);
+}
+
+.jss-splash-logo {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 24px;
+  animation: splashLogoIn 0.8s ease-out;
+}
+
+.jss-splash-brand {
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--jss-yellow);
+  letter-spacing: 6px;
+  animation: splashTextIn 0.8s ease-out 0.2s both;
+}
+
+.jss-splash-tagline {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: splashTextIn 0.8s ease-out 0.4s both;
+}
+
+.jss-splash-loader {
+  margin-top: 48px;
+  width: 40px;
+  height: 3px;
+  background: var(--jss-gray-800);
+  border-radius: 3px;
+  overflow: hidden;
+  animation: splashTextIn 0.6s ease-out 0.6s both;
+}
+
+.jss-splash-loader-bar {
+  width: 60%;
+  height: 100%;
+  background: var(--jss-yellow);
+  border-radius: 3px;
+  animation: splashLoad 1.2s ease-in-out infinite;
+}
+
+@keyframes splashLogoIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes splashTextIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes splashLoad {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(80%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* ============================================
+   Welcome / Auth Screen
+   ============================================ */
+.jss-welcome {
+  min-height: 100dvh;
+  background: var(--jss-black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.jss-welcome-logo {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 20px;
+}
+
+.jss-welcome-brand {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--jss-yellow);
+  letter-spacing: 4px;
+}
+
+.jss-welcome-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 2px;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.jss-welcome-tagline {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 32px;
+  line-height: 1.6;
+  max-width: 280px;
+}
+
+.jss-welcome-actions {
+  margin-top: 48px;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+.jss-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: var(--jss-radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--jss-transition);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.jss-btn:active {
+  transform: scale(0.97);
+}
+
+.jss-btn-primary {
+  background: var(--jss-yellow);
+  color: var(--jss-black);
+}
+
+.jss-btn-primary:hover {
+  background: var(--jss-yellow-hover);
+  box-shadow: var(--jss-shadow-glow);
+}
+
+.jss-btn-outline {
+  background: transparent;
+  color: var(--jss-white);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.jss-btn-outline:hover {
+  border-color: rgba(255, 215, 0, 0.4);
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.jss-btn-ghost {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.jss-btn-ghost:hover {
+  color: var(--jss-white);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.jss-btn-danger {
+  background: var(--jss-red);
+  color: var(--jss-white);
+}
+
+.jss-btn-success {
+  background: var(--jss-green);
+  color: var(--jss-white);
+}
+
+.jss-btn-block {
+  width: 100%;
+}
+
+.jss-btn-sm {
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+.jss-btn-lg {
+  padding: 16px 32px;
+  font-size: 16px;
+  border-radius: var(--jss-radius-lg);
+}
+
+.jss-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ============================================
+   Cards
+   ============================================ */
+.jss-card {
+  background: var(--jss-black-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--jss-radius-lg);
+  padding: 16px;
+  transition: var(--jss-transition);
+}
+
+.jss-card-hover:active {
+  transform: scale(0.98);
+  border-color: rgba(255, 215, 0, 0.2);
+}
+
+.jss-card-yellow {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.03));
+  border-color: rgba(255, 215, 0, 0.15);
+}
+
+/* ============================================
+   Customer Home
+   ============================================ */
+.jss-home {
+  padding: 0 16px 24px;
+}
+
+.jss-home-header {
+  padding: 16px 0 20px;
+}
+
+.jss-home-greeting {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--jss-white);
+  margin: 0;
+}
+
+.jss-home-subgreeting {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+}
+
+/* Location card */
+.jss-location-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--jss-black-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--jss-radius-md);
+  margin-bottom: 24px;
+  cursor: pointer;
+  transition: var(--jss-transition);
+}
+
+.jss-location-card:active {
+  border-color: rgba(255, 215, 0, 0.3);
+  transform: scale(0.98);
+}
+
+.jss-location-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--jss-radius-sm);
+  background: var(--jss-yellow-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--jss-yellow);
+}
+
+.jss-location-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.jss-location-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.jss-location-address {
+  font-size: 13px;
+  color: var(--jss-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* Section heading */
+.jss-section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--jss-white);
+  margin: 0 0 16px;
+  letter-spacing: -0.02em;
+}
+
+.jss-section-subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+/* ============================================
+   Service Grid
+   ============================================ */
+.jss-service-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.jss-service-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 4px;
+  background: var(--jss-black-card);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: var(--jss-radius-md);
+  cursor: pointer;
+  transition: var(--jss-transition);
+  text-decoration: none;
+}
+
+.jss-service-item:active {
+  transform: scale(0.93);
+  border-color: rgba(255, 215, 0, 0.3);
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.jss-service-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--jss-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.jss-service-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--jss-white);
+  text-align: center;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+
+/* ============================================
+   Promo Banner
+   ============================================ */
+.jss-promo-banner {
+  position: relative;
+  border-radius: var(--jss-radius-lg);
+  overflow: hidden;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #1A1A1A 0%, #0A0A0A 100%);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  cursor: pointer;
+  transition: var(--jss-transition);
+}
+
+.jss-promo-banner:active {
+  transform: scale(0.98);
+}
+
+.jss-promo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--jss-yellow);
+  color: var(--jss-black);
+  border-radius: var(--jss-radius-full);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.jss-promo-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--jss-white);
+  margin: 0 0 6px;
+}
+
+.jss-promo-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.jss-promo-glow {
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.15), transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ============================================
+   Order Cards
+   ============================================ */
+.jss-order-card {
+  background: var(--jss-black-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--jss-radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: var(--jss-transition);
+  cursor: pointer;
+}
+
+.jss-order-card:active {
+  transform: scale(0.98);
+}
+
+.jss-order-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.jss-order-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--jss-yellow);
+  letter-spacing: 0.5px;
+}
+
+.jss-order-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--jss-radius-full);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.jss-status-pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #FBBF24;
+}
+
+.jss-status-active {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60A5FA;
+}
+
+.jss-status-completed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ADE80;
+}
+
+.jss-status-cancelled {
+  background: rgba(239, 68, 68, 0.15);
+  color: #F87171;
+}
+
+.jss-order-route {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.jss-order-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.jss-order-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.jss-order-dot-pickup {
+  background: var(--jss-green);
+}
+
+.jss-order-dot-dest {
+  background: var(--jss-red);
+}
+
+.jss-order-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.jss-order-service {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.jss-order-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--jss-yellow);
+}
+
+/* ============================================
+   Form Inputs
+   ============================================ */
+.jss-input-group {
+  margin-bottom: 16px;
+}
+
+.jss-input-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+
+.jss-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--jss-black-card);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--jss-radius-md);
+  color: var(--jss-white);
+  font-size: 15px;
+  font-family: inherit;
+  transition: var(--jss-transition);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.jss-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.jss-input:focus {
+  border-color: var(--jss-yellow);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.jss-input-error {
+  border-color: var(--jss-red) !important;
+}
+
+.jss-error-text {
+  font-size: 12px;
+  color: var(--jss-red);
+  margin-top: 4px;
+}
+
+/* ============================================
+   Tabs
+   ============================================ */
+.jss-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--jss-black-card);
+  border-radius: var(--jss-radius-md);
+  padding: 4px;
+  margin-bottom: 20px;
+}
+
+.jss-tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--jss-radius-sm);
+  cursor: pointer;
+  transition: var(--jss-transition);
+}
+
+.jss-tab.active {
+  background: var(--jss-yellow);
+  color: var(--jss-black);
+}
+
+/* ============================================
+   Empty State
+   ============================================ */
+.jss-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.jss-empty-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.jss-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 8px;
+}
+
+.jss-empty-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   Courier Dashboard
+   ============================================ */
+.jss-courier-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--jss-radius-full);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jss-courier-online {
+  background: var(--jss-green-light);
+  color: var(--jss-green);
+}
+
+.jss-courier-offline {
+  background: var(--jss-red-light);
+  color: var(--jss-red);
+}
+
+.jss-courier-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.jss-stat-card {
+  background: var(--jss-black-card);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: var(--jss-radius-md);
+  padding: 16px;
+  text-align: center;
+}
+
+.jss-stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--jss-yellow);
+}
+
+.jss-stat-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ============================================
+   Order Broadcast Alert
+   ============================================ */
+.jss-broadcast-alert {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 24px;
+  animation: fadeIn 0.3s ease;
+}
+
+.jss-broadcast-card {
+  background: var(--jss-black-card);
+  border: 2px solid var(--jss-yellow);
+  border-radius: var(--jss-radius-xl);
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  animation: slideUp 0.3s ease;
+}
+
+.jss-broadcast-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.jss-broadcast-alert-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--jss-yellow);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.jss-broadcast-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--jss-yellow);
+}
+
+.jss-broadcast-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* ============================================
+   Bottom Sheet
+   ============================================ */
+.jss-bottom-sheet-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1500;
+  animation: fadeIn 0.2s ease;
+}
+
+.jss-bottom-sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--jss-black-light);
+  border-top-left-radius: var(--jss-radius-xl);
+  border-top-right-radius: var(--jss-radius-xl);
+  padding: 8px 20px 24px;
+  z-index: 1501;
+  max-height: 85dvh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+.jss-bottom-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--jss-gray-700);
+  border-radius: var(--jss-radius-full);
+  margin: 0 auto 16px;
+}
+
+/* ============================================
+   Panic Button
+   ============================================ */
+.jss-panic-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: var(--jss-red);
+  border: none;
+  border-radius: var(--jss-radius-md);
+  color: var(--jss-white);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--jss-transition);
+  letter-spacing: 0.5px;
+}
+
+.jss-panic-btn:active {
+  transform: scale(0.97);
+  background: #DC2626;
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.jss-skeleton {
+  background: linear-gradient(90deg, var(--jss-gray-800) 25%, var(--jss-gray-700) 50%, var(--jss-gray-800) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--jss-radius-sm);
+}
+
+/* ============================================
+   Loading States
+   ============================================ */
+.jss-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.jss-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--jss-gray-800);
+  border-top-color: var(--jss-yellow);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.jss-loading-text {
+  margin-top: 12px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ============================================
+   Scrollbar (Webkit)
+   ============================================ */
+.jss-mobile-app ::-webkit-scrollbar {
+  width: 4px;
+}
+.jss-mobile-app ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.jss-mobile-app ::-webkit-scrollbar-thumb {
+  background: var(--jss-gray-700);
+  border-radius: 4px;
+}
+
+/* ============================================
+   Divider
+   ============================================ */
+.jss-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 16px 0;
+}
+
+/* ============================================
+   Badge
+   ============================================ */
+.jss-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--jss-radius-full);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.jss-badge-yellow {
+  background: rgba(255, 215, 0, 0.15);
+  color: var(--jss-yellow);
+}
+
+.jss-badge-green {
+  background: var(--jss-green-light);
+  color: var(--jss-green);
+}
+
+.jss-badge-red {
+  background: var(--jss-red-light);
+  color: var(--jss-red);
+}
+
+/* ============================================
+   Page Title Bar
+   ============================================ */
+.jss-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  background: var(--jss-black);
+  z-index: 100;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.jss-title-bar-back {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--jss-white);
+  cursor: pointer;
+  border-radius: var(--jss-radius-sm);
+  transition: var(--jss-transition);
+}
+
+.jss-title-bar-back:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.jss-title-bar-text {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--jss-white);
+  letter-spacing: -0.01em;
+}
+
+/* ============================================
+   Menu Item (Profile)
+   ============================================ */
+.jss-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  transition: var(--jss-transition);
+  color: var(--jss-white);
+  text-decoration: none;
+  border-radius: var(--jss-radius-md);
+}
+
+.jss-menu-item:active {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.jss-menu-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--jss-radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--jss-yellow);
+  flex-shrink: 0;
+}
+
+.jss-menu-content {
+  flex: 1;
+  text-align: left;
+}
+
+.jss-menu-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.jss-menu-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 2px;
+}
+
+.jss-menu-arrow {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   Toast
+   ============================================ */
+.jss-toast {
+  position: fixed;
+  bottom: calc(var(--jss-nav-height) + 16px);
+  left: 16px;
+  right: 16px;
+  background: var(--jss-gray-800);
+  color: var(--jss-white);
+  padding: 14px 16px;
+  border-radius: var(--jss-radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 3000;
+  animation: slideUp 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--jss-shadow-lg);
+}
+
+.jss-toast-success {
+  border-left: 3px solid var(--jss-green);
+}
+
+.jss-toast-error {
+  border-left: 3px solid var(--jss-red);
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (min-width: 480px) {
+  .jss-service-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .jss-service-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
