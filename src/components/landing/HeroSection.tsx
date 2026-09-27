@@ -127,9 +127,9 @@ export function HeroSection() {
               </Link>
 
               <a
-                href="/jss-app.apk"
-                download
-                className="btn-outline text-sm sm:text-base font-semibold px-8 py-4 flex items-center justify-center gap-2 rounded-2xl bg-gray-900 text-white border-transparent hover:bg-gray-800"
+                href="/downloads/JSS-Kalirejo.apk"
+                download="JSS-Kalirejo.apk"
+                className="btn-outline text-sm sm:text-base font-semibold px-8 py-4 flex items-center justify-center gap-2 rounded-2xl bg-gray-900 text-white border-transparent hover:bg-gray-800 hover:scale-[1.02] transition-transform active:scale-95"
               >
                 <Download className="w-4 h-4" />
                 <span>UNDUH APK</span>
