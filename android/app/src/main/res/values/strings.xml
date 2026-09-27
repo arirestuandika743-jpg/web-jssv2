@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">JSS Kalirejo</string>
+    <string name="title_activity_main">JSS Kalirejo</string>
+    <string name="package_name">com.jss.kalirejo</string>
+    <string name="custom_url_scheme">com.jss.kalirejo</string>
+</resources>

@@ -3,7 +3,7 @@
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Zap, ShieldCheck, MapPin, UtensilsCrossed, Package, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Zap, ShieldCheck, MapPin, UtensilsCrossed, Package, ShoppingBag, Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function HeroSection() {
@@ -125,6 +125,15 @@ export function HeroSection() {
               >
                 <span>LIHAT LAYANAN</span>
               </Link>
+
+              <a
+                href="/jss-app.apk"
+                download
+                className="btn-outline text-sm sm:text-base font-semibold px-8 py-4 flex items-center justify-center gap-2 rounded-2xl bg-gray-900 text-white border-transparent hover:bg-gray-800"
+              >
+                <Download className="w-4 h-4" />
+                <span>UNDUH APK</span>
+              </a>
             </motion.div>
 
             {/* Trust Markers */}

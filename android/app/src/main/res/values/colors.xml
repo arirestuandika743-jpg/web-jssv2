@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- JSS Brand Colors: Yellow & Black -->
+    <color name="colorPrimary">#FFFF00</color>
+    <color name="colorPrimaryDark">#E6E600</color>
+    <color name="colorAccent">#FFD700</color>
+</resources>
