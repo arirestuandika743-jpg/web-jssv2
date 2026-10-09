@@ -44,7 +44,10 @@
   --jss-shadow-glow: 0 0 20px rgba(255, 215, 0, 0.2);
   --jss-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --jss-nav-height: 64px;
+  --jss-safe-top: env(safe-area-inset-top, 0px);
   --jss-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --jss-safe-left: env(safe-area-inset-left, 0px);
+  --jss-safe-right: env(safe-area-inset-right, 0px);
 }
 
 /* ============================================
